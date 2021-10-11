@@ -15,6 +15,8 @@
         "symfony/yaml": "5.3.*"
     },
     "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "symfony/phpunit-bridge": "^5.3"
     },
     "config": {
         "optimize-autoloader": true,
@@ -48,6 +50,12 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "test-unit": "./vendor/bin/phpunit tests/Unit",
+        "test-functional": "./vendor/bin/phpunit tests/Functional",
+        "test": [
+            "@test-unit",
+            "@test-functional"
         ]
     },
     "conflict": {
