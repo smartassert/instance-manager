@@ -3,12 +3,6 @@ services:
         autowire: true
         autoconfigure: true
 
-    App\Services\InstanceRepository:
-        public: true
-        arguments:
-            $instanceCollectionTag: '%instance_collection_tag%'
-            $instanceTag: '%instance_tag%'
-
     GuzzleHttp\Handler\MockHandler:
         public: true
         class: GuzzleHttp\Handler\MockHandler
