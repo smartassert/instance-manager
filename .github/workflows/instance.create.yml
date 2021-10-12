@@ -56,7 +56,6 @@ jobs:
         uses: php-actions/composer@v6
         with:
           args: --ignore-platform-reqs --quiet
-          working_dir: app
 
       - name: Create
         id: instance
@@ -64,7 +63,7 @@ jobs:
           IMAGE_ID: ${{ steps.build-config.outputs.IMAGE_ID }}
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: |
-          CREATE_OUTPUT=$(php app/bin/console app:instance:create)
+          CREATE_OUTPUT=$(php bin/console app:instance:create)
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
       - name: Health check
@@ -72,7 +71,7 @@ jobs:
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
           INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.HEALTH_CHECK_URL }}
         run: |
-          HEALTH_CHECK_OUTPUT=$(php app/bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }})
+          HEALTH_CHECK_OUTPUT=$(php bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }})
           HEALTH_CHECK_EXIT_CODE="$?"
           JQ_OUTPUT=$(echo "$HEALTH_CHECK_OUTPUT" | jq "." 2>/dev/null)
 
@@ -89,4 +88,4 @@ jobs:
         env:
           INSTANCE_ID: ${{ steps.instance.outputs.id }}
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-        run: php app/bin/console app:instance:destroy --id="$INSTANCE_ID"
+        run: php bin/console app:instance:destroy --id="$INSTANCE_ID"
