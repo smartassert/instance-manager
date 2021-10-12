@@ -1,0 +1,92 @@
+{
+    "type": "project",
+    "license": "proprietary",
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8",
+        "ext-ctype": "*",
+        "ext-iconv": "*",
+        "guzzlehttp/guzzle": "^7.3",
+        "smartassert/digitalocean-droplet-configuration": "^0.1.0",
+        "symfony/console": "5.3.*",
+        "symfony/dotenv": "5.3.*",
+        "symfony/flex": "^1.3.1",
+        "symfony/framework-bundle": "5.3.*",
+        "symfony/runtime": "5.3.*",
+        "symfony/yaml": "5.3.*",
+        "toin0u/digitalocean-v2": "^4.4"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.2",
+        "mockery/mockery": "^1.4",
+        "phpstan/extension-installer": "^1.1",
+        "phpstan/phpstan": "^0.12.99",
+        "phpstan/phpstan-mockery": "^0.12.14",
+        "phpstan/phpstan-phpunit": "^0.12.22",
+        "phpstan/phpstan-symfony": "^0.12.44",
+        "phpunit/phpunit": "^9.5",
+        "squizlabs/php_codesniffer": "^3.6",
+        "symfony/phpunit-bridge": "^5.3",
+        "symfony/process": "5.3.*"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "replace": {
+        "symfony/polyfill-ctype": "*",
+        "symfony/polyfill-iconv": "*",
+        "symfony/polyfill-php72": "*"
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+        },
+        "post-install-cmd": [
+            "@auto-scripts"
+        ],
+        "post-update-cmd": [
+            "@auto-scripts"
+        ],
+        "cs-fixer-dry-run": "./vendor/bin/php-cs-fixer fix --dry-run --verbose --show-progress none",
+        "cs-fixer-fix": "./vendor/bin/php-cs-fixer fix --diff",
+        "cs-phpcs": "./vendor/bin/phpcs",
+        "cs": [
+            "@cs-fixer-dry-run",
+            "@cs-phpcs"
+        ],
+        "static-analysis": "./vendor/bin/phpstan analyse --ansi",
+        "test-unit": "./vendor/bin/phpunit tests/Unit",
+        "test-functional": "./vendor/bin/phpunit tests/Functional",
+        "test-integration": "./vendor/bin/phpunit tests/Integration",
+        "test": [
+            "@test-unit",
+            "@test-functional",
+            "@test-integration"
+        ]
+    },
+    "conflict": {
+        "symfony/symfony": "*"
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "5.3.*"
+        }
+    }
+}

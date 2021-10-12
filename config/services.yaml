@@ -1,0 +1,78 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+    instance_collection_tag: '%env(non-empty:INSTANCE_COLLECTION_TAG)%'
+    image_id: '%env(IMAGE_ID)%'
+    instance_tag: '%instance_collection_tag%-%image_id%'
+    instance_state_url: '%env(INSTANCE_STATE_URL)%'
+    instance_health_check_url: '%env(INSTANCE_HEALTH_CHECK_URL)%'
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+        bind:
+            $instanceCollectionTag: '%instance_collection_tag%'
+            $instanceTag: '%instance_tag%'
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+            - '../src/Tests/'
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+    App\Services\InstanceClient:
+        arguments:
+            $stateUrl: '%instance_state_url%'
+            $healthCheckUrl: '%instance_health_check_url%'
+
+    GuzzleHttp\HandlerStack:
+        class: GuzzleHttp\HandlerStack
+        factory: ['GuzzleHttp\HandlerStack', 'create']
+
+    Psr\Http\Client\ClientInterface:
+        class: GuzzleHttp\Client
+        arguments:
+            $config:
+                handler: '@GuzzleHttp\HandlerStack'
+
+    Psr\Http\Message\RequestFactoryInterface:
+        class: GuzzleHttp\Psr7\HttpFactory
+
+    Psr\Http\Message\ResponseFactoryInterface:
+        class: GuzzleHttp\Psr7\HttpFactory
+
+    Psr\Http\Message\StreamFactoryInterface:
+        class: GuzzleHttp\Psr7\HttpFactory
+
+    DigitalOceanV2\Client:
+        class: DigitalOceanV2\Client
+        factory: ['DigitalOceanV2\Client', 'createWithHttpClient']
+        arguments:
+            $httpClient: '@Psr\Http\Client\ClientInterface'
+        calls:
+            - authenticate: ['%env(DIGITALOCEAN_API_TOKEN)%']
+
+    DigitalOceanV2\Api\Droplet:
+        class: DigitalOceanV2\Api\Droplet
+
+    SmartAssert\DigitalOceanDropletConfiguration\Factory:
+        arguments:
+            $defaults:
+                region: '%env(DIGITALOCEAN_DROPLET_REGION)%'
+                size: '%env(DIGITALOCEAN_DROPLET_SIZE)%'
+                image: '%image_id%'
+                tags:
+                    - '%instance_collection_tag%'
+                    - '%instance_tag%'
