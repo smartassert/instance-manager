@@ -3,12 +3,6 @@ services:
         autowire: true
         autoconfigure: true
 
-    App\Services\InstanceClient:
-        public: true
-        arguments:
-            $stateUrl: '%instance_state_url%'
-            $healthCheckUrl: '%instance_health_check_url%'
-
     GuzzleHttp\Handler\MockHandler:
         public: true
         class: GuzzleHttp\Handler\MockHandler
