@@ -393,6 +393,9 @@
     "toin0u/digitalocean-v2": {
         "version": "4.4.x-dev"
     },
+    "webignition/object-reflector": {
+        "version": "1.0"
+    },
     "webmozart/assert": {
         "version": "1.10.0"
     }
