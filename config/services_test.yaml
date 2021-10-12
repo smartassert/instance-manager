@@ -9,6 +9,9 @@ services:
     App\Services\FloatingIpManager:
         public: true
 
+    App\Services\ActionRunner:
+        public: true
+
     GuzzleHttp\Handler\MockHandler:
         public: true
         class: GuzzleHttp\Handler\MockHandler
