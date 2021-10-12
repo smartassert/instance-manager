@@ -64,6 +64,9 @@ services:
         calls:
             - authenticate: ['%env(DIGITALOCEAN_API_TOKEN)%']
 
+    DigitalOceanV2\Api\Action:
+        class: DigitalOceanV2\Api\Action
+
     DigitalOceanV2\Api\Droplet:
         class: DigitalOceanV2\Api\Droplet
 
