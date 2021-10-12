@@ -67,6 +67,9 @@ services:
     DigitalOceanV2\Api\Droplet:
         class: DigitalOceanV2\Api\Droplet
 
+    DigitalOceanV2\Api\FloatingIp:
+        class: DigitalOceanV2\Api\FloatingIp
+
     SmartAssert\DigitalOceanDropletConfiguration\Factory:
         arguments:
             $defaults:
