@@ -3,14 +3,6 @@ services:
         autowire: true
         autoconfigure: true
 
-    App\Services\FloatingIpRepository:
-        public: true
-        arguments:
-            $instanceCollectionTag: '%instance_collection_tag%'
-
-    App\Services\InstanceCollectionHydrator:
-        public: true
-
     GuzzleHttp\Handler\MockHandler:
         public: true
         class: GuzzleHttp\Handler\MockHandler
