@@ -7,6 +7,8 @@ parameters:
     instance_collection_tag: '%env(non-empty:INSTANCE_COLLECTION_TAG)%'
     image_id: '%env(IMAGE_ID)%'
     instance_tag: '%instance_collection_tag%-%image_id%'
+    instance_state_url: '%env(INSTANCE_STATE_URL)%'
+    instance_health_check_url: '%env(INSTANCE_HEALTH_CHECK_URL)%'
 
 services:
     # default configuration for services in *this* file
@@ -30,6 +32,11 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    App\Services\InstanceClient:
+        arguments:
+            $stateUrl: '%instance_state_url%'
+            $healthCheckUrl: '%instance_health_check_url%'
+
     GuzzleHttp\HandlerStack:
         class: GuzzleHttp\HandlerStack
         factory: ['GuzzleHttp\HandlerStack', 'create']
