@@ -3,6 +3,7 @@
 namespace App\Tests\Integration;
 
 use App\Command\InstanceCreateCommand;
+use App\Command\InstanceDestroyCommand;
 use App\Command\InstanceIsHealthyCommand;
 use App\Command\InstanceListCommand;
 use App\Command\IpGetCommand;
@@ -46,6 +47,9 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
             ],
             InstanceListCommand::NAME => [
                 'command' => InstanceListCommand::NAME,
+            ],
+            InstanceDestroyCommand::NAME => [
+                'command' => InstanceDestroyCommand::NAME,
             ],
         ];
     }
