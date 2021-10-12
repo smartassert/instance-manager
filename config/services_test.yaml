@@ -3,6 +3,9 @@ services:
         autowire: true
         autoconfigure: true
 
+    App\Services\ActionRepository:
+        public: true
+
     App\Services\FloatingIpManager:
         public: true
 
