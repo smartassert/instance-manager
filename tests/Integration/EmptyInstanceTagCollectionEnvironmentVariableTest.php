@@ -3,6 +3,7 @@
 namespace App\Tests\Integration;
 
 use App\Command\InstanceCreateCommand;
+use App\Command\InstanceIsHealthyCommand;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use PHPUnit\Framework\Constraint\StringContains;
 use PHPUnit\Framework\TestCase;
@@ -35,6 +36,9 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
             InstanceCreateCommand::NAME => [
                 'command' => InstanceCreateCommand::NAME,
             ],
+            InstanceIsHealthyCommand::NAME => [
+                'command' => InstanceIsHealthyCommand::NAME,
+            ],
         ];
     }
 
@@ -43,9 +47,6 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
         $process = Process::fromShellCommandline($processCommand);
         $process->run();
 
-        $output = $process->getErrorOutput();
-        self::assertNotEmpty($output);
-
         $expectedMessage = 'Environment variable "INSTANCE_COLLECTION_TAG" is not allowed to be empty';
 
         $constraint = new StringContains($expectedMessage);
@@ -53,6 +54,6 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
             $constraint = new LogicalNot(($constraint));
         }
 
-        static::assertThat($output, $constraint);
+        static::assertThat($process->getErrorOutput(), $constraint);
     }
 }
