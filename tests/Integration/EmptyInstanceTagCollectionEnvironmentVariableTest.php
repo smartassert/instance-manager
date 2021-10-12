@@ -6,6 +6,7 @@ use App\Command\InstanceCreateCommand;
 use App\Command\InstanceDestroyCommand;
 use App\Command\InstanceIsHealthyCommand;
 use App\Command\InstanceListCommand;
+use App\Command\IpAssignCommand;
 use App\Command\IpGetCommand;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use PHPUnit\Framework\Constraint\StringContains;
@@ -50,6 +51,9 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
             ],
             InstanceDestroyCommand::NAME => [
                 'command' => InstanceDestroyCommand::NAME,
+            ],
+            IpAssignCommand::NAME => [
+                'command' => IpAssignCommand::NAME,
             ],
         ];
     }
