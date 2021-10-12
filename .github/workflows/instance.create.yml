@@ -1,0 +1,92 @@
+name: instance.create
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_id:
+        description: Service for which to create an instance
+        required: true
+
+jobs:
+  create:
+    name: Create instance for ${{ github.event.inputs.service_id }}
+    runs-on: ubuntu-latest
+    env:
+      DIGITALOCEAN_API_TOKEN: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Checkout bash-read-env-file
+        uses: actions/checkout@v2
+        with:
+          repository: smartassert/bash-read-env-file
+          path: ./vendor/smartassert/bash-read-env-file
+          ref: main
+
+      - name: Read service configuration
+        id: build-config
+        env:
+          ENV_FILE_PATH: ./services/${{ github.event.inputs.service_id }}/configuration.env
+          SERVICE_ID: ${{ github.event.inputs.service_id }}
+        run: |
+          ./ci/scripts/check-service-configuration-exists.sh
+          ./vendor/smartassert/bash-read-env-file/src/read-env-file-ga.sh
+
+      - name: Checkout bash-ga-deploy-tools
+        uses: actions/checkout@v2
+        with:
+          repository: smartassert/bash-ga-deploy-tools
+          path: ./vendor/smartassert/bash-ga-deploy-tools
+          ref: main
+
+      - name: Check snapshot exists
+        env:
+          IMAGE_ID: ${{ steps.build-config.outputs.IMAGE_ID }}
+          EXPECTED_EXISTS: "true"
+        run: ./vendor/smartassert/bash-ga-deploy-tools/src/digitalocean-snapshot/verify-existence.sh
+
+      - name: Setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8
+
+      - name: Download dependencies
+        uses: php-actions/composer@v6
+        with:
+          args: --ignore-platform-reqs --quiet
+          working_dir: app
+
+      - name: Create
+        id: instance
+        env:
+          IMAGE_ID: ${{ steps.build-config.outputs.IMAGE_ID }}
+          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
+        run: |
+          CREATE_OUTPUT=$(php app/bin/console app:instance:create)
+          echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
+
+      - name: Health check
+        env:
+          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
+          INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.HEALTH_CHECK_URL }}
+        run: |
+          HEALTH_CHECK_OUTPUT=$(php app/bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }})
+          HEALTH_CHECK_EXIT_CODE="$?"
+          JQ_OUTPUT=$(echo "$HEALTH_CHECK_OUTPUT" | jq "." 2>/dev/null)
+
+          if [ "" == "$JQ_OUTPUT" ]; then
+            echo "$HEALTH_CHECK_OUTPUT"
+          else
+            echo "$JQ_OUTPUT"
+          fi
+
+          exit $HEALTH_CHECK_EXIT_CODE
+
+      - name: Remove instance if health check failed
+        if:  ${{ failure() }}
+        env:
+          INSTANCE_ID: ${{ steps.instance.outputs.id }}
+          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
+        run: php app/bin/console app:instance:destroy --id="$INSTANCE_ID"
