@@ -4,6 +4,7 @@ namespace App\Tests\Integration;
 
 use App\Command\InstanceCreateCommand;
 use App\Command\InstanceIsHealthyCommand;
+use App\Command\IpGetCommand;
 use PHPUnit\Framework\Constraint\LogicalNot;
 use PHPUnit\Framework\Constraint\StringContains;
 use PHPUnit\Framework\TestCase;
@@ -38,6 +39,9 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
             ],
             InstanceIsHealthyCommand::NAME => [
                 'command' => InstanceIsHealthyCommand::NAME,
+            ],
+            IpGetCommand::NAME => [
+                'command' => IpGetCommand::NAME,
             ],
         ];
     }
