@@ -3,11 +3,10 @@ services:
         autowire: true
         autoconfigure: true
 
-    App\Services\InstanceClient:
+    App\Services\FloatingIpRepository:
         public: true
         arguments:
-            $stateUrl: '%instance_state_url%'
-            $healthCheckUrl: '%instance_health_check_url%'
+            $instanceCollectionTag: '%instance_collection_tag%'
 
     GuzzleHttp\Handler\MockHandler:
         public: true
