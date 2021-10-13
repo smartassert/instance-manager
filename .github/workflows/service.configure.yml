@@ -1,6 +1,8 @@
 name: service.configure
 
 on:
+  repository_dispatch:
+    types: [service-configure]
   workflow_dispatch:
     inputs:
       service_id:
@@ -23,25 +25,90 @@ jobs:
   setup:
     name: Setup ${{ github.event.inputs.service_id }}
     runs-on: ubuntu-latest
+    outputs:
+      service_id: ${{ steps.service_id.outputs.value }}
+      image_id: ${{ steps.image_id.outputs.value }}
+      state_url: ${{ steps.state_url.outputs.value }}
+      health_check_url: ${{ steps.health_check_url.outputs.value }}
+      destroy_include_filter: ${{ steps.destroy_include_filter.outputs.value }}
 
     steps:
-      - name: Output event inputs
+      - name: Output repository_dispatch inputs
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        env:
+          INPUTS: ${{ toJson(github.event.client_payload) }}
+        run: echo "$INPUTS"
+
+      - name: Output workflow_dispatch inputs
         env:
           INPUTS: ${{ toJson(github.event.inputs) }}
         run: echo "$INPUTS"
 
-      - name: Validate event inputs
-        env:
-          SERVICE_ID: ${{ github.event.inputs.service_id }}
-          IMAGE_ID: ${{ github.event.inputs.service_id }}
-        run: |
-          [[ -n "$SERVICE_ID" ]] || (echo "Event service_id not set" && exit 1)
-          [[ -n "$IMAGE_ID" ]] || (echo "Event image_id not set" && exit 1)
+      - name: Checkout bash-ga-ci-tools
+        uses: actions/checkout@v2
+        with:
+          repository: smartassert/bash-ga-ci-tools
+          path: ./vendor/smartassert/bash-ga-ci-tools
+          ref: main
 
-  store:
-    name: Store ${{ github.event.inputs.service_id }}
+      - name: Set service_id
+        id: service_id
+        env:
+          VALUE1: ${{ github.event.client_payload.service_id }}
+          VALUE2: ${{ github.event.inputs.service_id }}
+        run: echo "::set-output name=value::$(./vendor/smartassert/bash-ga-ci-tools/src/select-exclusive-value-from-two-values.sh)"
+
+      - name: Set image_id
+        id: image_id
+        env:
+          VALUE1: ${{ github.event.client_payload.image_id }}
+          VALUE2: ${{ github.event.inputs.image_id }}
+        run: echo "::set-output name=value::$(./vendor/smartassert/bash-ga-ci-tools/src/select-exclusive-value-from-two-values.sh)"
+
+      - name: Set state_url
+        id: state_url
+        env:
+          VALUE1: ${{ github.event.client_payload.state_url }}
+          VALUE2: ${{ github.event.inputs.state_url }}
+        run: echo "::set-output name=value::$(./vendor/smartassert/bash-ga-ci-tools/src/select-exclusive-value-from-two-values.sh)"
+
+      - name: Set health_check_url
+        id: health_check_url
+        env:
+          VALUE1: ${{ github.event.client_payload.health_check_url }}
+          VALUE2: ${{ github.event.inputs.health_check_url }}
+        run: echo "::set-output name=value::$(./vendor/smartassert/bash-ga-ci-tools/src/select-exclusive-value-from-two-values.sh)"
+
+      - name: Set destroy_include_filter
+        id: destroy_include_filter
+        env:
+          VALUE1: ${{ github.event.client_payload.destroy_include_filter }}
+          VALUE2: ${{ github.event.inputs.destroy_include_filter }}
+        run: echo "::set-output name=value::$(./vendor/smartassert/bash-ga-ci-tools/src/select-exclusive-value-from-two-values.sh)"
+
+  verify-setup:
+    name: Verify setup
     runs-on: ubuntu-latest
     needs: setup
+
+    steps:
+      - name: Output
+        env:
+          OUTPUTS: ${{ toJson(needs.setup.outputs) }}
+        run: echo "$OUTPUTS"
+
+      - name: Verify service_id and image_id are set
+        env:
+          SERVICE_ID: ${{ needs.setup.outputs.service_id }}
+          IMAGE_ID: ${{ needs.setup.outputs.image_id }}
+        run: |
+          [[ -n "$SERVICE_ID" ]] || (echo "service_id not set" && exit 1)
+          [[ -n "$IMAGE_ID" ]] || (echo "image_id not set" && exit 1)
+
+  store:
+    name: Store ${{ needs.setup.outputs.service_id }}
+    runs-on: ubuntu-latest
+    needs: [setup, verify-setup]
 
     steps:
       - name: Checkout code
@@ -49,11 +116,11 @@ jobs:
 
       - name: Store service configuration
         env:
-          CONFIGURATION_PATH: ./services/${{ github.event.inputs.service_id }}/configuration.env
-          IMAGE_ID: ${{ github.event.inputs.image_id }}
-          STATE_URL: ${{ github.event.inputs.state_url }}
-          HEALTH_CHECK_URL: ${{ github.event.inputs.health_check_url }}
-          DESTROY_INCLUDE_FILTER: ${{ github.event.inputs.destroy_include_filter }}
+          CONFIGURATION_PATH: ./services/${{ needs.setup.outputs.service_id }}/configuration.env
+          IMAGE_ID: ${{ needs.setup.outputs.image_id }}
+          STATE_URL: ${{ needs.setup.outputs.state_url }}
+          HEALTH_CHECK_URL: ${{ needs.setup.outputs.health_check_url }}
+          DESTROY_INCLUDE_FILTER: ${{ needs.setup.outputs.destroy_include_filter }}
         run: |
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
           ./ci/scripts/create-service-configuration-content.sh > "$CONFIGURATION_PATH"
@@ -61,4 +128,4 @@ jobs:
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Automatic configuration update for ${{ github.event.inputs.service_id }}"
+          commit_message: "Automatic configuration update for ${{ needs.setup.outputs.service_id }}"
