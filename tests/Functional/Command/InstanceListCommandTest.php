@@ -102,8 +102,8 @@ class InstanceListCommandTest extends KernelTestCase
     public function executeDataProvider(): array
     {
         $dropletData = [
-            [
-                'id' => 123,
+            'instance-1' => [
+                'id' => 1,
                 'networks' => [
                     'v4' => [
                         [
@@ -112,8 +112,8 @@ class InstanceListCommandTest extends KernelTestCase
                     ],
                 ],
             ],
-            [
-                'id' => 456,
+            'instance-2' => [
+                'id' => 2,
                 'networks' => [
                     'v4' => [
                         [
@@ -122,8 +122,8 @@ class InstanceListCommandTest extends KernelTestCase
                     ],
                 ],
             ],
-            [
-                'id' => 789,
+            'instance-3' => [
+                'id' => 3,
                 'networks' => [
                     'v4' => [
                         [
@@ -134,16 +134,16 @@ class InstanceListCommandTest extends KernelTestCase
             ],
         ];
 
-        $instanceResponseData = [
-            [
+        $stateResponseData = [
+            'instance-1' => [
                 'version' => '0.1',
                 'idle' => false,
             ],
-            [
+            'instance-2' => [
                 'version' => '0.2',
                 'idle' => false,
             ],
-            [
+            'instance-3' => [
                 'version' => '0.3',
                 'idle' => true,
             ]
@@ -156,7 +156,7 @@ class InstanceListCommandTest extends KernelTestCase
                     'content-type' => 'application/json; charset=utf-8',
                 ],
                 HttpResponseFactory::KEY_BODY => (string) json_encode([
-                    'droplets' => $dropletData,
+                    'droplets' => array_values($dropletData),
                 ]),
             ],
             '123-state' => [
@@ -164,54 +164,57 @@ class InstanceListCommandTest extends KernelTestCase
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($instanceResponseData[0]),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-1']),
             ],
             '456-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($instanceResponseData[1]),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-2']),
             ],
             '789-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($instanceResponseData[2]),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-3']),
             ],
         ];
 
         $expectedOutputData = [
-            [
-                'id' => 123,
-                'state' => [
-                    'ips' => [
-                        '127.0.0.1',
+            'instance-1' => [
+                'id' => 1,
+                'state' => array_merge(
+                    [
+                        'ips' => [
+                            '127.0.0.1',
+                        ],
                     ],
-                    'version' => '0.1',
-                    'idle' => false,
-                ],
+                    $stateResponseData['instance-1']
+                ),
             ],
-            [
-                'id' => 456,
-                'state' => [
-                    'ips' => [
-                        '127.0.0.2',
+            'instance-2' => [
+                'id' => 2,
+                'state' => array_merge(
+                    [
+                        'ips' => [
+                            '127.0.0.2',
+                        ],
                     ],
-                    'version' => '0.2',
-                    'idle' => false,
-                ],
+                    $stateResponseData['instance-2']
+                ),
             ],
-            [
-                'id' => 789,
-                'state' => [
-                    'ips' => [
-                        '127.0.0.3',
+            'instance-3' => [
+                'id' => 3,
+                'state' => array_merge(
+                    [
+                        'ips' => [
+                            '127.0.0.3',
+                        ],
                     ],
-                    'version' => '0.3',
-                    'idle' => true,
-                ],
+                    $stateResponseData['instance-3']
+                ),
             ],
         ];
 
@@ -242,7 +245,7 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $dropletData[0],
+                                $dropletData['instance-1'],
                             ],
                         ]),
                     ],
@@ -250,7 +253,7 @@ class InstanceListCommandTest extends KernelTestCase
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
-                    $expectedOutputData[0],
+                    $expectedOutputData['instance-1'],
                 ]),
             ],
             'many instances, no filter' => [
@@ -258,9 +261,9 @@ class InstanceListCommandTest extends KernelTestCase
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
-                    $expectedOutputData[0],
-                    $expectedOutputData[1],
-                    $expectedOutputData[2],
+                    $expectedOutputData['instance-1'],
+                    $expectedOutputData['instance-2'],
+                    $expectedOutputData['instance-3'],
                 ]),
             ],
             'many instances, filter to idle=true' => [
@@ -274,7 +277,7 @@ class InstanceListCommandTest extends KernelTestCase
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
-                    $expectedOutputData[2],
+                    $expectedOutputData['instance-3'],
                 ]),
             ],
             'many instances, filter to not contains IP 127.0.0.1' => [
@@ -288,8 +291,8 @@ class InstanceListCommandTest extends KernelTestCase
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
-                    $expectedOutputData[1],
-                    $expectedOutputData[2],
+                    $expectedOutputData['instance-2'],
+                    $expectedOutputData['instance-3'],
                 ]),
             ],
             'many instances, filter to idle=true, not contains IP 127.0.0.1' => [
@@ -308,7 +311,7 @@ class InstanceListCommandTest extends KernelTestCase
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
-                    $expectedOutputData[2],
+                    $expectedOutputData['instance-3'],
                 ]),
             ],
         ];
