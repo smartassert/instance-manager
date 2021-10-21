@@ -17,9 +17,6 @@ on:
       health_check_url:
         description: URL from which to check that an instance is healthy
         required: false
-      destroy_include_filter:
-        description: Instance filter for instances to include when destroying
-        required: false
 
 jobs:
   setup:
@@ -30,7 +27,6 @@ jobs:
       image_id: ${{ steps.image_id.outputs.value }}
       state_url: ${{ steps.state_url.outputs.value }}
       health_check_url: ${{ steps.health_check_url.outputs.value }}
-      destroy_include_filter: ${{ steps.destroy_include_filter.outputs.value }}
 
     steps:
       - name: Output repository_dispatch inputs
@@ -79,13 +75,6 @@ jobs:
           VALUE2: ${{ github.event.inputs.health_check_url }}
         run: echo "::set-output name=value::$(./vendor/smartassert/bash-ga-ci-tools/src/select-exclusive-value-from-two-values.sh)"
 
-      - name: Set destroy_include_filter
-        id: destroy_include_filter
-        env:
-          VALUE1: ${{ github.event.client_payload.destroy_include_filter }}
-          VALUE2: ${{ github.event.inputs.destroy_include_filter }}
-        run: echo "::set-output name=value::$(./vendor/smartassert/bash-ga-ci-tools/src/select-exclusive-value-from-two-values.sh)"
-
   verify-setup:
     name: Verify setup
     runs-on: ubuntu-latest
@@ -120,7 +109,6 @@ jobs:
           IMAGE_ID: ${{ needs.setup.outputs.image_id }}
           STATE_URL: ${{ needs.setup.outputs.state_url }}
           HEALTH_CHECK_URL: ${{ needs.setup.outputs.health_check_url }}
-          DESTROY_INCLUDE_FILTER: ${{ needs.setup.outputs.destroy_include_filter }}
         run: |
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
           ./ci/scripts/create-service-configuration-content.sh > "$CONFIGURATION_PATH"
