@@ -19,16 +19,14 @@ on:
         required: false
 
 jobs:
-  setup:
-    name: Setup ${{ github.event.inputs.service_id }}
+  store-service-configuration:
+    name: Store ${{ github.event.inputs.service_id }}
     runs-on: ubuntu-latest
-    outputs:
-      service_id: ${{ steps.service_id.outputs.value }}
-      image_id: ${{ steps.image_id.outputs.value }}
-      state_url: ${{ steps.state_url.outputs.value }}
-      health_check_url: ${{ steps.health_check_url.outputs.value }}
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Output repository_dispatch inputs
         if: ${{ github.event_name == 'repository_dispatch' }}
         env:
@@ -45,14 +43,28 @@ jobs:
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
-        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+        run: |
+          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+          if [ "" = "$VALUE" ]; then
+            echo "service_id not set"
+            exit 1
+          fi
+
+          echo "::set-output name=value::$VALUE"
 
       - name: Set image_id
         id: image_id
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.image_id }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.image_id }}
-        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+        run: |
+          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+          if [ "" = "$VALUE" ]; then
+            echo "image_id not set"
+            exit 1
+          fi
+
+          echo "::set-output name=value::$VALUE"
 
       - name: Set state_url
         id: state_url
@@ -68,40 +80,19 @@ jobs:
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.health_check_url }}
         run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
 
-  verify-setup:
-    name: Verify setup
-    runs-on: ubuntu-latest
-    needs: setup
-
-    steps:
-      - name: Output
-        env:
-          OUTPUTS: ${{ toJson(needs.setup.outputs) }}
-        run: echo "$OUTPUTS"
-
-      - name: Verify service_id and image_id are set
-        env:
-          SERVICE_ID: ${{ needs.setup.outputs.service_id }}
-          IMAGE_ID: ${{ needs.setup.outputs.image_id }}
+      - name: Output setup
         run: |
-          [[ -n "$SERVICE_ID" ]] || (echo "service_id not set" && exit 1)
-          [[ -n "$IMAGE_ID" ]] || (echo "image_id not set" && exit 1)
+          echo "service_id: ${{ steps.service_id.outputs.value }}"
+          echo "image_id: ${{ steps.image_id.outputs.value }}"
+          echo "state_url: ${{ steps.state_url.outputs.value }}"
+          echo "health_check_url: ${{ steps.health_check_url.outputs.value }}"
 
-  store:
-    name: Store ${{ needs.setup.outputs.service_id }}
-    runs-on: ubuntu-latest
-    needs: [setup, verify-setup]
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Store service configuration
+      - name: Store
         env:
-          CONFIGURATION_PATH: ./services/${{ needs.setup.outputs.service_id }}/configuration.env
-          IMAGE_ID: ${{ needs.setup.outputs.image_id }}
-          STATE_URL: ${{ needs.setup.outputs.state_url }}
-          HEALTH_CHECK_URL: ${{ needs.setup.outputs.health_check_url }}
+          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/configuration.env
+          IMAGE_ID: ${{ steps.image_id.outputs.value }}
+          STATE_URL: ${{ steps.state_url.outputs.value }}
+          HEALTH_CHECK_URL: ${{ steps.health_check_url.outputs.value }}
         run: |
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
           ./ci/scripts/create-service-configuration-content.sh > "$CONFIGURATION_PATH"
@@ -109,4 +100,4 @@ jobs:
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Automatic configuration update for ${{ needs.setup.outputs.service_id }}"
+          commit_message: "Automatic configuration update for ${{ steps.service_id.outputs.value }}"
