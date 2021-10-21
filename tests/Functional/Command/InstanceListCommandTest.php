@@ -137,15 +137,15 @@ class InstanceListCommandTest extends KernelTestCase
         $instanceResponseData = [
             [
                 'version' => '0.1',
-                'message-queue-size' => 3,
+                'idle' => false,
             ],
             [
                 'version' => '0.2',
-                'message-queue-size' => 7,
+                'idle' => false,
             ],
             [
                 'version' => '0.3',
-                'message-queue-size' => 0,
+                'idle' => true,
             ]
         ];
 
@@ -190,7 +190,7 @@ class InstanceListCommandTest extends KernelTestCase
                         '127.0.0.1',
                     ],
                     'version' => '0.1',
-                    'message-queue-size' => 3,
+                    'idle' => false,
                 ],
             ],
             [
@@ -200,7 +200,7 @@ class InstanceListCommandTest extends KernelTestCase
                         '127.0.0.2',
                     ],
                     'version' => '0.2',
-                    'message-queue-size' => 7,
+                    'idle' => false,
                 ],
             ],
             [
@@ -210,7 +210,7 @@ class InstanceListCommandTest extends KernelTestCase
                         '127.0.0.3',
                     ],
                     'version' => '0.3',
-                    'message-queue-size' => 0,
+                    'idle' => true,
                 ],
             ],
         ];
@@ -263,11 +263,11 @@ class InstanceListCommandTest extends KernelTestCase
                     $expectedOutputData[2],
                 ]),
             ],
-            'many instances, filter to message-queue-size=0' => [
+            'many instances, filter to idle=true' => [
                 'input' => [
                     '--include' => (string) json_encode([
                         [
-                            'message-queue-size' => 0,
+                            'idle' => true,
                         ],
                     ]),
                 ],
@@ -292,11 +292,11 @@ class InstanceListCommandTest extends KernelTestCase
                     $expectedOutputData[2],
                 ]),
             ],
-            'many instances, filter to message-queue-size=0, not contains IP 127.0.0.1' => [
+            'many instances, filter to idle=true, not contains IP 127.0.0.1' => [
                 'input' => [
                     '--include' => (string) json_encode([
                         [
-                            'message-queue-size' => 0,
+                            'idle' => true,
                         ],
                     ]),
                     '--exclude' => (string) json_encode([
