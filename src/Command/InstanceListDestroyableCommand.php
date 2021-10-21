@@ -4,12 +4,9 @@ namespace App\Command;
 
 use App\Model\Filter;
 use App\Model\FilterInterface;
-use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: InstanceListDestroyableCommand::NAME,
@@ -33,22 +30,18 @@ class InstanceListDestroyableCommand extends AbstractInstanceListCommand
     }
 
     /**
-     * @throws ExceptionInterface
+     * @return Filter[]
      */
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function createFilterCollection(InputInterface $input): array
     {
         $excludedIp = $input->getOption(self::OPTION_EXCLUDED_IP);
         if (!is_string($excludedIp)) {
             $excludedIp = '';
         }
 
-        $filters = [
+        return [
             new Filter('idle', true, FilterInterface::MATCH_TYPE_POSITIVE),
             new Filter('ips', $excludedIp, FilterInterface::MATCH_TYPE_NEGATIVE),
         ];
-
-        $output->write((string) json_encode($this->findInstances($filters)));
-
-        return Command::SUCCESS;
     }
 }

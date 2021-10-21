@@ -3,16 +3,12 @@
 namespace App\Command;
 
 use App\Model\Filter;
-use App\Model\FilterInterface;
 use App\Services\FilterFactory;
 use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
-use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: InstanceListCommand::NAME,
@@ -51,34 +47,28 @@ class InstanceListCommand extends AbstractInstanceListCommand
     }
 
     /**
-     * @throws ExceptionInterface
-     */
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $filters = array_merge(
-            $this->createFilterCollection($input, self::OPTION_INCLUDE, FilterInterface::MATCH_TYPE_POSITIVE),
-            $this->createFilterCollection($input, self::OPTION_EXCLUDE, FilterInterface::MATCH_TYPE_NEGATIVE)
-        );
-
-        $output->write((string) json_encode($this->findInstances($filters)));
-
-        return Command::SUCCESS;
-    }
-
-    /**
-     * @param FilterInterface::MATCH_TYPE_* $matchType
-     *
      * @return Filter[]
      */
-    private function createFilterCollection(InputInterface $input, string $optionName, string $matchType): array
+    protected function createFilterCollection(InputInterface $input): array
     {
-        $filterString = $input->getOption($optionName);
-        if (!is_string($filterString)) {
-            return [];
+        $filters = [];
+
+        $negativeFilterString = $input->getOption(self::OPTION_EXCLUDE);
+        if (is_string($negativeFilterString)) {
+            $filters = array_merge(
+                $filters,
+                $this->filterFactory->createNegativeFiltersFromString($negativeFilterString)
+            );
         }
 
-        return FilterInterface::MATCH_TYPE_NEGATIVE === $matchType
-            ? $this->filterFactory->createNegativeFiltersFromString($filterString)
-            : $this->filterFactory->createPositiveFiltersFromString($filterString);
+        $positiveFilterString = $input->getOption(self::OPTION_INCLUDE);
+        if (is_string($positiveFilterString)) {
+            $filters = array_merge(
+                $filters,
+                $this->filterFactory->createPositiveFiltersFromString($positiveFilterString)
+            );
+        }
+
+        return $filters;
     }
 }

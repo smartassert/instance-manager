@@ -8,6 +8,8 @@ use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class AbstractInstanceListCommand extends Command
 {
@@ -19,11 +21,28 @@ abstract class AbstractInstanceListCommand extends Command
     }
 
     /**
+     * @return Filter[]
+     */
+    abstract protected function createFilterCollection(InputInterface $input): array;
+
+    /**
+     * @throws ExceptionInterface
+     */
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $output->write((string) json_encode($this->findInstances(
+            $this->createFilterCollection($input)
+        )));
+
+        return Command::SUCCESS;
+    }
+
+    /**
      * @param Filter[] $filters
      *
      * @throws ExceptionInterface
      */
-    protected function findInstances(array $filters): InstanceCollection
+    private function findInstances(array $filters): InstanceCollection
     {
         $instances = $this->instanceRepository->findAll();
         $instances = $this->instanceCollectionHydrator->hydrate($instances);
