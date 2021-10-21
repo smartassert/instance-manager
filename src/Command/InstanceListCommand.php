@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Model\Filter;
+use App\Model\FilterInterface;
 use App\Services\FilterFactory;
 use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
@@ -57,7 +58,7 @@ class InstanceListCommand extends AbstractInstanceListCommand
         if (is_string($negativeFilterString)) {
             $filters = array_merge(
                 $filters,
-                $this->filterFactory->createNegativeFiltersFromString($negativeFilterString)
+                $this->filterFactory->createFromString($negativeFilterString, FilterInterface::MATCH_TYPE_NEGATIVE)
             );
         }
 
@@ -65,7 +66,7 @@ class InstanceListCommand extends AbstractInstanceListCommand
         if (is_string($positiveFilterString)) {
             $filters = array_merge(
                 $filters,
-                $this->filterFactory->createPositiveFiltersFromString($positiveFilterString)
+                $this->filterFactory->createFromString($positiveFilterString, FilterInterface::MATCH_TYPE_POSITIVE)
             );
         }
 

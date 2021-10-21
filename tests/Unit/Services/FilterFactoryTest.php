@@ -10,59 +10,32 @@ use PHPUnit\Framework\TestCase;
 class FilterFactoryTest extends TestCase
 {
     /**
-     * @dataProvider createPositiveFiltersFromStringDataProvider
+     * @dataProvider createFiltersFromStringDataProvider
      *
-     * @param Filter[] $expected
-     */
-    public function testCreatePositiveFiltersFromString(string $filter, array $expected): void
-    {
-        $filterStringParser = new FilterFactory();
-
-        self::assertEquals($expected, $filterStringParser->createPositiveFiltersFromString($filter));
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function createPositiveFiltersFromStringDataProvider(): array
-    {
-        return $this->createFiltersFromStringDataProvider(FilterInterface::MATCH_TYPE_POSITIVE);
-    }
-
-    /**
-     * @dataProvider createNegativeFiltersFromStringDataProvider
-     *
-     * @param Filter[] $expected
-     */
-    public function testCreateNegativeFiltersFromString(string $filter, array $expected): void
-    {
-        $filterStringParser = new FilterFactory();
-
-        self::assertEquals($expected, $filterStringParser->createNegativeFiltersFromString($filter));
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function createNegativeFiltersFromStringDataProvider(): array
-    {
-        return $this->createFiltersFromStringDataProvider(FilterInterface::MATCH_TYPE_NEGATIVE);
-    }
-
-    /**
      * @param FilterInterface::MATCH_TYPE_* $matchType
-     *
+     * @param Filter[]                      $expected
+     */
+    public function testCreateFromString(string $filter, string $matchType, array $expected): void
+    {
+        $filterStringParser = new FilterFactory();
+
+        self::assertEquals($expected, $filterStringParser->createFromString($filter, $matchType));
+    }
+
+    /**
      * @return array<mixed>
      */
-    private function createFiltersFromStringDataProvider(string $matchType): array
+    public function createFiltersFromStringDataProvider(): array
     {
         return [
             'empty' => [
                 'filter' => '',
+                'matchType' => FilterInterface::MATCH_TYPE_POSITIVE,
                 'expected' => [],
             ],
             'non-json' => [
                 'filter' => 'content',
+                'matchType' => FilterInterface::MATCH_TYPE_POSITIVE,
                 'expected' => [],
             ],
             'single invalid filter, field is not a string' => [
@@ -71,6 +44,7 @@ class FilterFactoryTest extends TestCase
                         0 => 12,
                     ],
                 ]),
+                'matchType' => FilterInterface::MATCH_TYPE_POSITIVE,
                 'expected' => [],
             ],
             'single invalid filter, value is not scalar' => [
@@ -79,49 +53,98 @@ class FilterFactoryTest extends TestCase
                         'message-queue-size' => [''],
                     ],
                 ]),
+                'matchType' => FilterInterface::MATCH_TYPE_POSITIVE,
                 'expected' => [],
             ],
-            'single valid filter, boolean value' => [
+            'single valid filter, boolean value, positive match' => [
                 'filter' => json_encode([
                     [
                         'is-active' => true,
                     ],
                 ]),
+                'matchType' => FilterInterface::MATCH_TYPE_POSITIVE,
                 'expected' => [
-                    new Filter('is-active', true, $matchType),
+                    new Filter('is-active', true, FilterInterface::MATCH_TYPE_POSITIVE),
                 ],
             ],
-            'single valid filter, float value' => [
+            'single valid filter, boolean value, negative match' => [
+                'filter' => json_encode([
+                    [
+                        'is-active' => true,
+                    ],
+                ]),
+                'matchType' => FilterInterface::MATCH_TYPE_NEGATIVE,
+                'expected' => [
+                    new Filter('is-active', true, FilterInterface::MATCH_TYPE_NEGATIVE),
+                ],
+            ],
+            'single valid filter, float value, positive match' => [
                 'filter' => json_encode([
                     [
                         'radius' => M_PI,
                     ],
                 ]),
+                'matchType' => FilterInterface::MATCH_TYPE_POSITIVE,
                 'expected' => [
-                    new Filter('radius', M_PI, $matchType),
+                    new Filter('radius', M_PI, FilterInterface::MATCH_TYPE_POSITIVE),
                 ],
             ],
-            'single valid filter, integer value' => [
+            'single valid filter, float value, negative match' => [
+                'filter' => json_encode([
+                    [
+                        'radius' => M_PI,
+                    ],
+                ]),
+                'matchType' => FilterInterface::MATCH_TYPE_NEGATIVE,
+                'expected' => [
+                    new Filter('radius', M_PI, FilterInterface::MATCH_TYPE_NEGATIVE),
+                ],
+            ],
+            'single valid filter, integer value, positive match' => [
                 'filter' => json_encode([
                     [
                         'message-queue-size' => 12,
                     ],
                 ]),
+                'matchType' => FilterInterface::MATCH_TYPE_POSITIVE,
                 'expected' => [
-                    new Filter('message-queue-size', 12, $matchType),
+                    new Filter('message-queue-size', 12, FilterInterface::MATCH_TYPE_POSITIVE),
                 ],
             ],
-            'single valid filter, string value' => [
+            'single valid filter, integer value, negative match' => [
+                'filter' => json_encode([
+                    [
+                        'message-queue-size' => 12,
+                    ],
+                ]),
+                'matchType' => FilterInterface::MATCH_TYPE_NEGATIVE,
+                'expected' => [
+                    new Filter('message-queue-size', 12, FilterInterface::MATCH_TYPE_NEGATIVE),
+                ],
+            ],
+            'single valid filter, string value, positive match' => [
                 'filter' => json_encode([
                     [
                         'status' => 'delayed',
                     ],
                 ]),
+                'matchType' => FilterInterface::MATCH_TYPE_POSITIVE,
                 'expected' => [
-                    new Filter('status', 'delayed', $matchType),
+                    new Filter('status', 'delayed', FilterInterface::MATCH_TYPE_POSITIVE),
                 ],
             ],
-            'multiple valid filters' => [
+            'single valid filter, string value, negative match' => [
+                'filter' => json_encode([
+                    [
+                        'status' => 'delayed',
+                    ],
+                ]),
+                'matchType' => FilterInterface::MATCH_TYPE_NEGATIVE,
+                'expected' => [
+                    new Filter('status', 'delayed', FilterInterface::MATCH_TYPE_NEGATIVE),
+                ],
+            ],
+            'multiple valid filters, positive match' => [
                 'filter' => json_encode([
                     [
                         'is-sleeping' => false,
@@ -136,11 +159,35 @@ class FilterFactoryTest extends TestCase
                         'message' => 'Hello',
                     ],
                 ]),
+                'matchType' => FilterInterface::MATCH_TYPE_POSITIVE,
                 'expected' => [
-                    new Filter('is-sleeping', false, $matchType),
-                    new Filter('diameter', M_2_PI, $matchType),
-                    new Filter('count', 7, $matchType),
-                    new Filter('message', 'Hello', $matchType),
+                    new Filter('is-sleeping', false, FilterInterface::MATCH_TYPE_POSITIVE),
+                    new Filter('diameter', M_2_PI, FilterInterface::MATCH_TYPE_POSITIVE),
+                    new Filter('count', 7, FilterInterface::MATCH_TYPE_POSITIVE),
+                    new Filter('message', 'Hello', FilterInterface::MATCH_TYPE_POSITIVE),
+                ],
+            ],
+            'multiple valid filters, negative match' => [
+                'filter' => json_encode([
+                    [
+                        'is-sleeping' => false,
+                    ],
+                    [
+                        'diameter' => M_2_PI,
+                    ],
+                    [
+                        'count' => 7,
+                    ],
+                    [
+                        'message' => 'Hello',
+                    ],
+                ]),
+                'matchType' => FilterInterface::MATCH_TYPE_NEGATIVE,
+                'expected' => [
+                    new Filter('is-sleeping', false, FilterInterface::MATCH_TYPE_NEGATIVE),
+                    new Filter('diameter', M_2_PI, FilterInterface::MATCH_TYPE_NEGATIVE),
+                    new Filter('count', 7, FilterInterface::MATCH_TYPE_NEGATIVE),
+                    new Filter('message', 'Hello', FilterInterface::MATCH_TYPE_NEGATIVE),
                 ],
             ],
         ];
