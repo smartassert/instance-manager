@@ -52,7 +52,7 @@ jobs:
         env:
           VALUE1: ${{ github.event.client_payload.service_id }}
           VALUE2: ${{ github.event.inputs.service_id }}
-        run: echo "::set-output name=value::$(./vendor/smartassert/bash-ga-ci-tools/src/select-exclusive-value-from-two-values.sh)"
+        run: echo "::set-output name=value::"${VALUE1:-$VALUE2}""
 
       - name: Set image_id
         id: image_id
