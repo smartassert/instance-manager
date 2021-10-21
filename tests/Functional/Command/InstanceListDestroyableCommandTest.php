@@ -2,7 +2,7 @@
 
 namespace App\Tests\Functional\Command;
 
-use App\Command\InstanceListCommand;
+use App\Command\InstanceListDestroyableCommand;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -11,9 +11,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
-class InstanceListCommandTest extends KernelTestCase
+class InstanceListDestroyableCommandTest extends KernelTestCase
 {
-    private InstanceListCommand $command;
+    private InstanceListDestroyableCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
 
@@ -21,8 +21,8 @@ class InstanceListCommandTest extends KernelTestCase
     {
         parent::setUp();
 
-        $command = self::getContainer()->get(InstanceListCommand::class);
-        \assert($command instanceof InstanceListCommand);
+        $command = self::getContainer()->get(InstanceListDestroyableCommand::class);
+        \assert($command instanceof InstanceListDestroyableCommand);
         $this->command = $command;
 
         $mockHandler = self::getContainer()->get(MockHandler::class);
@@ -101,20 +101,20 @@ class InstanceListCommandTest extends KernelTestCase
      */
     public function executeDataProvider(): array
     {
-        $matchingIp = '127.0.0.1';
+        $excludedIp = '127.0.0.1';
 
         $dropletData = [
-            'instance-1' => [
+            'instance-with-excluded-ip' => [
                 'id' => 1,
                 'networks' => [
                     'v4' => [
                         [
-                            'ip_address' => $matchingIp,
+                            'ip_address' => $excludedIp,
                         ],
                     ],
                 ],
             ],
-            'instance-2' => [
+            'instance-not-idle' => [
                 'id' => 2,
                 'networks' => [
                     'v4' => [
@@ -124,7 +124,7 @@ class InstanceListCommandTest extends KernelTestCase
                     ],
                 ],
             ],
-            'instance-3' => [
+            'instance-is-idle' => [
                 'id' => 3,
                 'networks' => [
                     'v4' => [
@@ -134,7 +134,7 @@ class InstanceListCommandTest extends KernelTestCase
                     ],
                 ],
             ],
-            'instance-4' => [
+            'instance-null-idle' => [
                 'id' => 4,
                 'networks' => [
                     'v4' => [
@@ -147,19 +147,19 @@ class InstanceListCommandTest extends KernelTestCase
         ];
 
         $stateResponseData = [
-            'instance-1' => [
+            'instance-with-excluded-ip' => [
                 'version' => '0.1',
-                'idle' => false,
+                'idle' => true,
             ],
-            'instance-2' => [
+            'instance-not-idle' => [
                 'version' => '0.2',
                 'idle' => false,
             ],
-            'instance-3' => [
+            'instance-is-idle' => [
                 'version' => '0.3',
                 'idle' => true,
             ],
-            'instance-4' => [
+            'instance-null-idle' => [
                 'version' => '0.4',
             ],
         ];
@@ -179,44 +179,44 @@ class InstanceListCommandTest extends KernelTestCase
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-1']),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-with-excluded-ip']),
             ],
             '2-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-2']),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-not-idle']),
             ],
             '3-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-3']),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-is-idle']),
             ],
             '4-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-4']),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-null-idle']),
             ],
         ];
 
         $expectedOutputData = [
-            'instance-1' => [
+            'instance-with-excluded-ip' => [
                 'id' => 1,
                 'state' => array_merge(
                     [
                         'ips' => [
-                            $matchingIp,
+                            $excludedIp,
                         ],
                     ],
-                    $stateResponseData['instance-1']
+                    $stateResponseData['instance-with-excluded-ip']
                 ),
             ],
-            'instance-2' => [
+            'instance-not-idle' => [
                 'id' => 2,
                 'state' => array_merge(
                     [
@@ -224,10 +224,10 @@ class InstanceListCommandTest extends KernelTestCase
                             '127.0.0.2',
                         ],
                     ],
-                    $stateResponseData['instance-2']
+                    $stateResponseData['instance-not-idle']
                 ),
             ],
-            'instance-3' => [
+            'instance-is-idle' => [
                 'id' => 3,
                 'state' => array_merge(
                     [
@@ -235,10 +235,10 @@ class InstanceListCommandTest extends KernelTestCase
                             '127.0.0.3',
                         ],
                     ],
-                    $stateResponseData['instance-3']
+                    $stateResponseData['instance-is-idle']
                 ),
             ],
-            'instance-4' => [
+            'instance-null-idle' => [
                 'id' => 4,
                 'state' => array_merge(
                     [
@@ -246,14 +246,18 @@ class InstanceListCommandTest extends KernelTestCase
                             '127.0.0.4',
                         ],
                     ],
-                    $stateResponseData['instance-4']
+                    $stateResponseData['instance-null-idle']
                 ),
             ],
         ];
 
+        $input = [
+            '--excluded-ip' => $excludedIp,
+        ];
+
         return [
             'no instances' => [
-                'input' => [],
+                'input' => $input,
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -268,8 +272,8 @@ class InstanceListCommandTest extends KernelTestCase
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([]),
             ],
-            'single instance' => [
-                'input' => [],
+            'single matching instance (idle=true, does not have matching IP)' => [
+                'input' => $input,
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -278,75 +282,61 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $dropletData['instance-1'],
+                                $dropletData['instance-is-idle'],
                             ],
                         ]),
                     ],
-                    '1-state' => $collectionHttpResponses['1-state'],
+                    'state' => $collectionHttpResponses['3-state'],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-1'],
+                    $expectedOutputData['instance-is-idle'],
                 ]),
             ],
-            'many instances, no filter' => [
-                'input' => [],
-                'httpResponseDataCollection' => $collectionHttpResponses,
-                'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-1'],
-                    $expectedOutputData['instance-2'],
-                    $expectedOutputData['instance-3'],
-                    $expectedOutputData['instance-4'],
-                ]),
-            ],
-            'many instances, filter to idle=true' => [
-                'input' => [
-                    '--include' => (string) json_encode([
-                        [
-                            'idle' => true,
+            'single non-matching instance (idle=true, does have matching IP)' => [
+                'input' => $input,
+                'httpResponseDataCollection' => [
+                    'droplets' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
                         ],
-                    ]),
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplets' => [
+                                $dropletData['instance-with-excluded-ip'],
+                            ],
+                        ]),
+                    ],
+                    'state' => $collectionHttpResponses['1-state'],
                 ],
-                'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-3'],
-                ]),
+                'expectedOutput' => (string) json_encode([]),
             ],
-            'many instances, filter to not contains IP matching IP' => [
-                'input' => [
-                    '--exclude' => (string) json_encode([
-                        [
-                            'ips' => $matchingIp,
+            'single non-matching instance (idle=false, does not have matching IP)' => [
+                'input' => $input,
+                'httpResponseDataCollection' => [
+                    'droplets' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
                         ],
-                    ]),
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplets' => [
+                                $dropletData['instance-not-idle'],
+                            ],
+                        ]),
+                    ],
+                    '1-state' => $collectionHttpResponses['2-state'],
                 ],
-                'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-2'],
-                    $expectedOutputData['instance-3'],
-                    $expectedOutputData['instance-4'],
-                ]),
+                'expectedOutput' => (string) json_encode([]),
             ],
-            'many instances, filter to idle=true, not contains IP matching IP' => [
-                'input' => [
-                    '--include' => (string) json_encode([
-                        [
-                            'idle' => true,
-                        ],
-                    ]),
-                    '--exclude' => (string) json_encode([
-                        [
-                            'ips' => $matchingIp,
-                        ],
-                    ]),
-                ],
+            'many instances' => [
+                'input' => $input,
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-3'],
+                    $expectedOutputData['instance-is-idle'],
                 ]),
             ],
         ];
