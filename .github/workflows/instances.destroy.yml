@@ -35,7 +35,7 @@ jobs:
             exit 1
           fi
 
-          ./vendor/smartassert/bash-ga-ci-tools/src/create-ga-outputs-from-json-scalar-object.sh < $CONFIGURATION_PATH
+          ./vendor/smartassert/bash-ga-ci-tools/src/create-ga-outputs-from-json-scalar-object.sh < "$CONFIGURATION_PATH"
 
       - name: Setup php
         uses: shivammathur/setup-php@v2
