@@ -50,9 +50,9 @@ jobs:
       - name: Set service_id
         id: service_id
         env:
-          VALUE1: ${{ github.event.client_payload.service_id }}
-          VALUE2: ${{ github.event.inputs.service_id }}
-        run: echo "::set-output name=value::"${${{ github.event.client_payload.service_id }}:-${{ github.event.inputs.service_id }}}""
+          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
+          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
+        run: echo "::set-output name=value::"${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}""
 
       - name: Set image_id
         id: image_id
