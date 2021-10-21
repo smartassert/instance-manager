@@ -37,6 +37,18 @@ jobs:
 
           ./vendor/smartassert/bash-ga-ci-tools/src/create-ga-outputs-from-json-scalar-object.sh < "$CONFIGURATION_PATH"
 
+      - name: Read image id
+        id: image_id
+        env:
+          CONFIGURATION_PATH: ./services/${{ github.event.inputs.service_id }}/image.json
+        run: |
+          if [ ! -f "$CONFIGURATION_PATH" ]; then
+            echo "Image configuration for service ${{ github.event.inputs.service_id }} not found: $CONFIGURATION_PATH"
+            exit 1
+          fi
+
+          ./vendor/smartassert/bash-ga-ci-tools/src/create-ga-outputs-from-json-scalar-object.sh < "$CONFIGURATION_PATH"
+
       - name: Checkout bash-ga-deploy-tools
         uses: actions/checkout@v2
         with:
@@ -46,7 +58,7 @@ jobs:
 
       - name: Check snapshot exists
         env:
-          IMAGE_ID: ${{ steps.build-config.outputs.image_id }}
+          IMAGE_ID: ${{ steps.image_id.outputs.image_id }}
           EXPECTED_EXISTS: "true"
         run: ./vendor/smartassert/bash-ga-deploy-tools/src/digitalocean-snapshot/verify-existence.sh
 
@@ -63,7 +75,7 @@ jobs:
       - name: Create
         id: instance
         env:
-          IMAGE_ID: ${{ steps.build-config.outputs.image_id }}
+          IMAGE_ID: ${{ steps.image_id.outputs.image_id }}
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: |
           CREATE_OUTPUT=$(php bin/console app:instance:create)
