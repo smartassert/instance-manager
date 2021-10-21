@@ -45,28 +45,28 @@ jobs:
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
-        run: echo "::set-output name=value::"${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}""
+        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
 
       - name: Set image_id
         id: image_id
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.image_id }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.image_id }}
-        run: echo "::set-output name=value::"${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}""
+        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
 
       - name: Set state_url
         id: state_url
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.state_url }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.state_url }}
-        run: echo "::set-output name=value::"${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}""
+        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
 
       - name: Set health_check_url
         id: health_check_url
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.health_check_url }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.health_check_url }}
-        run: echo "::set-output name=value::"${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}""
+        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
 
   verify-setup:
     name: Verify setup
