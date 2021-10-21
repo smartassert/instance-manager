@@ -71,7 +71,7 @@ jobs:
           IMAGE_ID: ${{ steps.image_id.outputs.value }}
         run: |
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
-          jq "." <<< '{"image_id":"$IMAGE_ID"}' > "$CONFIGURATION_PATH"
+          jq "." <<< "{\"image_id\":\"$IMAGE_ID\"}" > "$CONFIGURATION_PATH"
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
