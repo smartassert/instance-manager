@@ -18,11 +18,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Verify service configuration exists
+      - name: Verify service id is valid
         env:
-          ENV_FILE_PATH: ./services/${{ github.event.inputs.service_id }}/configuration.env
-          SERVICE_ID: ${{ github.event.inputs.service_id }}
-        run: ./ci/scripts/check-service-configuration-exists.sh
+          CONFIGURATION_PATH: ./services/${{ github.event.inputs.service_id }}/configuration.json
+        run: |
+          if [ ! -f "$CONFIGURATION_PATH" ]; then
+            echo "Configuration for service ${{ github.event.inputs.service_id }} not found: $CONFIGURATION_PATH"
+            exit 1
+          fi
 
       - name: Setup php
         uses: shivammathur/setup-php@v2
