@@ -92,9 +92,9 @@ jobs:
           HEALTH_CHECK_URL: ${{ steps.health_check_url.outputs.value }}
         run: |
           JSON="{
-            \"IMAGE_ID\":\"$IMAGE_ID\",
-            \"STATE_URL\":\"$STATE_URL\",
-            \"HEALTH_CHECK_URL\":\"$HEALTH_CHECK_URL\"
+            \"image_id\":\"$IMAGE_ID\",
+            \"state_url\":\"$STATE_URL\",
+            \"health_check_url\":\"$HEALTH_CHECK_URL\"
           }"
 
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"

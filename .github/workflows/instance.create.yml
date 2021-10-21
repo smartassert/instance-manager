@@ -46,7 +46,7 @@ jobs:
 
       - name: Check snapshot exists
         env:
-          IMAGE_ID: ${{ steps.build-config.outputs.IMAGE_ID }}
+          IMAGE_ID: ${{ steps.build-config.outputs.image_id }}
           EXPECTED_EXISTS: "true"
         run: ./vendor/smartassert/bash-ga-deploy-tools/src/digitalocean-snapshot/verify-existence.sh
 
@@ -63,7 +63,7 @@ jobs:
       - name: Create
         id: instance
         env:
-          IMAGE_ID: ${{ steps.build-config.outputs.IMAGE_ID }}
+          IMAGE_ID: ${{ steps.build-config.outputs.image_id }}
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: |
           CREATE_OUTPUT=$(php bin/console app:instance:create)
@@ -72,7 +72,7 @@ jobs:
       - name: Health check
         env:
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-          INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.HEALTH_CHECK_URL }}
+          INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.health_check_url }}
         run: |
           HEALTH_CHECK_OUTPUT=$(php bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }})
           HEALTH_CHECK_EXIT_CODE="$?"
