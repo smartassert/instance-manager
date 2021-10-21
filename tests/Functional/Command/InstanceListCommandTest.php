@@ -101,13 +101,15 @@ class InstanceListCommandTest extends KernelTestCase
      */
     public function executeDataProvider(): array
     {
+        $matchingIp = '127.0.0.1';
+
         $dropletData = [
             'instance-1' => [
                 'id' => 1,
                 'networks' => [
                     'v4' => [
                         [
-                            'ip_address' => '127.0.0.1',
+                            'ip_address' => $matchingIp,
                         ],
                     ],
                 ],
@@ -188,7 +190,7 @@ class InstanceListCommandTest extends KernelTestCase
                 'state' => array_merge(
                     [
                         'ips' => [
-                            '127.0.0.1',
+                            $matchingIp,
                         ],
                     ],
                     $stateResponseData['instance-1']
@@ -280,11 +282,11 @@ class InstanceListCommandTest extends KernelTestCase
                     $expectedOutputData['instance-3'],
                 ]),
             ],
-            'many instances, filter to not contains IP 127.0.0.1' => [
+            'many instances, filter to not contains IP matching IP' => [
                 'input' => [
                     '--exclude' => (string) json_encode([
                         [
-                            'ips' => '127.0.0.1',
+                            'ips' => $matchingIp,
                         ],
                     ]),
                 ],
@@ -295,7 +297,7 @@ class InstanceListCommandTest extends KernelTestCase
                     $expectedOutputData['instance-3'],
                 ]),
             ],
-            'many instances, filter to idle=true, not contains IP 127.0.0.1' => [
+            'many instances, filter to idle=true, not contains IP matching IP' => [
                 'input' => [
                     '--include' => (string) json_encode([
                         [
@@ -304,7 +306,7 @@ class InstanceListCommandTest extends KernelTestCase
                     ]),
                     '--exclude' => (string) json_encode([
                         [
-                            'ips' => '127.0.0.1',
+                            'ips' => $matchingIp,
                         ],
                     ]),
                 ],
