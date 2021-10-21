@@ -159,21 +159,21 @@ class InstanceListCommandTest extends KernelTestCase
                     'droplets' => array_values($dropletData),
                 ]),
             ],
-            '123-state' => [
+            '1-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
                 HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-1']),
             ],
-            '456-state' => [
+            '2-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
                 HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-2']),
             ],
-            '789-state' => [
+            '3-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
@@ -249,7 +249,7 @@ class InstanceListCommandTest extends KernelTestCase
                             ],
                         ]),
                     ],
-                    '123-state' => $collectionHttpResponses['123-state'],
+                    '1-state' => $collectionHttpResponses['1-state'],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
