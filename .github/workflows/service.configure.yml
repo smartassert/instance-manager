@@ -8,9 +8,6 @@ on:
       service_id:
         description: The service for which the configuration is being stored
         required: true
-      image_id:
-        description: ID of the snapshot to store
-        required: true
       state_url:
         description: URL from which to get instance state
         required: false
@@ -49,20 +46,6 @@ jobs:
 
           echo "::set-output name=value::$VALUE"
 
-      - name: Set image_id
-        id: image_id
-        env:
-          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.image_id }}
-          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.image_id }}
-        run: |
-          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
-          if [ "" = "$VALUE" ]; then
-            echo "image_id not set"
-            exit 1
-          fi
-
-          echo "::set-output name=value::$VALUE"
-
       - name: Set state_url
         id: state_url
         env:
@@ -80,7 +63,6 @@ jobs:
       - name: Output setup
         run: |
           echo "service_id: ${{ steps.service_id.outputs.value }}"
-          echo "image_id: ${{ steps.image_id.outputs.value }}"
           echo "state_url: ${{ steps.state_url.outputs.value }}"
           echo "health_check_url: ${{ steps.health_check_url.outputs.value }}"
 
@@ -90,12 +72,10 @@ jobs:
       - name: Store
         env:
           CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/configuration.json
-          IMAGE_ID: ${{ steps.image_id.outputs.value }}
           STATE_URL: ${{ steps.state_url.outputs.value }}
           HEALTH_CHECK_URL: ${{ steps.health_check_url.outputs.value }}
         run: |
           JSON="{
-            \"image_id\":\"$IMAGE_ID\",
             \"state_url\":\"$STATE_URL\",
             \"health_check_url\":\"$HEALTH_CHECK_URL\"
           }"

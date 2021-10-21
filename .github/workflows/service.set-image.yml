@@ -1,0 +1,79 @@
+name: service.set-image
+
+on:
+  repository_dispatch:
+    types: [service-set-image]
+  workflow_dispatch:
+    inputs:
+      service_id:
+        description: The service for which the configuration is being stored
+        required: true
+      image_id:
+        description: ID of the snapshot to store
+        required: true
+
+jobs:
+  store-service-configuration:
+    name: Store ${{ github.event.inputs.service_id }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Output repository_dispatch inputs
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        env:
+          INPUTS: ${{ toJson(github.event.client_payload) }}
+        run: echo "$INPUTS"
+
+      - name: Output workflow_dispatch inputs
+        env:
+          INPUTS: ${{ toJson(github.event.inputs) }}
+        run: echo "$INPUTS"
+
+      - name: Set service_id
+        id: service_id
+        env:
+          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
+          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
+        run: |
+          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+          if [ "" = "$VALUE" ]; then
+            echo "service_id not set"
+            exit 1
+          fi
+
+          echo "::set-output name=value::$VALUE"
+
+      - name: Set image_id
+        id: image_id
+        env:
+          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.image_id }}
+          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.image_id }}
+        run: |
+          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+          if [ "" = "$VALUE" ]; then
+            echo "image_id not set"
+            exit 1
+          fi
+
+          echo "::set-output name=value::$VALUE"
+
+      - name: Output setup
+        run: |
+          echo "service_id: ${{ steps.service_id.outputs.value }}"
+          echo "image_id: ${{ steps.image_id.outputs.value }}"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Store
+        env:
+          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/image.json
+          IMAGE_ID: ${{ steps.image_id.outputs.value }}
+        run: |
+          mkdir -p "$(dirname "$CONFIGURATION_PATH")"
+          jq "." <<< "{\"image_id\":\"$IMAGE_ID\"}" > "$CONFIGURATION_PATH"
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Automatic image update for ${{ steps.service_id.outputs.value }}"
