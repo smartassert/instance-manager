@@ -24,9 +24,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
       - name: Output repository_dispatch inputs
         if: ${{ github.event_name == 'repository_dispatch' }}
         env:
@@ -87,15 +84,24 @@ jobs:
           echo "state_url: ${{ steps.state_url.outputs.value }}"
           echo "health_check_url: ${{ steps.health_check_url.outputs.value }}"
 
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Store
         env:
-          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/configuration.env
+          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/configuration.json
           IMAGE_ID: ${{ steps.image_id.outputs.value }}
           STATE_URL: ${{ steps.state_url.outputs.value }}
           HEALTH_CHECK_URL: ${{ steps.health_check_url.outputs.value }}
         run: |
+          JSON="{
+            \"image_id\":\"$IMAGE_ID\",
+            \"state_url\":\"$STATE_URL\",
+            \"health_check_url\":\"$HEALTH_CHECK_URL\"
+          }"
+
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
-          ./ci/scripts/create-service-configuration-content.sh > "$CONFIGURATION_PATH"
+          jq "." <<< "$JSON" > "$CONFIGURATION_PATH"
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
