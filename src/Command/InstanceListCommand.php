@@ -4,33 +4,29 @@ namespace App\Command;
 
 use App\Model\Filter;
 use App\Model\FilterInterface;
-use App\Model\InstanceCollection;
 use App\Services\FilterFactory;
 use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
-use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: InstanceListCommand::NAME,
     description: 'List instances',
 )]
-class InstanceListCommand extends Command
+class InstanceListCommand extends AbstractInstanceListCommand
 {
     public const NAME = 'app:instance:list';
     public const OPTION_INCLUDE = 'include';
     public const OPTION_EXCLUDE = 'exclude';
 
     public function __construct(
-        private InstanceRepository $instanceRepository,
-        private InstanceCollectionHydrator $instanceCollectionHydrator,
+        InstanceRepository $instanceRepository,
+        InstanceCollectionHydrator $instanceCollectionHydrator,
         private FilterFactory $filterFactory,
     ) {
-        parent::__construct(null);
+        parent::__construct($instanceRepository, $instanceCollectionHydrator);
     }
 
     protected function configure(): void
@@ -52,51 +48,28 @@ class InstanceListCommand extends Command
     }
 
     /**
-     * @throws ExceptionInterface
-     */
-    protected function execute(InputInterface $input, OutputInterface $output): int
-    {
-        $filters = array_merge(
-            $this->createFilterCollection($input, self::OPTION_INCLUDE, FilterInterface::MATCH_TYPE_POSITIVE),
-            $this->createFilterCollection($input, self::OPTION_EXCLUDE, FilterInterface::MATCH_TYPE_NEGATIVE)
-        );
-
-        $output->write((string) json_encode($this->findInstances($filters)));
-
-        return Command::SUCCESS;
-    }
-
-    /**
-     * @param Filter[] $filters
-     *
-     * @throws ExceptionInterface
-     */
-    private function findInstances(array $filters): InstanceCollection
-    {
-        $instances = $this->instanceRepository->findAll();
-        $instances = $this->instanceCollectionHydrator->hydrate($instances);
-
-        foreach ($filters as $filter) {
-            $instances = $instances->filter($filter);
-        }
-
-        return $instances;
-    }
-
-    /**
-     * @param FilterInterface::MATCH_TYPE_* $matchType
-     *
      * @return Filter[]
      */
-    private function createFilterCollection(InputInterface $input, string $optionName, string $matchType): array
+    protected function createFilterCollection(InputInterface $input): array
     {
-        $filterString = $input->getOption($optionName);
-        if (!is_string($filterString)) {
-            return [];
+        $filters = [];
+
+        $negativeFilterString = $input->getOption(self::OPTION_EXCLUDE);
+        if (is_string($negativeFilterString)) {
+            $filters = array_merge(
+                $filters,
+                $this->filterFactory->createFromString($negativeFilterString, FilterInterface::MATCH_TYPE_NEGATIVE)
+            );
         }
 
-        return FilterInterface::MATCH_TYPE_NEGATIVE === $matchType
-            ? $this->filterFactory->createNegativeFiltersFromString($filterString)
-            : $this->filterFactory->createPositiveFiltersFromString($filterString);
+        $positiveFilterString = $input->getOption(self::OPTION_INCLUDE);
+        if (is_string($positiveFilterString)) {
+            $filters = array_merge(
+                $filters,
+                $this->filterFactory->createFromString($positiveFilterString, FilterInterface::MATCH_TYPE_POSITIVE)
+            );
+        }
+
+        return $filters;
     }
 }
