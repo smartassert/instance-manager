@@ -86,7 +86,7 @@ jobs:
 
       - name: Store
         env:
-          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/configuration.env
+          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/configuration.json
           IMAGE_ID: ${{ steps.image_id.outputs.value }}
           STATE_URL: ${{ steps.state_url.outputs.value }}
           HEALTH_CHECK_URL: ${{ steps.health_check_url.outputs.value }}
