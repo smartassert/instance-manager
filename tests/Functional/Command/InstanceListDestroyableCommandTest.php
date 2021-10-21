@@ -104,7 +104,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         $excludedIp = '127.0.0.1';
 
         $dropletData = [
-            'instance-1' => [
+            'instance-with-excluded-ip' => [
                 'id' => 1,
                 'networks' => [
                     'v4' => [
@@ -114,7 +114,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                     ],
                 ],
             ],
-            'instance-2' => [
+            'instance-not-idle' => [
                 'id' => 2,
                 'networks' => [
                     'v4' => [
@@ -124,7 +124,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                     ],
                 ],
             ],
-            'instance-3' => [
+            'instance-is-idle' => [
                 'id' => 3,
                 'networks' => [
                     'v4' => [
@@ -134,7 +134,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                     ],
                 ],
             ],
-            'instance-4' => [
+            'instance-null-idle' => [
                 'id' => 4,
                 'networks' => [
                     'v4' => [
@@ -147,19 +147,19 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         ];
 
         $stateResponseData = [
-            'instance-1' => [
+            'instance-with-excluded-ip' => [
                 'version' => '0.1',
                 'idle' => true,
             ],
-            'instance-2' => [
+            'instance-not-idle' => [
                 'version' => '0.2',
                 'idle' => false,
             ],
-            'instance-3' => [
+            'instance-is-idle' => [
                 'version' => '0.3',
                 'idle' => true,
             ],
-            'instance-4' => [
+            'instance-null-idle' => [
                 'version' => '0.4',
             ],
         ];
@@ -179,33 +179,33 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-1']),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-with-excluded-ip']),
             ],
             '2-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-2']),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-not-idle']),
             ],
             '3-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-3']),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-is-idle']),
             ],
             '4-state' => [
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
                 HttpResponseFactory::KEY_HEADERS => [
                     'content-type' => 'application/json',
                 ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-4']),
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-null-idle']),
             ],
         ];
 
         $expectedOutputData = [
-            'instance-1' => [
+            'instance-with-excluded-ip' => [
                 'id' => 1,
                 'state' => array_merge(
                     [
@@ -213,10 +213,10 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                             $excludedIp,
                         ],
                     ],
-                    $stateResponseData['instance-1']
+                    $stateResponseData['instance-with-excluded-ip']
                 ),
             ],
-            'instance-2' => [
+            'instance-not-idle' => [
                 'id' => 2,
                 'state' => array_merge(
                     [
@@ -224,10 +224,10 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                             '127.0.0.2',
                         ],
                     ],
-                    $stateResponseData['instance-2']
+                    $stateResponseData['instance-not-idle']
                 ),
             ],
-            'instance-3' => [
+            'instance-is-idle' => [
                 'id' => 3,
                 'state' => array_merge(
                     [
@@ -235,10 +235,10 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                             '127.0.0.3',
                         ],
                     ],
-                    $stateResponseData['instance-3']
+                    $stateResponseData['instance-is-idle']
                 ),
             ],
-            'instance-4' => [
+            'instance-null-idle' => [
                 'id' => 4,
                 'state' => array_merge(
                     [
@@ -246,7 +246,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                             '127.0.0.4',
                         ],
                     ],
-                    $stateResponseData['instance-4']
+                    $stateResponseData['instance-null-idle']
                 ),
             ],
         ];
@@ -282,7 +282,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $dropletData['instance-3'],
+                                $dropletData['instance-is-idle'],
                             ],
                         ]),
                     ],
@@ -290,7 +290,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-3'],
+                    $expectedOutputData['instance-is-idle'],
                 ]),
             ],
             'single non-matching instance (idle=true, does have matching IP)' => [
@@ -303,7 +303,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $dropletData['instance-1'],
+                                $dropletData['instance-with-excluded-ip'],
                             ],
                         ]),
                     ],
@@ -322,7 +322,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $dropletData['instance-2'],
+                                $dropletData['instance-not-idle'],
                             ],
                         ]),
                     ],
@@ -336,7 +336,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-3'],
+                    $expectedOutputData['instance-is-idle'],
                 ]),
             ],
         ];
