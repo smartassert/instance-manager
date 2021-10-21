@@ -134,6 +134,16 @@ class InstanceListCommandTest extends KernelTestCase
                     ],
                 ],
             ],
+            'instance-4' => [
+                'id' => 4,
+                'networks' => [
+                    'v4' => [
+                        [
+                            'ip_address' => '127.0.0.4',
+                        ],
+                    ],
+                ],
+            ],
         ];
 
         $stateResponseData = [
@@ -148,7 +158,10 @@ class InstanceListCommandTest extends KernelTestCase
             'instance-3' => [
                 'version' => '0.3',
                 'idle' => true,
-            ]
+            ],
+            'instance-4' => [
+                'version' => '0.4',
+            ],
         ];
 
         $collectionHttpResponses = [
@@ -181,6 +194,13 @@ class InstanceListCommandTest extends KernelTestCase
                     'content-type' => 'application/json',
                 ],
                 HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-3']),
+            ],
+            '4-state' => [
+                HttpResponseFactory::KEY_STATUS_CODE => 200,
+                HttpResponseFactory::KEY_HEADERS => [
+                    'content-type' => 'application/json',
+                ],
+                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-4']),
             ],
         ];
 
@@ -216,6 +236,17 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                     ],
                     $stateResponseData['instance-3']
+                ),
+            ],
+            'instance-4' => [
+                'id' => 4,
+                'state' => array_merge(
+                    [
+                        'ips' => [
+                            '127.0.0.4',
+                        ],
+                    ],
+                    $stateResponseData['instance-4']
                 ),
             ],
         ];
@@ -266,6 +297,7 @@ class InstanceListCommandTest extends KernelTestCase
                     $expectedOutputData['instance-1'],
                     $expectedOutputData['instance-2'],
                     $expectedOutputData['instance-3'],
+                    $expectedOutputData['instance-4'],
                 ]),
             ],
             'many instances, filter to idle=true' => [
@@ -295,6 +327,7 @@ class InstanceListCommandTest extends KernelTestCase
                 'expectedOutput' => (string) json_encode([
                     $expectedOutputData['instance-2'],
                     $expectedOutputData['instance-3'],
+                    $expectedOutputData['instance-4'],
                 ]),
             ],
             'many instances, filter to idle=true, not contains IP matching IP' => [
