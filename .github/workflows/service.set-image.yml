@@ -69,15 +69,9 @@ jobs:
         env:
           CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/image.json
           IMAGE_ID: ${{ steps.image_id.outputs.value }}
-          STATE_URL: ${{ steps.state_url.outputs.value }}
-          HEALTH_CHECK_URL: ${{ steps.health_check_url.outputs.value }}
         run: |
-          JSON="{
-            \"image_id\":\"$IMAGE_ID\"
-          }"
-
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
-          jq "." <<< "$JSON" > "$CONFIGURATION_PATH"
+          jq "." <<< '{"image_id":"$IMAGE_ID"}' > "$CONFIGURATION_PATH"
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
