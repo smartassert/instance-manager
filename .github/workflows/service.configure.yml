@@ -84,6 +84,9 @@ jobs:
           echo "state_url: ${{ steps.state_url.outputs.value }}"
           echo "health_check_url: ${{ steps.health_check_url.outputs.value }}"
 
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Store
         env:
           CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/configuration.json
