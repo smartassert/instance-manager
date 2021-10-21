@@ -4,7 +4,6 @@ namespace App\Command;
 
 use App\Model\Filter;
 use App\Model\FilterInterface;
-use App\Model\InstanceCollection;
 use App\Services\FilterFactory;
 use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
@@ -19,18 +18,18 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: InstanceListCommand::NAME,
     description: 'List instances',
 )]
-class InstanceListCommand extends Command
+class InstanceListCommand extends AbstractInstanceListCommand
 {
     public const NAME = 'app:instance:list';
     public const OPTION_INCLUDE = 'include';
     public const OPTION_EXCLUDE = 'exclude';
 
     public function __construct(
-        private InstanceRepository $instanceRepository,
-        private InstanceCollectionHydrator $instanceCollectionHydrator,
+        InstanceRepository $instanceRepository,
+        InstanceCollectionHydrator $instanceCollectionHydrator,
         private FilterFactory $filterFactory,
     ) {
-        parent::__construct(null);
+        parent::__construct($instanceRepository, $instanceCollectionHydrator);
     }
 
     protected function configure(): void
@@ -64,23 +63,6 @@ class InstanceListCommand extends Command
         $output->write((string) json_encode($this->findInstances($filters)));
 
         return Command::SUCCESS;
-    }
-
-    /**
-     * @param Filter[] $filters
-     *
-     * @throws ExceptionInterface
-     */
-    private function findInstances(array $filters): InstanceCollection
-    {
-        $instances = $this->instanceRepository->findAll();
-        $instances = $this->instanceCollectionHydrator->hydrate($instances);
-
-        foreach ($filters as $filter) {
-            $instances = $instances->filter($filter);
-        }
-
-        return $instances;
     }
 
     /**
