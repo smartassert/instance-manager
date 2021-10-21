@@ -16,14 +16,12 @@ main() {
   IMAGE_ID="123456789" \
   STATE_URL="/" \
   HEALTH_CHECK_URL="/health-check" \
-  DESTROY_INCLUDE_FILTER="[{\"message-queue-size\":0}]" \
   run main
 
   assert_success
   assert_line --index 0 'IMAGE_ID=123456789'
   assert_line --index 1 'STATE_URL=/'
   assert_line --index 2 'HEALTH_CHECK_URL=/health-check'
-  assert_line --index 3 'DESTROY_INCLUDE_FILTER=[{"message-queue-size":0}]'
 }
 
 @test "$script_name: content is created with empty values when variables are not set" {
@@ -33,6 +31,5 @@ main() {
   assert_success
   assert_output "IMAGE_ID=123456789
 STATE_URL=
-HEALTH_CHECK_URL=
-DESTROY_INCLUDE_FILTER="
+HEALTH_CHECK_URL="
 }
