@@ -82,6 +82,7 @@ jobs:
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
       - name: Health check
+        if: ${{ steps.build-config.outputs.health_check_url != '' }}
         env:
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
           INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.health_check_url }}
