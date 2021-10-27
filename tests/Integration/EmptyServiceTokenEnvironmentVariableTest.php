@@ -9,28 +9,9 @@ use App\Command\InstanceListCommand;
 use App\Command\IpAssignCommand;
 use App\Command\IpCreateCommand;
 use App\Command\IpGetCommand;
-use PHPUnit\Framework\Constraint\LogicalNot;
-use PHPUnit\Framework\Constraint\StringContains;
-use PHPUnit\Framework\TestCase;
 
-class EmptyServiceTokenEnvironmentVariableTest extends TestCase
+class EmptyServiceTokenEnvironmentVariableTest extends AbstractEmptyEnvironmentVariableTest
 {
-    /**
-     * @dataProvider commandForEmptyEnvironmentVariableDataProvider
-     */
-    public function testExecuteCommandWithEnvironmentVariableEmpty(string $command): void
-    {
-        $this->doTest('php bin/console ' . $command . ' --env=prod', true);
-    }
-
-    /**
-     * @dataProvider commandForNonEmptyEnvironmentVariableDataProvider
-     */
-    public function testExecuteCommandWithEnvironmentVariableNotEmpty(string $command): void
-    {
-        $this->doTest('php bin/console ' . $command . ' --env=test', false);
-    }
-
     /**
      * @return array<mixed>
      */
@@ -88,16 +69,15 @@ class EmptyServiceTokenEnvironmentVariableTest extends TestCase
         ];
     }
 
-    private function doTest(string $processCommand, bool $expectEnvironmentVariableErrorMessage): void
+    protected function getDefinedEnvironmentVariables(): array
     {
-        $output = (string) shell_exec("INSTANCE_COLLECTION_TAG=foo {$processCommand} 2>&1");
-        $expectedMessage = 'Environment variable "SERVICE_TOKEN" is not allowed to be empty';
+        return [
+            'INSTANCE_COLLECTION_TAG' => 'non-empty value',
+        ];
+    }
 
-        $constraint = new StringContains($expectedMessage);
-        if (false === $expectEnvironmentVariableErrorMessage) {
-            $constraint = new LogicalNot(($constraint));
-        }
-
-        static::assertThat($output, $constraint);
+    protected function getExpectedEnvironmentVariable(): string
+    {
+        return 'SERVICE_TOKEN';
     }
 }

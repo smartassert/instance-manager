@@ -9,27 +9,17 @@ use App\Command\InstanceListCommand;
 use App\Command\IpAssignCommand;
 use App\Command\IpCreateCommand;
 use App\Command\IpGetCommand;
-use PHPUnit\Framework\Constraint\LogicalNot;
-use PHPUnit\Framework\Constraint\StringContains;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Process\Process;
 
-class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
+class EmptyInstanceTagCollectionEnvironmentVariableTest extends AbstractEmptyEnvironmentVariableTest
 {
-    /**
-     * @dataProvider commandDataProvider
-     */
-    public function testExecuteCommandWithInstanceTagCollectionEmpty(string $command): void
+    public function commandForEmptyEnvironmentVariableDataProvider(): array
     {
-        $this->doTest('php bin/console ' . $command . ' --env=prod', true);
+        return $this->commandDataProvider();
     }
 
-    /**
-     * @dataProvider commandDataProvider
-     */
-    public function testExecuteCommandWithInstanceTagCollectionNotEmpty(string $command): void
+    public function commandForNonEmptyEnvironmentVariableDataProvider(): array
     {
-        $this->doTest('php bin/console ' . $command . ' --env=test', false);
+        return $this->commandDataProvider();
     }
 
     /**
@@ -62,16 +52,15 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
         ];
     }
 
-    private function doTest(string $processCommand, bool $expectEnvironmentVariableErrorMessage): void
+    protected function getDefinedEnvironmentVariables(): array
     {
-        $output = (string) shell_exec("SERVICE_TOKEN=foo {$processCommand} 2>&1");
-        $expectedMessage = 'Environment variable "INSTANCE_COLLECTION_TAG" is not allowed to be empty';
+        return [
+            'SERVICE_TOKEN' => 'non-empty value',
+        ];
+    }
 
-        $constraint = new StringContains($expectedMessage);
-        if (false === $expectEnvironmentVariableErrorMessage) {
-            $constraint = new LogicalNot(($constraint));
-        }
-
-        static::assertThat($output, $constraint);
+    protected function getExpectedEnvironmentVariable(): string
+    {
+        return 'INSTANCE_COLLECTION_TAG';
     }
 }
