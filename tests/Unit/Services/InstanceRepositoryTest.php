@@ -46,7 +46,7 @@ class InstanceRepositoryTest extends TestCase
             'worker-manager-0.4.2'
         );
 
-        $instance = $instanceRepository->create();
+        $instance = $instanceRepository->create('non-empty-service-token');
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertSame($dropletEntity, $instance->getDroplet());

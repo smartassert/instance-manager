@@ -54,9 +54,7 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends AbstractEmptyEnv
 
     protected function getDefinedEnvironmentVariables(): array
     {
-        return [
-            'SERVICE_TOKEN' => 'non-empty value',
-        ];
+        return [];
     }
 
     protected function getExpectedEnvironmentVariable(): string

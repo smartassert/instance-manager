@@ -91,9 +91,10 @@ jobs:
         env:
           IMAGE_ID: ${{ steps.image_id.outputs.image_id }}
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-          SERVICE_TOKEN: ${{ secrets[github.event.inputs.service_token_secret_name] }}
         run: |
-          CREATE_OUTPUT=$(php bin/console app:instance:create)
+          CREATE_OUTPUT=$(
+            php bin/console app:instance:create --service-token="${{ secrets[github.event.inputs.service_token_secret_name] }}"
+          )
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
       - name: Health check

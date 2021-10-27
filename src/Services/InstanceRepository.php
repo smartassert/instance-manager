@@ -23,7 +23,7 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function create(): Instance
+    public function create(string $serviceToken): Instance
     {
         $configuration = $this->dropletConfigurationFactory->create();
 
@@ -36,7 +36,7 @@ class InstanceRepository
             $configuration->getIpv6(),
             $configuration->getVpcUuid(),
             $configuration->getSshKeys(),
-            $configuration->getUserData(),
+            str_replace('{{ service_token }}', $serviceToken, $configuration->getUserData()),
             $configuration->getMonitoring(),
             $configuration->getVolumes(),
             $configuration->getTags()
