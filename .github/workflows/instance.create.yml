@@ -62,24 +62,10 @@ jobs:
           EXPECTED_EXISTS: "true"
         run: ./vendor/smartassert/bash-ga-deploy-tools/src/digitalocean-snapshot/verify-existence.sh
 
-      - name: Set service token secret
-        id: service_token_secret
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
+      - name: Create service token
+        id: service_token
         run: |
-          TOKEN_ID="$(openssl rand -hex 8)"
-          TOKEN_ID="${TOKEN_ID^^}"
-          NAME="SERVICE_TOKEN_$TOKEN_ID"
-          VALUE="$(openssl rand -hex 32)"
-
-          gh secret set "$NAME" -b"$VALUE"
-          echo "::set-output name=name::$NAME"
-
-      - name: Secrets contains secret?
-        env:
-          SECRETS: ${{ toJson(secrets) }}
-        run: |
-          echo "$SECRETS"
+          echo "::set-output name=value::"$(openssl rand -hex 32)""
 
       - name: Setup php
         uses: shivammathur/setup-php@v2
@@ -96,10 +82,8 @@ jobs:
         env:
           IMAGE_ID: ${{ steps.image_id.outputs.image_id }}
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-          SERVICE_TOKEN: ${{ secrets[steps.service_token_secret.outputs.name] }}
+          SERVICE_TOKEN: ${{ steps.service_token.outputs.value }}
         run: |
-          echo "name"
-          echo "${{ steps.service_token_secret.outputs.name }}"
           echo "service token"
           echo "$SERVICE_TOKEN"
 
@@ -130,10 +114,3 @@ jobs:
 #          INSTANCE_ID: ${{ steps.instance.outputs.id }}
 #          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
 #        run: php bin/console app:instance:destroy --id="$INSTANCE_ID"
-
-      - name: Remove service token secret
-        if: ${{ always() }}
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
-        run: |
-          gh secret remove "${{ steps.service_token_secret.outputs.name }}"
