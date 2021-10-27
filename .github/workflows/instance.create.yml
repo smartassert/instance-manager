@@ -67,8 +67,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
         run: |
-          TOKEN_ID="$(tr -dc A-Z0-9 </dev/urandom | head -c 16)"
-          NAME="SERVICE_TOKEN_$TOKEN_ID"
+          #TOKEN_ID="$(tr -dc A-Z0-9 </dev/urandom | head -c 16)"
+          NAME="SERVICE_TOKEN_FOO"
           VALUE="$(tr -dc a-zA-Z0-9 </dev/urandom | head -c 32)"
 
           gh secret set "$NAME" -b"$VALUE"
