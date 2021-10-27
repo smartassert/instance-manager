@@ -10,22 +10,39 @@ use App\Command\IpAssignCommand;
 use App\Command\IpCreateCommand;
 use App\Command\IpGetCommand;
 
-class EmptyInstanceTagCollectionEnvironmentVariableTest extends AbstractEmptyEnvironmentVariableTest
+class EmptyServiceTokenEnvironmentVariableTest extends AbstractEmptyEnvironmentVariableTest
 {
+    /**
+     * @return array<mixed>
+     */
     public function commandForEmptyEnvironmentVariableDataProvider(): array
     {
-        return $this->commandDataProvider();
-    }
-
-    public function commandForNonEmptyEnvironmentVariableDataProvider(): array
-    {
-        return $this->commandDataProvider();
+        return [
+            InstanceCreateCommand::NAME => [
+                'command' => InstanceCreateCommand::NAME,
+            ],
+            InstanceIsHealthyCommand::NAME => [
+                'command' => InstanceIsHealthyCommand::NAME,
+            ],
+            InstanceListCommand::NAME => [
+                'command' => InstanceListCommand::NAME,
+            ],
+            InstanceDestroyCommand::NAME => [
+                'command' => InstanceDestroyCommand::NAME,
+            ],
+            IpAssignCommand::NAME => [
+                'command' => IpAssignCommand::NAME,
+            ],
+            IpCreateCommand::NAME => [
+                'command' => IpCreateCommand::NAME,
+            ],
+        ];
     }
 
     /**
      * @return array<mixed>
      */
-    public function commandDataProvider(): array
+    public function commandForNonEmptyEnvironmentVariableDataProvider(): array
     {
         return [
             InstanceCreateCommand::NAME => [
@@ -55,12 +72,12 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends AbstractEmptyEnv
     protected function getDefinedEnvironmentVariables(): array
     {
         return [
-            'SERVICE_TOKEN' => 'non-empty value',
+            'INSTANCE_COLLECTION_TAG' => 'non-empty value',
         ];
     }
 
     protected function getExpectedEnvironmentVariable(): string
     {
-        return 'INSTANCE_COLLECTION_TAG';
+        return 'SERVICE_TOKEN';
     }
 }

@@ -94,3 +94,7 @@ services:
                 tags:
                     - '%instance_collection_tag%'
                     - '%instance_tag%'
+                user-data: |
+                    #!/bin/bash
+
+                    echo "SERVICE_TOKEN=%env(non-empty:SERVICE_TOKEN)%" >> /etc/environment
