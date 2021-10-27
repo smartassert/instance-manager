@@ -75,6 +75,12 @@ jobs:
           gh secret set "$NAME" -b"$VALUE"
           echo "::set-output name=name::$NAME"
 
+      - name: Secrets contains secret?
+        env:
+          SECRETS: ${{ toJson(secrets) }}
+        run: |
+          echo "$SECRETS"
+
       - name: Setup php
         uses: shivammathur/setup-php@v2
         with:
