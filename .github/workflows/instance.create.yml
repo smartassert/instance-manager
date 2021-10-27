@@ -88,7 +88,11 @@ jobs:
         env:
           IMAGE_ID: ${{ steps.image_id.outputs.image_id }}
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
+          SERVICE_TOKEN: ${{ secrets[steps.service_token_secret.outputs.name] }}
         run: |
+          echo "service token lengh"
+          echo "$SERVICE_TOKEN" | wc -m
+
           CREATE_OUTPUT=$(php bin/console app:instance:create)
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
