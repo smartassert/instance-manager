@@ -90,6 +90,8 @@ jobs:
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
           SERVICE_TOKEN: ${{ secrets[steps.service_token_secret.outputs.name] }}
         run: |
+          echo "name"
+          echo "${{ steps.service_token_secret.outputs.name }}"
           echo "service token lengh"
           echo "$SERVICE_TOKEN" | wc -m
 
