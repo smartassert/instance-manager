@@ -68,7 +68,8 @@ jobs:
           GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
         run: |
           #TOKEN_ID="$(tr -dc A-Z0-9 < /dev/urandom | head -c 16)"
-          TOKEN_ID="$(tr -dc A-Z0-9 < /dev/urandom | tail -n +1 | head -c 16)"
+          #TOKEN_ID="$(tr -dc A-Z0-9 < /dev/urandom | tail -n +1 | head -c 16)"
+          cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1
           NAME="SERVICE_TOKEN_FOO"
           #VALUE="$(tr -dc a-zA-Z0-9 < /dev/urandom | head -c 32)"
           VALUE="total secret this value"
