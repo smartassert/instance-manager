@@ -69,7 +69,8 @@ jobs:
         run: |
           #TOKEN_ID="$(tr -dc A-Z0-9 </dev/urandom | head -c 16)"
           NAME="SERVICE_TOKEN_FOO"
-          VALUE="$(tr -dc a-zA-Z0-9 </dev/urandom | head -c 32)"
+          #VALUE="$(tr -dc a-zA-Z0-9 </dev/urandom | head -c 32)"
+          VALUE="total secret this value"
 
           gh secret set "$NAME" -b"$VALUE"
           echo "::set-output name=name::$NAME"
