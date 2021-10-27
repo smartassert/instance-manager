@@ -64,9 +64,7 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
 
     private function doTest(string $processCommand, bool $expectEnvironmentVariableErrorMessage): void
     {
-        $process = Process::fromShellCommandline($processCommand);
-        $process->run();
-
+        $output = (string) shell_exec("SERVICE_TOKEN=foo {$processCommand} 2>&1");
         $expectedMessage = 'Environment variable "INSTANCE_COLLECTION_TAG" is not allowed to be empty';
 
         $constraint = new StringContains($expectedMessage);
@@ -74,6 +72,6 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends TestCase
             $constraint = new LogicalNot(($constraint));
         }
 
-        static::assertThat($process->getErrorOutput(), $constraint);
+        static::assertThat($output, $constraint);
     }
 }
