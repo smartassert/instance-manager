@@ -17,6 +17,7 @@ class InstanceRepository
         private Factory $dropletConfigurationFactory,
         private string $instanceCollectionTag,
         private string $instanceTag,
+        private string $serviceToken,
     ) {
     }
 

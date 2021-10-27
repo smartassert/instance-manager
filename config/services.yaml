@@ -94,3 +94,7 @@ services:
                 tags:
                     - '%instance_collection_tag%'
                     - '%instance_tag%'
+
+    App\Services\InstanceRepository:
+        arguments:
+            $serviceToken: '%env(non-empty:SERVICE_TOKEN)%'
