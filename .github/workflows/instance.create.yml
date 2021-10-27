@@ -93,33 +93,33 @@ jobs:
           echo "service token lengh"
           echo "$SERVICE_TOKEN" | wc -m
 
-          CREATE_OUTPUT=$(php bin/console app:instance:create)
-          echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
+          #CREATE_OUTPUT=$(php bin/console app:instance:create)
+          #echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
-      - name: Health check
-        if: ${{ steps.build-config.outputs.health_check_url != '' }}
-        env:
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-          INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.health_check_url }}
-        run: |
-          HEALTH_CHECK_OUTPUT=$(php bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }})
-          HEALTH_CHECK_EXIT_CODE="$?"
-          JQ_OUTPUT=$(echo "$HEALTH_CHECK_OUTPUT" | jq "." 2>/dev/null)
-
-          if [ "" == "$JQ_OUTPUT" ]; then
-            echo "$HEALTH_CHECK_OUTPUT"
-          else
-            echo "$JQ_OUTPUT"
-          fi
-
-          exit $HEALTH_CHECK_EXIT_CODE
-
-      - name: Remove instance if health check failed
-        if:  ${{ failure() }}
-        env:
-          INSTANCE_ID: ${{ steps.instance.outputs.id }}
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-        run: php bin/console app:instance:destroy --id="$INSTANCE_ID"
+#      - name: Health check
+#        if: ${{ steps.build-config.outputs.health_check_url != '' }}
+#        env:
+#          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
+#          INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.health_check_url }}
+#        run: |
+#          HEALTH_CHECK_OUTPUT=$(php bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }})
+#          HEALTH_CHECK_EXIT_CODE="$?"
+#          JQ_OUTPUT=$(echo "$HEALTH_CHECK_OUTPUT" | jq "." 2>/dev/null)
+#
+#          if [ "" == "$JQ_OUTPUT" ]; then
+#            echo "$HEALTH_CHECK_OUTPUT"
+#          else
+#            echo "$JQ_OUTPUT"
+#          fi
+#
+#          exit $HEALTH_CHECK_EXIT_CODE
+#
+#      - name: Remove instance if health check failed
+#        if:  ${{ failure() }}
+#        env:
+#          INSTANCE_ID: ${{ steps.instance.outputs.id }}
+#          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
+#        run: php bin/console app:instance:destroy --id="$INSTANCE_ID"
 
       - name: Remove service token secret
         if: ${{ always() }}
