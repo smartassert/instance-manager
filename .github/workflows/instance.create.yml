@@ -65,7 +65,7 @@ jobs:
       - name: Create service token
         id: service_token
         run: |
-          echo "::set-output name=value::"$(openssl rand -hex 32)""
+          echo "::set-output name=value::$(openssl rand -hex 32)"
 
       - name: Setup php
         uses: shivammathur/setup-php@v2
