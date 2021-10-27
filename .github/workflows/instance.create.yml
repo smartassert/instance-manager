@@ -62,6 +62,17 @@ jobs:
           EXPECTED_EXISTS: "true"
         run: ./vendor/smartassert/bash-ga-deploy-tools/src/digitalocean-snapshot/verify-existence.sh
 
+      - name: Set service token secret
+        id: service_token_secret
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
+        run: |
+          NAME="SERVICE_TOKEN_$(tr -dc A-Z0-9 </dev/urandom | head -c 16)"
+          VALUE="$(tr -dc a-zA-Z0-9 </dev/urandom | head -c 32)"
+
+          gh secret set "$NAME" -b"$VALUE"
+          echo "::set-output name=name::$NAME"
+
       - name: Setup php
         uses: shivammathur/setup-php@v2
         with:
@@ -105,3 +116,10 @@ jobs:
           INSTANCE_ID: ${{ steps.instance.outputs.id }}
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: php bin/console app:instance:destroy --id="$INSTANCE_ID"
+
+      - name: Remove service token secret
+        if: ${{ always() }}
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
+        run: |
+          gh secret remove "${{ steps.service_token_secret.outputs.name }}"
