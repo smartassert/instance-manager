@@ -1,0 +1,42 @@
+name: instance.create-with-service-token
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_id:
+        description: Service for which to create an instance
+        required: true
+
+jobs:
+  create:
+    name: Create instance for ${{ github.event.inputs.service_id }} with generated service token
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify service_id
+        run: |
+          SERVICE_DIRECTORY="./services/${{ github.event.inputs.service_id }}"
+          if [ ! -d "$SERVICE_DIRECTORY" ]; then
+            echo "Directory for service ${{ github.event.inputs.service_id }} not found: $SERVICE_DIRECTORY"
+            exit 1
+          fi
+
+      - name: Create service token secret
+        id: service_token_secret
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
+        run: |
+          TOKEN_ID=$(openssl rand -hex 8)
+          NAME="SERVICE_TOKEN_${TOKEN_ID^^}"
+          VALUE=$(openssl rand -hex 16)
+
+          gh secret set "$NAME" -b"$VALUE"
+          echo "::set-output name=NAME::$NAME"
+
+      - name: Trigger instance.create
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
+        run: |
+          gh workflow run image.build.yml \
+          -f service_id="${{ github.event.inputs.service_id }}" \
+          -f service_token_secret_name="${{ steps.service_token_secret.outputs.name }}"
