@@ -37,6 +37,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
         run: |
-          gh workflow run image.build.yml \
+          gh workflow run instance.create.yml \
           -f service_id="${{ github.event.inputs.service_id }}" \
           -f service_token_secret_name="${{ steps.service_token_secret.outputs.name }}"
