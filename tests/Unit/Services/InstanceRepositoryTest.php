@@ -19,7 +19,6 @@ class InstanceRepositoryTest extends TestCase
      */
     public function testCreate(
         DropletConfigurationFactory $dropletConfigurationFactory,
-        string $serviceToken,
         string $postCreateScript,
         string $expectedUserData,
     ): void {
@@ -58,7 +57,7 @@ class InstanceRepositoryTest extends TestCase
             'worker-manager-0.4.2'
         );
 
-        $instance = $instanceRepository->create($serviceToken, $postCreateScript);
+        $instance = $instanceRepository->create($postCreateScript);
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertSame($dropletEntity, $instance->getDroplet());
@@ -72,7 +71,6 @@ class InstanceRepositoryTest extends TestCase
         return [
             'no default user data, no post-create script' => [
                 'dropletConfigurationFactory' => new DropletConfigurationFactory(),
-                'serviceToken' => 'non-empty-service-token',
                 'postDeployScript' => '',
                 'expectedCreatedUserData' => '# Default user data' . "\n" .
                     '# No default user data' . "\n" .
@@ -84,7 +82,6 @@ class InstanceRepositoryTest extends TestCase
                 'dropletConfigurationFactory' => new DropletConfigurationFactory([
                     DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                 ]),
-                'serviceToken' => 'non-empty-service-token',
                 'postDeployScript' => '',
                 'expectedCreatedUserData' => '# Default user data' . "\n" .
                     'echo "single-line user data"' . "\n" .
@@ -98,7 +95,6 @@ class InstanceRepositoryTest extends TestCase
                         'echo "multi-line user data 2"' . "\n" .
                         'echo "multi-line user data 3"'
                 ]),
-                'serviceToken' => 'non-empty-service-token',
                 'postDeployScript' => '',
                 'expectedCreatedUserData' => '# Default user data' . "\n" .
                     'echo "multi-line user data 1"' . "\n" .
@@ -110,7 +106,6 @@ class InstanceRepositoryTest extends TestCase
             ],
             'no default user data, has post-create script' => [
                 'dropletConfigurationFactory' => new DropletConfigurationFactory(),
-                'serviceToken' => 'non-empty-service-token',
                 'postDeployScript' => './scripts/post-create.sh',
                 'expectedCreatedUserData' => '# Default user data' . "\n" .
                     '# No default user data' . "\n" .
@@ -122,7 +117,6 @@ class InstanceRepositoryTest extends TestCase
                 'dropletConfigurationFactory' => new DropletConfigurationFactory([
                     DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                 ]),
-                'serviceToken' => 'non-empty-service-token',
                 'postDeployScript' => './scripts/post-create.sh',
                 'expectedCreatedUserData' => '# Default user data' . "\n" .
                     'echo "single-line user data"' . "\n" .
@@ -136,7 +130,6 @@ class InstanceRepositoryTest extends TestCase
                         'echo "multi-line user data 2"' . "\n" .
                         'echo "multi-line user data 3"'
                 ]),
-                'serviceToken' => 'non-empty-service-token',
                 'postDeployScript' => './scripts/post-create.sh',
                 'expectedCreatedUserData' => '# Default user data' . "\n" .
                     'echo "multi-line user data 1"' . "\n" .

@@ -30,22 +30,6 @@ class InstanceCreateCommandTest extends KernelTestCase
         $this->httpResponseFactory = $httpResponseFactory;
     }
 
-    public function testExecuteWithoutServiceToken(): void
-    {
-        $output = new BufferedOutput();
-
-        $commandReturnCode = $this->command->run(new ArrayInput([]), $output);
-
-        self::assertSame(Command::FAILURE, $commandReturnCode);
-        self::assertJsonStringEqualsJsonString(
-            (string) json_encode([
-                'status' => 'error',
-                'error-code' => 'service-token-missing',
-            ]),
-            $output->fetch()
-        );
-    }
-
     /**
      * @dataProvider executeThrowsExceptionDataProvider
      *
@@ -66,9 +50,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         self::expectExceptionCode($expectedExceptionCode);
 
         $this->command->run(
-            new ArrayInput([
-                '--' . InstanceCreateCommand::OPTION_SERVICE_TOKEN => 'non-empty-service-token',
-            ]),
+            new ArrayInput([]),
             new BufferedOutput()
         );
     }
@@ -123,9 +105,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     {
         return [
             'already exists' => [
-                'input' => [
-                    '--' . InstanceCreateCommand::OPTION_SERVICE_TOKEN => 'non-empty-service-token',
-                ],
+                'input' => [],
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -148,9 +128,7 @@ class InstanceCreateCommandTest extends KernelTestCase
                 ]),
             ],
             'created' => [
-                'input' => [
-                    '--' . InstanceCreateCommand::OPTION_SERVICE_TOKEN => 'non-empty-service-token',
-                ],
+                'input' => [],
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
