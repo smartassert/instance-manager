@@ -93,7 +93,9 @@ jobs:
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: |
           CREATE_OUTPUT=$(
-            php bin/console app:instance:create --service-token="${{ secrets[github.event.inputs.service_token_secret_name] }}"
+            php bin/console app:instance:create \
+            --service-token="${{ secrets[github.event.inputs.service_token_secret_name] }}" \
+            --post-create-script="${{ steps.build-config.outputs.post_create_script }}"
           )
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 

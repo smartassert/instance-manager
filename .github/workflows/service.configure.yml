@@ -14,6 +14,9 @@ on:
       health_check_url:
         description: URL from which to check that an instance is healthy
         required: false
+      post_create_script:
+        description: Script to execute on new instance after creating
+        required: false
 
 jobs:
   store-service-configuration:
@@ -60,11 +63,19 @@ jobs:
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.health_check_url }}
         run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
 
+      - name: Set post_create_script
+        id: post_create_script
+        env:
+          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.post_create_script }}
+          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.post_create_script }}
+        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+
       - name: Output setup
         run: |
           echo "service_id: ${{ steps.service_id.outputs.value }}"
           echo "state_url: ${{ steps.state_url.outputs.value }}"
           echo "health_check_url: ${{ steps.health_check_url.outputs.value }}"
+          echo "post_create_script: ${{ steps.post_create_script.outputs.value }}"
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -74,10 +85,12 @@ jobs:
           CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/configuration.json
           STATE_URL: ${{ steps.state_url.outputs.value }}
           HEALTH_CHECK_URL: ${{ steps.health_check_url.outputs.value }}
+          POST_DEPLOY_SCRIPT: ${{ steps.post_create_script.outputs.value }}
         run: |
           JSON="{
             \"state_url\":\"$STATE_URL\",
-            \"health_check_url\":\"$HEALTH_CHECK_URL\"
+            \"health_check_url\":\"$HEALTH_CHECK_URL\",
+            \"post_create_script\":\"$POST_DEPLOY_SCRIPT\"
           }"
 
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
