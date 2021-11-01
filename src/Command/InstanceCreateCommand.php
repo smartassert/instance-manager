@@ -19,6 +19,7 @@ class InstanceCreateCommand extends Command
 {
     public const NAME = 'app:instance:create';
     public const OPTION_SERVICE_TOKEN = 'service-token';
+    public const OPTION_POST_CREATE_SCRIPT = 'post-create-script';
 
     public function __construct(
         private InstanceRepository $instanceRepository,
@@ -35,6 +36,12 @@ class InstanceCreateCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Service token to allow secure post-create calls to instance'
+            )
+            ->addOption(
+                self::OPTION_POST_CREATE_SCRIPT,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Script to call once creation is complete'
             )
         ;
     }
@@ -53,9 +60,12 @@ class InstanceCreateCommand extends Command
             return Command::FAILURE;
         }
 
+        $postCreateScript = $input->getOption(self::OPTION_POST_CREATE_SCRIPT);
+        $postCreateScript = is_string($postCreateScript) ? trim($postCreateScript) : '';
+
         $instance = $this->instanceRepository->findCurrent();
         if (null === $instance) {
-            $instance = $this->instanceRepository->create($serviceToken);
+            $instance = $this->instanceRepository->create($serviceToken, $postCreateScript);
         }
 
         $output->write($this->outputFactory->createSuccessOutput(['id' => $instance->getId()]));
