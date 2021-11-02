@@ -91,6 +91,13 @@ jobs:
         run: |
           php bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }}
 
+      - name: Post-create actions completion check
+        env:
+          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
+          INSTANCE_STATE_URL: ${{ steps.build-config.outputs.state_url }}
+        run: |
+          ./ci/scripts/instance-post-create-complete-check.sh ${{ steps.instance.outputs.id }}
+
       - name: Remove instance if health check failed
         if: ${{ failure() }}
         env:
