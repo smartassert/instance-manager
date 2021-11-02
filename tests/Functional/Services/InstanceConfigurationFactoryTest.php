@@ -36,7 +36,7 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
             'no post-create script' => [
                 'postCreateScript' => '',
                 'expected' => new Configuration(
-                    ['instance-collection-tag-value-image-id-test'],
+                    [],
                     'lon1',
                     's-1vcpu-1gb',
                     'image-id-test',
@@ -56,7 +56,7 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
             'has post-create script' => [
                 'postCreateScript' => './scripts/post-create.sh',
                 'expected' => new Configuration(
-                    ['instance-collection-tag-value-image-id-test'],
+                    [],
                     'lon1',
                     's-1vcpu-1gb',
                     'image-id-test',
