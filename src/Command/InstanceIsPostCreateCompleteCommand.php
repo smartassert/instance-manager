@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Services\CommandActionRunner;
 use App\Services\InstanceClient;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
@@ -32,6 +33,7 @@ class InstanceIsPostCreateCompleteCommand extends AbstractInstanceActionCommand
         InstanceRepository $instanceRepository,
         private InstanceClient $instanceClient,
         private OutputFactory $outputFactory,
+        private CommandActionRunner $commandActionRunner,
     ) {
         parent::__construct($instanceRepository);
     }
@@ -85,7 +87,7 @@ class InstanceIsPostCreateCompleteCommand extends AbstractInstanceActionCommand
         $delay = $input->getOption(self::OPTION_RETRY_DELAY);
         $delay = is_numeric($delay) ? (int) $delay : self::DEFAULT_RETRY_DELAY;
 
-        $result = $this->executeAction(
+        $result = $this->commandActionRunner->run(
             $limit,
             $delay,
             $output,
@@ -106,28 +108,5 @@ class InstanceIsPostCreateCompleteCommand extends AbstractInstanceActionCommand
         );
 
         return true === $result ? Command::SUCCESS : Command::FAILURE;
-    }
-
-    /**
-     * @param callable(bool $isLastAttempt): bool $action
-     */
-    private function executeAction(int $limit, int $delay, OutputInterface $output, callable $action): bool
-    {
-        $count = 0;
-        do {
-            try {
-                $result = ($action)($count === $limit - 1);
-            } catch (\Exception $exception) {
-                $output->write($exception->getMessage());
-                $result = false;
-            }
-
-            if (false === $result) {
-                usleep($delay * self::MICROSECONDS_PER_SECOND);
-                ++$count;
-            }
-        } while ($count < $limit && false === $result);
-
-        return $result;
     }
 }
