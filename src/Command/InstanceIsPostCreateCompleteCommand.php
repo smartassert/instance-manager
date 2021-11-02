@@ -10,7 +10,6 @@ use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
@@ -19,6 +18,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 class InstanceIsPostCreateCompleteCommand extends AbstractInstanceObjectCommand
 {
+    use RetryableCommandTrait;
+
     public const NAME = 'app:instance:is-post-create-complete';
     public const EXIT_CODE_ID_INVALID = 3;
     public const EXIT_CODE_NOT_FOUND = 4;
@@ -37,26 +38,24 @@ class InstanceIsPostCreateCompleteCommand extends AbstractInstanceObjectCommand
         parent::__construct($instanceRepository, $outputFactory);
     }
 
-    protected function configure(): void
+    protected function getDefaultRetryLimit(): int
     {
-        parent::configure();
+        return self::DEFAULT_RETRY_LIMIT;
+    }
 
-        $this
-            ->addOption(
-                self::OPTION_RETRY_LIMIT,
-                null,
-                InputOption::VALUE_REQUIRED,
-                'How many times to retry if post-create actions are not complete?',
-                self::DEFAULT_RETRY_LIMIT
-            )
-            ->addOption(
-                self::OPTION_RETRY_DELAY,
-                null,
-                InputOption::VALUE_REQUIRED,
-                'How long to wait, in seconds, if post-create actions are not complete?',
-                self::DEFAULT_RETRY_DELAY
-            )
-        ;
+    protected function getDefaultRetryDelay(): int
+    {
+        return self::DEFAULT_RETRY_DELAY;
+    }
+
+    protected function getRetryLimitOptionName(): string
+    {
+        return self::OPTION_RETRY_LIMIT;
+    }
+
+    protected function getRetryDelayOptionName(): string
+    {
+        return self::OPTION_RETRY_DELAY;
     }
 
     /**
@@ -71,15 +70,9 @@ class InstanceIsPostCreateCompleteCommand extends AbstractInstanceObjectCommand
 
         $instance = $this->getInstance();
 
-        $limit = $input->getOption(self::OPTION_RETRY_LIMIT);
-        $limit = is_numeric($limit) ? (int) $limit : self::DEFAULT_RETRY_LIMIT;
-
-        $delay = $input->getOption(self::OPTION_RETRY_DELAY);
-        $delay = is_numeric($delay) ? (int) $delay : self::DEFAULT_RETRY_DELAY;
-
         $result = $this->commandActionRunner->run(
-            $limit,
-            $delay,
+            $this->getRetryLimit($input),
+            $this->getRetryDelay($input),
             $output,
             function (bool $isLastAttempt) use ($output, $instance): bool {
                 $state = $this->instanceClient->getState($instance);
