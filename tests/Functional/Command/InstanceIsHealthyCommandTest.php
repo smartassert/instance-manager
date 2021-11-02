@@ -80,12 +80,12 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeDataProvider
+     * @dataProvider executeInvalidInputDataProvider
      *
      * @param array<mixed> $input
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testExecuteSuccess(
+    public function testExecuteInvalidInput(
         array $input,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
@@ -108,7 +108,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeDataProvider(): array
+    public function executeInvalidInputDataProvider(): array
     {
         return [
             'id invalid, missing' => [
@@ -147,7 +147,42 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     'id' => 123,
                 ]),
             ],
-            'found, no health data' => [
+        ];
+    }
+
+    /**
+     * @dataProvider executeDataProvider
+     *
+     * @param array<mixed> $input
+     * @param array<mixed> $httpResponseDataCollection
+     */
+    public function testExecuteSuccess(
+        array $input,
+        array $httpResponseDataCollection,
+        int $expectedReturnCode,
+        string $expectedOutput
+    ): void {
+        foreach ($httpResponseDataCollection as $httpResponseData) {
+            $this->mockHandler->append(
+                $this->httpResponseFactory->createFromArray($httpResponseData)
+            );
+        }
+
+        $output = new BufferedOutput();
+
+        $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+        self::assertSame($expectedOutput, $output->fetch());
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function executeDataProvider(): array
+    {
+        return [
+            'no health data' => [
                 'input' => [
                     '--id' => '123',
                 ],
@@ -172,11 +207,13 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     ],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([]),
+                'expectedOutput' => '[]',
             ],
-            'not healthy' => [
+            'not healthy, retry-limit=1' => [
                 'input' => [
                     '--id' => '123',
+                    '--retry-limit' => 1,
+                    '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
                     [
@@ -208,6 +245,92 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     'service2' => 'available',
                     'service3' => 'available',
                 ]),
+            ],
+            'not healthy, not-healthy, retry-limit=2' => [
+                'input' => [
+                    '--id' => '123',
+                    '--retry-limit' => 2,
+                    '--retry-delay' => 0,
+                ],
+                'httpResponseDataCollection' => [
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplet' => [
+                                'code' => 123,
+                            ],
+                        ]),
+                    ],
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 503,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'service1' => 'unavailable',
+                            'service2' => 'available',
+                        ]),
+                    ],
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 503,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'service1' => 'unavailable',
+                            'service2' => 'available',
+                        ]),
+                    ],
+                ],
+                'expectedReturnCode' => Command::FAILURE,
+                'expectedOutput' => json_encode(['service1' => 'unavailable', 'service2' => 'available']) . "\n" .
+                    json_encode(['service1' => 'unavailable', 'service2' => 'available']),
+            ],
+            'not healthy, healthy, retry-limit=2' => [
+                'input' => [
+                    '--id' => '123',
+                    '--retry-limit' => 2,
+                    '--retry-delay' => 0,
+                ],
+                'httpResponseDataCollection' => [
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplet' => [
+                                'code' => 123,
+                            ],
+                        ]),
+                    ],
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 503,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'service1' => 'unavailable',
+                            'service2' => 'available',
+                        ]),
+                    ],
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'service1' => 'available',
+                            'service2' => 'available',
+                        ]),
+                    ],
+                ],
+                'expectedReturnCode' => Command::SUCCESS,
+                'expectedOutput' => json_encode(['service1' => 'unavailable', 'service2' => 'available']) . "\n" .
+                    json_encode(['service1' => 'available', 'service2' => 'available']),
             ],
             'healthy' => [
                 'input' => [
