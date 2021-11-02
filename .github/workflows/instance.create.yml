@@ -98,7 +98,7 @@ jobs:
         run: |
           ./ci/scripts/instance-post-create-complete-check.sh ${{ steps.instance.outputs.id }}
 
-      - name: Remove instance if health check failed
+      - name: Remove instance on failure
         if: ${{ failure() }}
         env:
           INSTANCE_ID: ${{ steps.instance.outputs.id }}

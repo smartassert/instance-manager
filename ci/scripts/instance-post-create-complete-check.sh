@@ -13,7 +13,7 @@ function run_command_until_successful () {
     "$@" && HAS_SUCCEEDED=1 && break
     printf "\n"
     count=$((count+1))
-    printf "Retrying in $DELAY seconds\n\n"
+    echo -e "Retrying in $DELAY seconds\n"
     sleep "$DELAY"
   done
 }
