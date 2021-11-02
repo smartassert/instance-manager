@@ -15,6 +15,3 @@ services:
 
     App\Tests\Services\HttpResponseFactory:
         public: true
-
-    App\Services\InstanceConfigurationFactory:
-        public: true
