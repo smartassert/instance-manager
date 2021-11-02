@@ -81,12 +81,12 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeDataProvider
+     * @dataProvider executeInvalidInputDataProvider
      *
      * @param array<mixed> $input
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testExecuteSuccess(
+    public function testExecuteInvalidInput(
         array $input,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
@@ -109,7 +109,7 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeDataProvider(): array
+    public function executeInvalidInputDataProvider(): array
     {
         return [
             'id invalid, missing' => [
@@ -148,6 +148,43 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                     'id' => 123,
                 ]),
             ],
+        ];
+    }
+
+    /**
+     * @dataProvider executeDataProvider
+     *
+     * @param array<mixed> $input
+     * @param array<mixed> $httpResponseDataCollection
+     */
+    public function testExecuteSuccess(
+        array $input,
+        array $httpResponseDataCollection,
+        int $expectedReturnCode,
+        string $expectedOutput
+    ): void {
+        foreach ($httpResponseDataCollection as $fixture) {
+            if (is_array($fixture)) {
+                $fixture = $this->httpResponseFactory->createFromArray($fixture);
+            }
+
+            $this->mockHandler->append($fixture);
+        }
+
+        $output = new BufferedOutput();
+
+        $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+        self::assertEquals($expectedOutput, $output->fetch());
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function executeDataProvider(): array
+    {
+        return [
             'no explicit post-create-complete state' => [
                 'input' => [
                     '--id' => '123',
@@ -173,14 +210,13 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                     ],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'success',
-                    'post-create-complete' => true,
-                ]),
+                'expectedOutput' => 'complete',
             ],
-            'post-create-complete=false' => [
+            'post-create-complete=false, retry-limit=1' => [
                 'input' => [
                     '--id' => '123',
+                    '--retry-limit' => 1,
+                    '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
                     [
@@ -204,11 +240,80 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                         ]),
                     ],
                 ],
-                'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'success',
-                    'post-create-complete' => false,
-                ]),
+                'expectedReturnCode' => Command::FAILURE,
+                'expectedOutput' => 'not-complete',
+            ],
+            'post-create-complete=false, post-create-complete=false, retry-limit=2' => [
+                'input' => [
+                    '--id' => '123',
+                    '--retry-limit' => 2,
+                    '--retry-delay' => 0,
+                ],
+                'httpResponseDataCollection' => [
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplet' => [
+                                'code' => 123,
+                            ],
+                        ]),
+                    ],
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'post-create-complete' => false,
+                        ]),
+                    ],
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'post-create-complete' => false,
+                        ]),
+                    ],
+                ],
+                'expectedReturnCode' => Command::FAILURE,
+                'expectedOutput' => 'not-complete' . "\n" . 'not-complete',
+            ],
+            'post-create-complete=false, exception, retry-limit=2' => [
+                'input' => [
+                    '--id' => '123',
+                    '--retry-limit' => 2,
+                    '--retry-delay' => 0,
+                ],
+                'httpResponseDataCollection' => [
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplet' => [
+                                'code' => 123,
+                            ],
+                        ]),
+                    ],
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'post-create-complete' => false,
+                        ]),
+                    ],
+                    new \RuntimeException('exception message content'),
+                ],
+                'expectedReturnCode' => Command::FAILURE,
+                'expectedOutput' => 'not-complete' . "\n" . 'exception message content',
             ],
             'post-create-complete=true' => [
                 'input' => [
@@ -237,10 +342,47 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                     ],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'success',
-                    'post-create-complete' => true,
-                ]),
+                'expectedOutput' => 'complete',
+            ],
+            'post-create-complete=false, post-create-complete=true, retry-limit=2' => [
+                'input' => [
+                    '--id' => '123',
+                    '--retry-limit' => 2,
+                    '--retry-delay' => 0,
+                ],
+                'httpResponseDataCollection' => [
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplet' => [
+                                'code' => 123,
+                            ],
+                        ]),
+                    ],
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'post-create-complete' => false,
+                        ]),
+                    ],
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'post-create-complete' => true,
+                        ]),
+                    ],
+                ],
+                'expectedReturnCode' => Command::SUCCESS,
+                'expectedOutput' => 'not-complete' . "\n" . 'complete',
             ],
             'post-create-complete=<non-boolean>' => [
                 'input' => [
@@ -269,10 +411,7 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                     ],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'success',
-                    'post-create-complete' => true,
-                ]),
+                'expectedOutput' => 'complete',
             ],
         ];
     }
