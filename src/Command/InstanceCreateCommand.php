@@ -18,25 +18,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 class InstanceCreateCommand extends Command
 {
     public const NAME = 'app:instance:create';
-    public const OPTION_SERVICE_TOKEN = 'service-token';
     public const OPTION_POST_CREATE_SCRIPT = 'post-create-script';
 
     public function __construct(
         private InstanceRepository $instanceRepository,
         private OutputFactory $outputFactory,
     ) {
-        parent::__construct(null);
+        parent::__construct();
     }
 
     protected function configure(): void
     {
         $this
-            ->addOption(
-                self::OPTION_SERVICE_TOKEN,
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Service token to allow secure post-create calls to instance'
-            )
             ->addOption(
                 self::OPTION_POST_CREATE_SCRIPT,
                 null,
@@ -51,21 +44,12 @@ class InstanceCreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceToken = $input->getOption(self::OPTION_SERVICE_TOKEN);
-        $serviceToken = (is_string($serviceToken)) ? trim($serviceToken) : '';
-
-        if ('' === $serviceToken) {
-            $output->write($this->outputFactory->createErrorOutput('service-token-missing'));
-
-            return Command::FAILURE;
-        }
-
         $postCreateScript = $input->getOption(self::OPTION_POST_CREATE_SCRIPT);
         $postCreateScript = is_string($postCreateScript) ? trim($postCreateScript) : '';
 
         $instance = $this->instanceRepository->findCurrent();
         if (null === $instance) {
-            $instance = $this->instanceRepository->create($serviceToken, $postCreateScript);
+            $instance = $this->instanceRepository->create($postCreateScript);
         }
 
         $output->write($this->outputFactory->createSuccessOutput(['id' => $instance->getId()]));

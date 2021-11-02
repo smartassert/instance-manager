@@ -23,7 +23,7 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function create(string $serviceToken, string $postCreateScript): Instance
+    public function create(string $postCreateScript): Instance
     {
         $configuration = $this->dropletConfigurationFactory->create();
 
@@ -36,7 +36,7 @@ class InstanceRepository
             $configuration->getIpv6(),
             $configuration->getVpcUuid(),
             $configuration->getSshKeys(),
-            $this->buildCreateUserData($configuration->getUserData(), $serviceToken, $postCreateScript),
+            $this->buildCreateUserData($configuration->getUserData(), $postCreateScript),
             $configuration->getMonitoring(),
             $configuration->getVolumes(),
             $configuration->getTags()
@@ -81,14 +81,10 @@ class InstanceRepository
         }))($id);
     }
 
-    private function buildCreateUserData(
-        string $defaultUserData,
-        string $serviceToken,
-        string $postCreateScript
-    ): string {
-        $populatedDefaultUserData = str_replace('{{ service_token }}', $serviceToken, $defaultUserData);
-        if ('' === $populatedDefaultUserData) {
-            $populatedDefaultUserData = '# No default user data';
+    private function buildCreateUserData(string $defaultUserData, string $postCreateScript): string
+    {
+        if ('' === $defaultUserData) {
+            $defaultUserData = '# No default user data';
         }
 
         if ('' === $postCreateScript) {
@@ -103,7 +99,7 @@ class InstanceRepository
 
         return sprintf(
             $template,
-            $populatedDefaultUserData,
+            $defaultUserData,
             $postCreateScript,
         );
     }

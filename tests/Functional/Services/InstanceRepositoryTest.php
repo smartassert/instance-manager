@@ -51,7 +51,7 @@ class InstanceRepositoryTest extends KernelTestCase
         $this->mockHandler->append(
             $this->httpResponseFactory->createFromArray($successResponseData)
         );
-        $instance = $this->instanceRepository->create('non-empty-service-token', '');
+        $instance = $this->instanceRepository->create('');
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertEquals(

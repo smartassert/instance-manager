@@ -6,9 +6,6 @@ on:
       service_id:
         description: Service for which to create an instance
         required: true
-      service_token_secret_name:
-        description: Name of the repository secret to use as the service token
-        required: true
 
 jobs:
   create:
@@ -75,17 +72,6 @@ jobs:
         with:
           args: --ignore-platform-reqs --quiet
 
-      - name: Verify service token secret exists and is of sufficient length
-        env:
-          SERVICE_TOKEN: ${{ secrets[github.event.inputs.service_token_secret_name] }}
-        run: |
-          TOKEN_LENGTH=$(($(wc -c <<< "$SERVICE_TOKEN")-1))
-
-          if [ "$TOKEN_LENGTH" -lt "32" ]; then
-            echo "Token secret not found or too short. Length: $TOKEN_LENGTH"
-            exit 1
-          fi
-
       - name: Create
         id: instance
         env:
@@ -93,9 +79,7 @@ jobs:
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: |
           CREATE_OUTPUT=$(
-            php bin/console app:instance:create \
-            --service-token="${{ secrets[github.event.inputs.service_token_secret_name] }}" \
-            --post-create-script="${{ steps.build-config.outputs.post_create_script }}"
+            php bin/console app:instance:create --post-create-script="${{ steps.build-config.outputs.post_create_script }}"
           )
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
@@ -123,10 +107,3 @@ jobs:
           INSTANCE_ID: ${{ steps.instance.outputs.id }}
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: php bin/console app:instance:destroy --id="$INSTANCE_ID"
-
-      - name: Remove service token secret
-        if: ${{ always() }}
-        env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN_SELF }}
-        run: |
-          gh secret remove ${{ github.event.inputs.service_token_secret_name }}
