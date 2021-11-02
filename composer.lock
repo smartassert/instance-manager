@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "63ec7abefc5574d771573e61060dceb2",
+    "content-hash": "27bfa802a533927e1a6986f2ac7ba197",
     "packages": [
         {
             "name": "clue/stream-filter",
@@ -1167,16 +1167,16 @@
         },
         {
             "name": "smartassert/digitalocean-droplet-configuration",
-            "version": "0.1",
+            "version": "0.5",
             "source": {
                 "type": "git",
-                "url": "https://github.com/smartassert/digitialocean-droplet-configuration.git",
-                "reference": "a47f56073d85cf9a885bb4887bdb0756e45a1478"
+                "url": "https://github.com/smartassert/digitalocean-droplet-configuration.git",
+                "reference": "3a17fcdc96b2cf5589561d9c7f25c00d4665d530"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/smartassert/digitialocean-droplet-configuration/zipball/a47f56073d85cf9a885bb4887bdb0756e45a1478",
-                "reference": "a47f56073d85cf9a885bb4887bdb0756e45a1478",
+                "url": "https://api.github.com/repos/smartassert/digitalocean-droplet-configuration/zipball/3a17fcdc96b2cf5589561d9c7f25c00d4665d530",
+                "reference": "3a17fcdc96b2cf5589561d9c7f25c00d4665d530",
                 "shasum": ""
             },
             "require": {
@@ -1184,8 +1184,8 @@
             },
             "require-dev": {
                 "friendsofphp/php-cs-fixer": "^3.0",
-                "phpstan/phpstan": "^0.12.92",
-                "phpstan/phpstan-phpunit": "^0.12.21",
+                "phpstan/phpstan": "^1",
+                "phpstan/phpstan-phpunit": "^1",
                 "phpunit/phpunit": "^9.5",
                 "squizlabs/php_codesniffer": "^3.6"
             },
@@ -1207,10 +1207,10 @@
             ],
             "homepage": "https://github.com/smartassert/digitalocean-droplet-configuration",
             "support": {
-                "issues": "https://github.com/smartassert/digitialocean-droplet-configuration/issues",
-                "source": "https://github.com/smartassert/digitialocean-droplet-configuration/tree/0.1"
+                "issues": "https://github.com/smartassert/digitalocean-droplet-configuration/issues",
+                "source": "https://github.com/smartassert/digitalocean-droplet-configuration/tree/0.5"
             },
-            "time": "2021-07-15T14:19:03+00:00"
+            "time": "2021-11-02T11:34:12+00:00"
         },
         {
             "name": "symfony/cache",

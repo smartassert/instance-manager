@@ -4,3 +4,7 @@ parameters:
     - src
     - tests
   inferPrivatePropertyTypeFromConstructor: true
+  ignoreErrors:
+    -
+      message: '#Parameter \#8 \$sshKeys of method DigitalOceanV2\\Api\\Droplet::create\(\) expects array<int>, array<int\|string> given#'
+      path: src/Services/InstanceRepository.php

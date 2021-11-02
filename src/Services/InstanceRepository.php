@@ -8,13 +8,12 @@ use App\Model\InstanceCollection;
 use DigitalOceanV2\Api\Droplet as DropletApi;
 use DigitalOceanV2\Entity\Droplet as DropletEntity;
 use DigitalOceanV2\Exception\ExceptionInterface;
-use SmartAssert\DigitalOceanDropletConfiguration\Factory;
 
 class InstanceRepository
 {
     public function __construct(
         private DropletApi $dropletApi,
-        private Factory $dropletConfigurationFactory,
+        private InstanceConfigurationFactory $instanceConfigurationFactory,
         private string $instanceCollectionTag,
         private string $instanceTag,
     ) {
@@ -25,7 +24,7 @@ class InstanceRepository
      */
     public function create(string $postCreateScript): Instance
     {
-        $configuration = $this->dropletConfigurationFactory->create();
+        $configuration = $this->instanceConfigurationFactory->create($postCreateScript);
 
         $dropletEntity = $this->dropletApi->create(
             $this->instanceTag,
@@ -36,7 +35,7 @@ class InstanceRepository
             $configuration->getIpv6(),
             $configuration->getVpcUuid(),
             $configuration->getSshKeys(),
-            $this->buildCreateUserData($configuration->getUserData(), $postCreateScript),
+            $configuration->getUserData(),
             $configuration->getMonitoring(),
             $configuration->getVolumes(),
             $configuration->getTags()
@@ -79,29 +78,6 @@ class InstanceRepository
         (new ExcludeNotFoundDropletAction(function (int $id) {
             $this->dropletApi->remove($id);
         }))($id);
-    }
-
-    private function buildCreateUserData(string $defaultUserData, string $postCreateScript): string
-    {
-        if ('' === $defaultUserData) {
-            $defaultUserData = '# No default user data';
-        }
-
-        if ('' === $postCreateScript) {
-            $postCreateScript = '# No post-create script';
-        }
-
-        $template = '# Default user data
-%s
-
-# Post-create script
-%s';
-
-        return sprintf(
-            $template,
-            $defaultUserData,
-            $postCreateScript,
-        );
     }
 
     /**

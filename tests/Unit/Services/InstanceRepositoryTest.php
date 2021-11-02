@@ -3,6 +3,7 @@
 namespace App\Tests\Unit\Services;
 
 use App\Model\Instance;
+use App\Services\InstanceConfigurationFactory;
 use App\Services\InstanceRepository;
 use DigitalOceanV2\Api\Droplet as DropletApi;
 use DigitalOceanV2\Entity\Droplet as DropletEntity;
@@ -18,7 +19,7 @@ class InstanceRepositoryTest extends TestCase
      * @dataProvider createDataProvider
      */
     public function testCreate(
-        DropletConfigurationFactory $dropletConfigurationFactory,
+        InstanceConfigurationFactory $instanceConfigurationFactory,
         string $postCreateScript,
         string $expectedUserData,
     ): void {
@@ -52,7 +53,7 @@ class InstanceRepositoryTest extends TestCase
 
         $instanceRepository = new InstanceRepository(
             $dropletApi,
-            $dropletConfigurationFactory,
+            $instanceConfigurationFactory,
             'worker-manager',
             'worker-manager-0.4.2'
         );
@@ -70,71 +71,41 @@ class InstanceRepositoryTest extends TestCase
     {
         return [
             'no default user data, no post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory(),
+                'instanceConfigurationFactory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory(),
+                ),
                 'postDeployScript' => '',
-                'expectedCreatedUserData' => '# Default user data' . "\n" .
-                    '# No default user data' . "\n" .
-                    '' . "\n" .
-                    '# Post-create script' . "\n" .
+                'expectedCreatedUserData' => '# Post-create script' . "\n" .
                     '# No post-create script',
             ],
-            'has default single-line user data, no post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory([
-                    DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                ]),
+            'has default user data, no post-create script' => [
+                'instanceConfigurationFactory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory([
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
+                    ])
+                ),
                 'postDeployScript' => '',
-                'expectedCreatedUserData' => '# Default user data' . "\n" .
-                    'echo "single-line user data"' . "\n" .
-                    '' . "\n" .
-                    '# Post-create script' . "\n" .
-                    '# No post-create script',
-            ],
-            'has default multi-line user data, no post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory([
-                    DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
-                        'echo "multi-line user data 2"' . "\n" .
-                        'echo "multi-line user data 3"'
-                ]),
-                'postDeployScript' => '',
-                'expectedCreatedUserData' => '# Default user data' . "\n" .
-                    'echo "multi-line user data 1"' . "\n" .
-                    'echo "multi-line user data 2"' . "\n" .
-                    'echo "multi-line user data 3"' . "\n" .
+                'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
                     '# Post-create script' . "\n" .
                     '# No post-create script',
             ],
             'no default user data, has post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory(),
+                'instanceConfigurationFactory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory()
+                ),
                 'postDeployScript' => './scripts/post-create.sh',
-                'expectedCreatedUserData' => '# Default user data' . "\n" .
-                    '# No default user data' . "\n" .
-                    '' . "\n" .
-                    '# Post-create script' . "\n" .
+                'expectedCreatedUserData' => '# Post-create script' . "\n" .
                     './scripts/post-create.sh',
             ],
-            'has default single-line user data, has post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory([
-                    DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                ]),
+            'has default user data, has post-create script' => [
+                'instanceConfigurationFactory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory([
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
+                    ])
+                ),
                 'postDeployScript' => './scripts/post-create.sh',
-                'expectedCreatedUserData' => '# Default user data' . "\n" .
-                    'echo "single-line user data"' . "\n" .
-                    '' . "\n" .
-                    '# Post-create script' . "\n" .
-                    './scripts/post-create.sh',
-            ],
-            'has default multi-line user data, has post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory([
-                    DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
-                        'echo "multi-line user data 2"' . "\n" .
-                        'echo "multi-line user data 3"'
-                ]),
-                'postDeployScript' => './scripts/post-create.sh',
-                'expectedCreatedUserData' => '# Default user data' . "\n" .
-                    'echo "multi-line user data 1"' . "\n" .
-                    'echo "multi-line user data 2"' . "\n" .
-                    'echo "multi-line user data 3"' . "\n" .
+                'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
                     '# Post-create script' . "\n" .
                     './scripts/post-create.sh',
@@ -162,7 +133,7 @@ class InstanceRepositoryTest extends TestCase
 
         $instanceRepository = new InstanceRepository(
             $dropletApi,
-            \Mockery::mock(DropletConfigurationFactory::class),
+            \Mockery::mock(InstanceConfigurationFactory::class),
             'worker-manager',
             'worker-manager-123456'
         );
