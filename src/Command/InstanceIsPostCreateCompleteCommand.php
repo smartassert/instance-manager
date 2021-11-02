@@ -6,10 +6,10 @@ use App\Services\InstanceClient;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
 use DigitalOceanV2\Exception\ExceptionInterface;
-use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
@@ -22,6 +22,12 @@ class InstanceIsPostCreateCompleteCommand extends AbstractInstanceActionCommand
     public const EXIT_CODE_ID_INVALID = 3;
     public const EXIT_CODE_NOT_FOUND = 4;
 
+    public const OPTION_RETRY_LIMIT = 'retry-limit';
+    public const OPTION_RETRY_DELAY = 'retry-delay';
+    public const DEFAULT_RETRY_LIMIT = 5;
+    public const DEFAULT_RETRY_DELAY = 30;
+    private const MICROSECONDS_PER_SECOND = 1000000;
+
     public function __construct(
         InstanceRepository $instanceRepository,
         private InstanceClient $instanceClient,
@@ -30,9 +36,30 @@ class InstanceIsPostCreateCompleteCommand extends AbstractInstanceActionCommand
         parent::__construct($instanceRepository);
     }
 
+    protected function configure(): void
+    {
+        parent::configure();
+
+        $this
+            ->addOption(
+                self::OPTION_RETRY_LIMIT,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'How many times to retry if post-create actions are not complete?',
+                self::DEFAULT_RETRY_LIMIT
+            )
+            ->addOption(
+                self::OPTION_RETRY_DELAY,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'How long to wait, in seconds, if post-create actions are not complete?',
+                self::DEFAULT_RETRY_DELAY
+            )
+        ;
+    }
+
     /**
      * @throws ExceptionInterface
-     * @throws ClientExceptionInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -52,15 +79,55 @@ class InstanceIsPostCreateCompleteCommand extends AbstractInstanceActionCommand
             return self::EXIT_CODE_NOT_FOUND;
         }
 
-        $response = $this->instanceClient->getState($instance);
+        $limit = $input->getOption(self::OPTION_RETRY_LIMIT);
+        $limit = is_numeric($limit) ? (int) $limit : self::DEFAULT_RETRY_LIMIT;
 
-        $postCreateCompleteState = $response['post-create-complete'] ?? null;
-        $postCreateCompleteState = is_bool($postCreateCompleteState) ? $postCreateCompleteState : true;
+        $delay = $input->getOption(self::OPTION_RETRY_DELAY);
+        $delay = is_numeric($delay) ? (int) $delay : self::DEFAULT_RETRY_DELAY;
 
-        $output->write($this->outputFactory->createSuccessOutput([
-            'post-create-complete' => $postCreateCompleteState,
-        ]));
+        $result = $this->executeAction(
+            $limit,
+            $delay,
+            $output,
+            function (bool $isLastAttempt) use ($output, $instance): bool {
+                $state = $this->instanceClient->getState($instance);
 
-        return Command::SUCCESS;
+                $postCreateCompleteState = $state['post-create-complete'] ?? null;
+                $postCreateCompleteState = is_bool($postCreateCompleteState) ? $postCreateCompleteState : true;
+
+                $output->write($postCreateCompleteState ? 'complete' : 'not-complete');
+
+                if (false === $postCreateCompleteState && false === $isLastAttempt) {
+                    $output->writeln('');
+                }
+
+                return $postCreateCompleteState;
+            }
+        );
+
+        return true === $result ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    /**
+     * @param callable(bool $isLastAttempt): bool $action
+     */
+    private function executeAction(int $limit, int $delay, OutputInterface $output, callable $action): bool
+    {
+        $count = 0;
+        do {
+            try {
+                $result = ($action)($count === $limit - 1);
+            } catch (\Exception $exception) {
+                $output->write($exception->getMessage());
+                $result = false;
+            }
+
+            if (false === $result) {
+                usleep($delay * self::MICROSECONDS_PER_SECOND);
+                ++$count;
+            }
+        } while ($count < $limit && false === $result);
+
+        return $result;
     }
 }
