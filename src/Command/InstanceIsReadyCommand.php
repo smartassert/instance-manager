@@ -14,13 +14,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: InstanceIsReadyCommand::NAME,
-    description: 'Check if the post-create steps of an instance are complete',
+    description: 'Check if an instance is ready to be used',
 )]
 class InstanceIsReadyCommand extends AbstractInstanceObjectCommand
 {
     use RetryableCommandTrait;
 
-    public const NAME = 'app:instance:is-post-create-complete';
+    public const NAME = 'app:instance:is-ready';
     public const EXIT_CODE_ID_INVALID = 3;
     public const EXIT_CODE_NOT_FOUND = 4;
 
