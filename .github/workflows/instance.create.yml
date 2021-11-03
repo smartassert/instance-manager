@@ -80,7 +80,7 @@ jobs:
         run: |
           CREATE_OUTPUT=$(
             php bin/console app:instance:create \
-            --post-create-script="${{ steps.build-config.outputs.post_create_script }}"
+            --post-create-script="${{ steps.build-config.outputs.post_create_script }}" \
             --collection-tag="$INSTANCE_COLLECTION_TAG" \
             --image-id="$IMAGE_ID"
           )
