@@ -17,7 +17,8 @@ use webignition\ObjectReflector\ObjectReflector;
 
 class IpAssignCommandTest extends KernelTestCase
 {
-    private const INSTANCE_COLLECTION_TAG = 'instance-collection-tag-value';
+    private const COLLECTION_TAG = 'service-id';
+    private const IMAGE_ID = '123456';
 
     private IpAssignCommand $command;
     private MockHandler $mockHandler;
@@ -60,13 +61,13 @@ class IpAssignCommandTest extends KernelTestCase
         return [
             'empty collection tag' => [
                 'input' => [
-                    '--' . IpAssignCommand::OPTION_IMAGE_ID => '123456',
+                    '--' . IpAssignCommand::OPTION_IMAGE_ID => self::IMAGE_ID,
                 ],
                 'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . IpAssignCommand::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . IpAssignCommand::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
                 ],
                 'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -74,11 +75,11 @@ class IpAssignCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runDataProvider
+     * @dataProvider runSuccessDataProvider
      *
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testRun(
+    public function testRunSuccess(
         ?callable $setup,
         array $httpResponseDataCollection,
         int $expectedExitCode,
@@ -96,8 +97,8 @@ class IpAssignCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . IpAssignCommand::OPTION_COLLECTION_TAG => 'service-id',
-            '--' . IpAssignCommand::OPTION_IMAGE_ID => '123456',
+            '--' . IpAssignCommand::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . IpAssignCommand::OPTION_IMAGE_ID => self::IMAGE_ID,
         ]);
 
         $exitCode = $this->command->run($input, $output);
@@ -109,7 +110,7 @@ class IpAssignCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runDataProvider(): array
+    public function runSuccessDataProvider(): array
     {
         return [
             'no current instance' => [
@@ -189,7 +190,7 @@ class IpAssignCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::INSTANCE_COLLECTION_TAG,
+                                            self::COLLECTION_TAG,
                                         ],
                                     ],
                                 ],
@@ -234,7 +235,7 @@ class IpAssignCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::INSTANCE_COLLECTION_TAG,
+                                            self::COLLECTION_TAG,
                                         ],
                                     ],
                                 ],
@@ -318,7 +319,7 @@ class IpAssignCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::INSTANCE_COLLECTION_TAG,
+                                            self::COLLECTION_TAG,
                                         ],
                                     ],
                                 ],

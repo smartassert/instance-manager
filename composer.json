@@ -73,11 +73,9 @@
         "static-analysis": "./vendor/bin/phpstan analyse --ansi",
         "test-unit": "./vendor/bin/phpunit tests/Unit",
         "test-functional": "./vendor/bin/phpunit tests/Functional",
-        "test-integration": "./vendor/bin/phpunit tests/Integration",
         "test": [
             "@test-unit",
-            "@test-functional",
-            "@test-integration"
+            "@test-functional"
         ]
     },
     "conflict": {
