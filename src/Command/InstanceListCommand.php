@@ -31,6 +31,8 @@ class InstanceListCommand extends AbstractInstanceListCommand
 
     protected function configure(): void
     {
+        parent::configure();
+
         $this
             ->addOption(
                 self::OPTION_INCLUDE,

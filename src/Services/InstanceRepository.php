@@ -49,9 +49,9 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function findAll(): InstanceCollection
+    public function findAll(string $collectionTag): InstanceCollection
     {
-        return $this->findWithTag($this->instanceCollectionTag);
+        return $this->findWithTag($collectionTag);
     }
 
     /**
