@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class IpCreateCommandTest extends KernelTestCase
 {
-    private const INSTANCE_COLLECTION_TAG = 'instance-collection-tag-value';
+    private const COLLECTION_TAG = 'service-id';
 
     private IpCreateCommand $command;
     private MockHandler $mockHandler;
@@ -93,7 +93,7 @@ class IpCreateCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . IpCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+            '--' . IpCreateCommand::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
             '--' . IpCreateCommand::OPTION_IMAGE_ID => '123456',
         ]);
 
@@ -161,7 +161,7 @@ class IpCreateCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::INSTANCE_COLLECTION_TAG,
+                                            self::COLLECTION_TAG,
                                         ],
                                     ],
                                 ],

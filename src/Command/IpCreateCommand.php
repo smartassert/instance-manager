@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\ActionHandler\ActionHandler;
+use App\Exception\ActionTimeoutException;
 use App\Model\AssignedIp;
 use App\Model\Instance;
 use App\Services\ActionRunner;
@@ -10,6 +11,7 @@ use App\Services\FloatingIpManager;
 use App\Services\FloatingIpRepository;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
+use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -64,6 +66,10 @@ class IpCreateCommand extends Command
         ;
     }
 
+    /**
+     * @throws ActionTimeoutException
+     * @throws ExceptionInterface
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $collectionTag = $this->getStringOption(self::OPTION_COLLECTION_TAG, $input);
@@ -89,7 +95,7 @@ class IpCreateCommand extends Command
 
         $instanceId = $instance->getId();
 
-        $assignedIp = $this->floatingIpRepository->find();
+        $assignedIp = $this->floatingIpRepository->find($collectionTag);
         if ($assignedIp instanceof AssignedIp) {
             $output->write($this->outputFactory->createErrorOutput('has-ip', ['ip' => $assignedIp->getIp()]));
 

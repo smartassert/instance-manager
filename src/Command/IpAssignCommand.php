@@ -94,7 +94,7 @@ class IpAssignCommand extends Command
             return self::EXIT_CODE_NO_CURRENT_INSTANCE;
         }
 
-        $assignedIp = $this->floatingIpRepository->find();
+        $assignedIp = $this->floatingIpRepository->find($collectionTag);
         if (null === $assignedIp) {
             $output->write($this->outputFactory->createErrorOutput('no-ip'));
 
