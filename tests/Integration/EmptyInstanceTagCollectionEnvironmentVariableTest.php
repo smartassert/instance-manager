@@ -24,9 +24,6 @@ class EmptyInstanceTagCollectionEnvironmentVariableTest extends AbstractEmptyEnv
     public function commandDataProvider(): array
     {
         return [
-            IpGetCommand::NAME => [
-                'command' => IpGetCommand::NAME,
-            ],
             IpAssignCommand::NAME => [
                 'command' => IpAssignCommand::NAME,
             ],
