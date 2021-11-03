@@ -5,6 +5,7 @@ namespace App\Tests\Functional\Command;
 use App\Command\IpAssignCommand;
 use App\Exception\ActionTimeoutException;
 use App\Services\ActionRunner;
+use App\Services\CommandConfigurator;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
@@ -61,13 +62,13 @@ class IpAssignCommandTest extends KernelTestCase
         return [
             'empty collection tag' => [
                 'input' => [
-                    '--' . IpAssignCommand::OPTION_IMAGE_ID => self::IMAGE_ID,
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => self::IMAGE_ID,
                 ],
                 'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . IpAssignCommand::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
                 ],
                 'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -97,8 +98,8 @@ class IpAssignCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . IpAssignCommand::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
-            '--' . IpAssignCommand::OPTION_IMAGE_ID => self::IMAGE_ID,
+            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . CommandConfigurator::OPTION_IMAGE_ID => self::IMAGE_ID,
         ]);
 
         $exitCode = $this->command->run($input, $output);

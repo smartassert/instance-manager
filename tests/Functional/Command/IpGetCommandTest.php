@@ -3,6 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\IpGetCommand;
+use App\Services\CommandConfigurator;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -84,7 +85,7 @@ class IpGetCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . IpGetCommand::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
         ]);
 
         $exitCode = $this->command->run($input, $output);
