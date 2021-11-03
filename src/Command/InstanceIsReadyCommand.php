@@ -77,16 +77,16 @@ class InstanceIsReadyCommand extends AbstractInstanceObjectCommand
             function (bool $isLastAttempt) use ($output, $instance): bool {
                 $state = $this->instanceClient->getState($instance);
 
-                $postCreateCompleteState = $state['post-create-complete'] ?? null;
-                $postCreateCompleteState = is_bool($postCreateCompleteState) ? $postCreateCompleteState : true;
+                $isReady = $state['ready'] ?? null;
+                $isReady = is_bool($isReady) ? $isReady : true;
 
-                $output->write($postCreateCompleteState ? 'complete' : 'not-complete');
+                $output->write($isReady ? 'read' : 'not-ready');
 
-                if (false === $postCreateCompleteState && false === $isLastAttempt) {
+                if (false === $isReady && false === $isLastAttempt) {
                     $output->writeln('');
                 }
 
-                return $postCreateCompleteState;
+                return $isReady;
             }
         );
 
