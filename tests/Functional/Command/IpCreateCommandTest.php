@@ -58,7 +58,7 @@ class IpCreateCommandTest extends KernelTestCase
         return [
             'empty collection tag' => [
                 'input' => [
-                    '--' . IpCreateCommand::OPTION_IMAGE_ID => '123456',
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
                 ],
                 'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
@@ -90,7 +90,7 @@ class IpCreateCommandTest extends KernelTestCase
         $output = new BufferedOutput();
         $input = new ArrayInput([
             '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
-            '--' . IpCreateCommand::OPTION_IMAGE_ID => '123456',
+            '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
         ]);
 
         $exitCode = $this->command->run($input, $output);
