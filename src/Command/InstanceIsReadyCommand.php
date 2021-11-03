@@ -80,7 +80,7 @@ class InstanceIsReadyCommand extends AbstractInstanceObjectCommand
                 $isReady = $state['ready'] ?? null;
                 $isReady = is_bool($isReady) ? $isReady : true;
 
-                $output->write($isReady ? 'read' : 'not-ready');
+                $output->write($isReady ? 'ready' : 'not-ready');
 
                 if (false === $isReady && false === $isLastAttempt) {
                     $output->writeln('');
