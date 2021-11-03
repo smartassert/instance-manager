@@ -13,14 +13,14 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: InstanceIsPostCreateCompleteCommand::NAME,
-    description: 'Check if the post-create steps of an instance are complete',
+    name: InstanceIsReadyCommand::NAME,
+    description: 'Check if an instance is ready to be used',
 )]
-class InstanceIsPostCreateCompleteCommand extends AbstractInstanceObjectCommand
+class InstanceIsReadyCommand extends AbstractInstanceObjectCommand
 {
     use RetryableCommandTrait;
 
-    public const NAME = 'app:instance:is-post-create-complete';
+    public const NAME = 'app:instance:is-ready';
     public const EXIT_CODE_ID_INVALID = 3;
     public const EXIT_CODE_NOT_FOUND = 4;
 
@@ -77,16 +77,16 @@ class InstanceIsPostCreateCompleteCommand extends AbstractInstanceObjectCommand
             function (bool $isLastAttempt) use ($output, $instance): bool {
                 $state = $this->instanceClient->getState($instance);
 
-                $postCreateCompleteState = $state['post-create-complete'] ?? null;
-                $postCreateCompleteState = is_bool($postCreateCompleteState) ? $postCreateCompleteState : true;
+                $isReady = $state['ready'] ?? null;
+                $isReady = is_bool($isReady) ? $isReady : true;
 
-                $output->write($postCreateCompleteState ? 'complete' : 'not-complete');
+                $output->write($isReady ? 'ready' : 'not-ready');
 
-                if (false === $postCreateCompleteState && false === $isLastAttempt) {
+                if (false === $isReady && false === $isLastAttempt) {
                     $output->writeln('');
                 }
 
-                return $postCreateCompleteState;
+                return $isReady;
             }
         );
 

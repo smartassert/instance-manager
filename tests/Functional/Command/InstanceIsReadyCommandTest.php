@@ -3,7 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsHealthyCommand;
-use App\Command\InstanceIsPostCreateCompleteCommand;
+use App\Command\InstanceIsReadyCommand;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -12,9 +12,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
-class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
+class InstanceIsReadyCommandTest extends KernelTestCase
 {
-    private InstanceIsPostCreateCompleteCommand $command;
+    private InstanceIsReadyCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
 
@@ -22,8 +22,8 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
     {
         parent::setUp();
 
-        $command = self::getContainer()->get(InstanceIsPostCreateCompleteCommand::class);
-        \assert($command instanceof InstanceIsPostCreateCompleteCommand);
+        $command = self::getContainer()->get(InstanceIsReadyCommand::class);
+        \assert($command instanceof InstanceIsReadyCommand);
         $this->command = $command;
 
         $mockHandler = self::getContainer()->get(MockHandler::class);
@@ -185,7 +185,7 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
     public function executeDataProvider(): array
     {
         return [
-            'no explicit post-create-complete state' => [
+            'no explicit readiness state' => [
                 'input' => [
                     '--id' => '123',
                 ],
@@ -210,9 +210,9 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                     ],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => 'complete',
+                'expectedOutput' => 'ready',
             ],
-            'post-create-complete=false, retry-limit=1' => [
+            'ready=false, retry-limit=1' => [
                 'input' => [
                     '--id' => '123',
                     '--retry-limit' => 1,
@@ -236,14 +236,14 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                             'content-type' => 'application/json; charset=utf-8',
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'post-create-complete' => false,
+                            'ready' => false,
                         ]),
                     ],
                 ],
                 'expectedReturnCode' => Command::FAILURE,
-                'expectedOutput' => 'not-complete',
+                'expectedOutput' => 'not-ready',
             ],
-            'post-create-complete=false, post-create-complete=false, retry-limit=2' => [
+            'ready=false, ready=false, retry-limit=2' => [
                 'input' => [
                     '--id' => '123',
                     '--retry-limit' => 2,
@@ -267,7 +267,7 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                             'content-type' => 'application/json; charset=utf-8',
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'post-create-complete' => false,
+                            'ready' => false,
                         ]),
                     ],
                     [
@@ -276,14 +276,14 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                             'content-type' => 'application/json; charset=utf-8',
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'post-create-complete' => false,
+                            'ready' => false,
                         ]),
                     ],
                 ],
                 'expectedReturnCode' => Command::FAILURE,
-                'expectedOutput' => 'not-complete' . "\n" . 'not-complete',
+                'expectedOutput' => 'not-ready' . "\n" . 'not-ready',
             ],
-            'post-create-complete=false, exception, retry-limit=2' => [
+            'ready=false, exception, retry-limit=2' => [
                 'input' => [
                     '--id' => '123',
                     '--retry-limit' => 2,
@@ -307,15 +307,15 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                             'content-type' => 'application/json; charset=utf-8',
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'post-create-complete' => false,
+                            'ready' => false,
                         ]),
                     ],
                     new \RuntimeException('exception message content'),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
-                'expectedOutput' => 'not-complete' . "\n" . 'exception message content',
+                'expectedOutput' => 'not-ready' . "\n" . 'exception message content',
             ],
-            'post-create-complete=true' => [
+            'ready=true' => [
                 'input' => [
                     '--id' => '123',
                 ],
@@ -337,14 +337,14 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                             'content-type' => 'application/json; charset=utf-8',
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'post-create-complete' => true,
+                            'ready' => true,
                         ]),
                     ],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => 'complete',
+                'expectedOutput' => 'ready',
             ],
-            'post-create-complete=false, post-create-complete=true, retry-limit=2' => [
+            'ready=false, ready=true, retry-limit=2' => [
                 'input' => [
                     '--id' => '123',
                     '--retry-limit' => 2,
@@ -368,7 +368,7 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                             'content-type' => 'application/json; charset=utf-8',
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'post-create-complete' => false,
+                            'ready' => false,
                         ]),
                     ],
                     [
@@ -377,14 +377,14 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                             'content-type' => 'application/json; charset=utf-8',
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'post-create-complete' => true,
+                            'ready' => true,
                         ]),
                     ],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => 'not-complete' . "\n" . 'complete',
+                'expectedOutput' => 'not-ready' . "\n" . 'ready',
             ],
-            'post-create-complete=<non-boolean>' => [
+            'ready=<non-boolean>' => [
                 'input' => [
                     '--id' => '123',
                 ],
@@ -406,12 +406,12 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
                             'content-type' => 'application/json; charset=utf-8',
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'post-create-complete' => 'non-boolean value',
+                            'ready' => 'non-boolean value',
                         ]),
                     ],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => 'complete',
+                'expectedOutput' => 'ready',
             ],
         ];
     }
