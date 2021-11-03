@@ -74,31 +74,26 @@ jobs:
 
       - name: Create
         id: instance
-        env:
-          IMAGE_ID: ${{ steps.image_id.outputs.image_id }}
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: |
           CREATE_OUTPUT=$(
-            php bin/console app:instance:create --post-create-script="${{ steps.build-config.outputs.post_create_script }}"
+            php bin/console app:instance:create \
+            --post-create-script="${{ steps.build-config.outputs.post_create_script }}" \
+            --collection-tag="${{ github.event.inputs.service_id }}" \
+            --image-id="${{ steps.image_id.outputs.image_id }}"
           )
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
       - name: Health check
         if: ${{ steps.build-config.outputs.health_check_url != '' }}
         env:
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
           INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.health_check_url }}
         run: php bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }}
 
       - name: Readiness check
         env:
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
           INSTANCE_STATE_URL: ${{ steps.build-config.outputs.state_url }}
         run: php bin/console app:instance:is-ready --id=${{ steps.instance.outputs.id }}
 
       - name: Remove instance on failure
         if: ${{ failure() }}
-        env:
-          INSTANCE_ID: ${{ steps.instance.outputs.id }}
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-        run: php bin/console app:instance:destroy --id="$INSTANCE_ID"
+        run: php bin/console app:instance:destroy --id="${{ steps.instance.outputs.id }}"

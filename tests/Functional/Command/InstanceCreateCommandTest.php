@@ -3,6 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
+use App\Services\CommandConfigurator;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -11,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class InstanceCreateCommandTest extends KernelTestCase
 {
@@ -31,12 +33,12 @@ class InstanceCreateCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeThrowsExceptionDataProvider
+     * @dataProvider runThrowsExceptionDataProvider
      *
      * @param array<mixed>             $responseData
      * @param class-string<\Throwable> $expectedExceptionClass
      */
-    public function testExecuteThrowsException(
+    public function testRunThrowsException(
         array $responseData,
         string $expectedExceptionClass,
         string $expectedExceptionMessage,
@@ -50,7 +52,10 @@ class InstanceCreateCommandTest extends KernelTestCase
         self::expectExceptionCode($expectedExceptionCode);
 
         $this->command->run(
-            new ArrayInput([]),
+            new ArrayInput([
+                '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
+            ]),
             new BufferedOutput()
         );
     }
@@ -58,7 +63,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeThrowsExceptionDataProvider(): array
+    public function runThrowsExceptionDataProvider(): array
     {
         return [
             'invalid api token' => [
@@ -73,12 +78,45 @@ class InstanceCreateCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeDataProvider
+     * @dataProvider runEmptyRequiredValueDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    {
+        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function runEmptyRequiredValueDataProvider(): array
+    {
+        return [
+            'empty collection tag' => [
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
+                ],
+                'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+            ],
+            'empty tag' => [
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                ],
+                'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_TAG,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider runDataProvider
      *
      * @param array<mixed> $input
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testExecuteSuccess(
+    public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
@@ -101,11 +139,14 @@ class InstanceCreateCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeDataProvider(): array
+    public function runDataProvider(): array
     {
         return [
             'already exists' => [
-                'input' => [],
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
+                ],
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -128,7 +169,10 @@ class InstanceCreateCommandTest extends KernelTestCase
                 ]),
             ],
             'created' => [
-                'input' => [],
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
+                ],
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,

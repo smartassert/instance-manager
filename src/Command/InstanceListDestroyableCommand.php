@@ -19,6 +19,8 @@ class InstanceListDestroyableCommand extends AbstractInstanceListCommand
 
     protected function configure(): void
     {
+        parent::configure();
+
         $this
             ->addOption(
                 self::OPTION_EXCLUDED_IP,

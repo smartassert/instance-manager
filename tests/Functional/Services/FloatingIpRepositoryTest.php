@@ -11,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class FloatingIpRepositoryTest extends KernelTestCase
 {
-    private const INSTANCE_COLLECTION_TAG = 'instance-collection-tag-value';
+    private const COLLECTION_TAG = 'service-id';
 
     private FloatingIpRepository $floatingIpRepository;
     private MockHandler $mockHandler;
@@ -53,7 +53,7 @@ class FloatingIpRepositoryTest extends KernelTestCase
             ])
         );
 
-        self::assertEquals($expectedAssignedIp, $this->floatingIpRepository->find());
+        self::assertEquals($expectedAssignedIp, $this->floatingIpRepository->find(self::COLLECTION_TAG));
     }
 
     /**
@@ -82,7 +82,7 @@ class FloatingIpRepositoryTest extends KernelTestCase
                         'droplet' => [
                             'id' => 123,
                             'tags' => [
-                                self::INSTANCE_COLLECTION_TAG,
+                                self::COLLECTION_TAG,
                             ],
                         ],
                     ],
@@ -93,7 +93,7 @@ class FloatingIpRepositoryTest extends KernelTestCase
                         'droplet' => (object) [
                             'id' => 123,
                             'tags' => [
-                                self::INSTANCE_COLLECTION_TAG,
+                                self::COLLECTION_TAG,
                             ],
                         ],
                     ])
@@ -106,7 +106,7 @@ class FloatingIpRepositoryTest extends KernelTestCase
                         'droplet' => [
                             'id' => 123,
                             'tags' => [
-                                self::INSTANCE_COLLECTION_TAG,
+                                self::COLLECTION_TAG,
                             ],
                         ],
                     ],
@@ -124,7 +124,7 @@ class FloatingIpRepositoryTest extends KernelTestCase
                         'droplet' => (object) [
                             'id' => 123,
                             'tags' => [
-                                self::INSTANCE_COLLECTION_TAG,
+                                self::COLLECTION_TAG,
                             ],
                         ],
                     ])
@@ -144,7 +144,7 @@ class FloatingIpRepositoryTest extends KernelTestCase
                         'droplet' => [
                             'id' => 465,
                             'tags' => [
-                                self::INSTANCE_COLLECTION_TAG,
+                                self::COLLECTION_TAG,
                             ],
                         ],
                     ],
@@ -155,7 +155,7 @@ class FloatingIpRepositoryTest extends KernelTestCase
                         'droplet' => (object) [
                             'id' => 465,
                             'tags' => [
-                                self::INSTANCE_COLLECTION_TAG,
+                                self::COLLECTION_TAG,
                             ],
                         ],
                     ])

@@ -36,12 +36,12 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeThrowsExceptionDataProvider
+     * @dataProvider runThrowsExceptionDataProvider
      *
      * @param array<mixed>             $httpResponseData
      * @param class-string<\Throwable> $expectedExceptionClass
      */
-    public function testExecuteThrowsException(
+    public function testRunThrowsException(
         array $httpResponseData,
         string $expectedExceptionClass,
         string $expectedExceptionMessage,
@@ -66,7 +66,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeThrowsExceptionDataProvider(): array
+    public function runThrowsExceptionDataProvider(): array
     {
         return [
             'invalid api token' => [
@@ -81,12 +81,12 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeInvalidInputDataProvider
+     * @dataProvider runInvalidInputDataProvider
      *
      * @param array<mixed> $input
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testExecuteInvalidInput(
+    public function testRunInvalidInput(
         array $input,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
@@ -109,7 +109,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeInvalidInputDataProvider(): array
+    public function runInvalidInputDataProvider(): array
     {
         return [
             'id invalid, missing' => [
@@ -152,12 +152,12 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeDataProvider
+     * @dataProvider runDataProvider
      *
      * @param array<mixed> $input
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testExecuteSuccess(
+    public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
@@ -182,7 +182,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeDataProvider(): array
+    public function runDataProvider(): array
     {
         return [
             'no explicit readiness state' => [

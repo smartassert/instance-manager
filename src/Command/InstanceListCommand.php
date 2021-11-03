@@ -4,6 +4,8 @@ namespace App\Command;
 
 use App\Model\Filter;
 use App\Model\FilterInterface;
+use App\Services\CommandConfigurator;
+use App\Services\CommandInputReader;
 use App\Services\FilterFactory;
 use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
@@ -24,13 +26,17 @@ class InstanceListCommand extends AbstractInstanceListCommand
     public function __construct(
         InstanceRepository $instanceRepository,
         InstanceCollectionHydrator $instanceCollectionHydrator,
+        CommandConfigurator $configurator,
+        CommandInputReader $inputReader,
         private FilterFactory $filterFactory,
     ) {
-        parent::__construct($instanceRepository, $instanceCollectionHydrator);
+        parent::__construct($instanceRepository, $instanceCollectionHydrator, $configurator, $inputReader);
     }
 
     protected function configure(): void
     {
+        parent::configure();
+
         $this
             ->addOption(
                 self::OPTION_INCLUDE,

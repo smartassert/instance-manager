@@ -2,7 +2,9 @@
 
 namespace App\Tests\Functional\Command;
 
+use App\Command\AbstractInstanceListCommand;
 use App\Command\InstanceListCommand;
+use App\Services\CommandConfigurator;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -10,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class InstanceListCommandTest extends KernelTestCase
 {
@@ -35,12 +38,12 @@ class InstanceListCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeThrowsExceptionDataProvider
+     * @dataProvider runThrowsExceptionDataProvider
      *
      * @param array<mixed>             $responseData
      * @param class-string<\Throwable> $expectedExceptionClass
      */
-    public function testExecuteThrowsException(
+    public function testRunThrowsException(
         array $responseData,
         string $expectedExceptionClass,
         string $expectedExceptionMessage,
@@ -52,13 +55,18 @@ class InstanceListCommandTest extends KernelTestCase
         self::expectExceptionMessage($expectedExceptionMessage);
         self::expectExceptionCode($expectedExceptionCode);
 
-        $this->command->run(new ArrayInput([]), new BufferedOutput());
+        $this->command->run(
+            new ArrayInput([
+                '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+            ]),
+            new NullOutput()
+        );
     }
 
     /**
      * @return array<mixed>
      */
-    public function executeThrowsExceptionDataProvider(): array
+    public function runThrowsExceptionDataProvider(): array
     {
         return [
             'invalid api token' => [
@@ -73,12 +81,37 @@ class InstanceListCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeDataProvider
+     * @dataProvider runEmptyRequiredValueDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    {
+        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function runEmptyRequiredValueDataProvider(): array
+    {
+        return [
+            'empty collection tag' => [
+                'input' => [],
+                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider runDataProvider
      *
      * @param array<mixed> $input
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testExecuteSuccess(
+    public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
@@ -99,7 +132,7 @@ class InstanceListCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeDataProvider(): array
+    public function runDataProvider(): array
     {
         $matchingIp = '127.0.0.1';
 
@@ -253,7 +286,9 @@ class InstanceListCommandTest extends KernelTestCase
 
         return [
             'no instances' => [
-                'input' => [],
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                ],
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -269,7 +304,9 @@ class InstanceListCommandTest extends KernelTestCase
                 'expectedOutput' => (string) json_encode([]),
             ],
             'single instance' => [
-                'input' => [],
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                ],
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -290,7 +327,9 @@ class InstanceListCommandTest extends KernelTestCase
                 ]),
             ],
             'many instances, no filter' => [
-                'input' => [],
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                ],
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
@@ -302,7 +341,8 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, filter to idle=true' => [
                 'input' => [
-                    '--include' => (string) json_encode([
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . InstanceListCommand::OPTION_INCLUDE => (string) json_encode([
                         [
                             'idle' => true,
                         ],
@@ -316,7 +356,8 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, filter to not contains IP matching IP' => [
                 'input' => [
-                    '--exclude' => (string) json_encode([
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . InstanceListCommand::OPTION_EXCLUDE => (string) json_encode([
                         [
                             'ips' => $matchingIp,
                         ],
@@ -332,12 +373,13 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, filter to idle=true, not contains IP matching IP' => [
                 'input' => [
-                    '--include' => (string) json_encode([
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . InstanceListCommand::OPTION_INCLUDE => (string) json_encode([
                         [
                             'idle' => true,
                         ],
                     ]),
-                    '--exclude' => (string) json_encode([
+                    '--' . InstanceListCommand::OPTION_EXCLUDE => (string) json_encode([
                         [
                             'ips' => $matchingIp,
                         ],

@@ -51,11 +51,11 @@ class InstanceRepositoryTest extends KernelTestCase
         $this->mockHandler->append(
             $this->httpResponseFactory->createFromArray($successResponseData)
         );
-        $instance = $this->instanceRepository->create('');
+        $instance = $this->instanceRepository->create('collection-tag', 'image-id', '');
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertEquals(
-            $instance = InstanceFactory::create($dropletData),
+            InstanceFactory::create($dropletData),
             $instance
         );
     }
@@ -77,7 +77,7 @@ class InstanceRepositoryTest extends KernelTestCase
             ])
         );
 
-        $instances = $this->instanceRepository->findAll();
+        $instances = $this->instanceRepository->findAll('service-id');
 
         self::assertCount(count($expectedInstances), $instances);
 
@@ -149,7 +149,7 @@ class InstanceRepositoryTest extends KernelTestCase
             ])
         );
 
-        $instance = $this->instanceRepository->findCurrent();
+        $instance = $this->instanceRepository->findCurrent('service-id', '123456');
         self::assertEquals($expectedInstance, $instance);
     }
 

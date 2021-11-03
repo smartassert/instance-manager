@@ -5,6 +5,7 @@ namespace App\Tests\Functional\Command;
 use App\Command\IpAssignCommand;
 use App\Exception\ActionTimeoutException;
 use App\Services\ActionRunner;
+use App\Services\CommandConfigurator;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
@@ -12,11 +13,13 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 use webignition\ObjectReflector\ObjectReflector;
 
 class IpAssignCommandTest extends KernelTestCase
 {
-    private const INSTANCE_COLLECTION_TAG = 'instance-collection-tag-value';
+    private const COLLECTION_TAG = 'service-id';
+    private const IMAGE_ID = '123456';
 
     private IpAssignCommand $command;
     private MockHandler $mockHandler;
@@ -40,11 +43,44 @@ class IpAssignCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runDataProvider
+     * @dataProvider runEmptyRequiredValueDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    {
+        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function runEmptyRequiredValueDataProvider(): array
+    {
+        return [
+            'empty collection tag' => [
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => self::IMAGE_ID,
+                ],
+                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+            ],
+            'empty tag' => [
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+                ],
+                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_TAG,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider runSuccessDataProvider
      *
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testRun(
+    public function testRunSuccess(
         ?callable $setup,
         array $httpResponseDataCollection,
         int $expectedExitCode,
@@ -61,8 +97,12 @@ class IpAssignCommandTest extends KernelTestCase
         }
 
         $output = new BufferedOutput();
+        $input = new ArrayInput([
+            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . CommandConfigurator::OPTION_IMAGE_ID => self::IMAGE_ID,
+        ]);
 
-        $exitCode = $this->command->run(new ArrayInput([]), $output);
+        $exitCode = $this->command->run($input, $output);
 
         self::assertSame($expectedExitCode, $exitCode);
         self::assertJsonStringEqualsJsonString($expectedOutput, $output->fetch());
@@ -71,7 +111,7 @@ class IpAssignCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runDataProvider(): array
+    public function runSuccessDataProvider(): array
     {
         return [
             'no current instance' => [
@@ -151,7 +191,7 @@ class IpAssignCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::INSTANCE_COLLECTION_TAG,
+                                            self::COLLECTION_TAG,
                                         ],
                                     ],
                                 ],
@@ -196,7 +236,7 @@ class IpAssignCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::INSTANCE_COLLECTION_TAG,
+                                            self::COLLECTION_TAG,
                                         ],
                                     ],
                                 ],
@@ -280,7 +320,7 @@ class IpAssignCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::INSTANCE_COLLECTION_TAG,
+                                            self::COLLECTION_TAG,
                                         ],
                                     ],
                                 ],

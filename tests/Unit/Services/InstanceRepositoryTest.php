@@ -5,6 +5,7 @@ namespace App\Tests\Unit\Services;
 use App\Model\Instance;
 use App\Services\InstanceConfigurationFactory;
 use App\Services\InstanceRepository;
+use App\Services\InstanceTagFactory;
 use DigitalOceanV2\Api\Droplet as DropletApi;
 use DigitalOceanV2\Entity\Droplet as DropletEntity;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -20,11 +21,14 @@ class InstanceRepositoryTest extends TestCase
      */
     public function testCreate(
         InstanceConfigurationFactory $instanceConfigurationFactory,
+        string $collectionTag,
+        string $imageId,
         string $postCreateScript,
         string $expectedUserData,
     ): void {
         $dropletEntity = new DropletEntity();
-        $expectedDropletApiCreateNames = 'worker-manager-0.4.2';
+
+        $expectedTag = $collectionTag . '-' . $imageId;
 
         $dropletApi = \Mockery::mock(DropletApi::class);
         $dropletApi
@@ -37,14 +41,21 @@ class InstanceRepositoryTest extends TestCase
                 bool $backups,
                 bool $ipv6,
                 $vpcUuid,
-                array $sshKeys = [],
-                string $userData = ''
+                array $sshKeys,
+                string $userData,
+                bool $monitoring,
+                array $volumes,
+                array $tags,
             ) use (
-                $expectedDropletApiCreateNames,
-                $expectedUserData
+                $expectedUserData,
+                $collectionTag,
+                $expectedTag,
+                $imageId
             ) {
-                self::assertSame($expectedDropletApiCreateNames, $names);
+                self::assertSame($imageId, $image);
+                self::assertSame($expectedTag, $names);
                 self::assertSame($expectedUserData, $userData);
+                self::assertSame([$collectionTag, $expectedTag], $tags);
 
                 return true;
             })
@@ -54,11 +65,10 @@ class InstanceRepositoryTest extends TestCase
         $instanceRepository = new InstanceRepository(
             $dropletApi,
             $instanceConfigurationFactory,
-            'worker-manager',
-            'worker-manager-0.4.2'
+            new InstanceTagFactory()
         );
 
-        $instance = $instanceRepository->create($postCreateScript);
+        $instance = $instanceRepository->create($collectionTag, $imageId, $postCreateScript);
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertSame($dropletEntity, $instance->getDroplet());
@@ -69,12 +79,17 @@ class InstanceRepositoryTest extends TestCase
      */
     public function createDataProvider(): array
     {
+        $collectionTag = 'service-id';
+        $imageId = '123456';
+
         return [
             'no default user data, no post-create script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
-                    new DropletConfigurationFactory(),
+                    new DropletConfigurationFactory()
                 ),
-                'postDeployScript' => '',
+                'collectionTag' => $collectionTag,
+                'imageId' => $imageId,
+                'postCreateScript' => '',
                 'expectedCreatedUserData' => '# Post-create script' . "\n" .
                     '# No post-create script',
             ],
@@ -84,7 +99,9 @@ class InstanceRepositoryTest extends TestCase
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                     ])
                 ),
-                'postDeployScript' => '',
+                'collectionTag' => $collectionTag,
+                'imageId' => $imageId,
+                'postCreateScript' => '',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
                     '# Post-create script' . "\n" .
@@ -94,7 +111,9 @@ class InstanceRepositoryTest extends TestCase
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
-                'postDeployScript' => './scripts/post-create.sh',
+                'collectionTag' => $collectionTag,
+                'imageId' => $imageId,
+                'postCreateScript' => './scripts/post-create.sh',
                 'expectedCreatedUserData' => '# Post-create script' . "\n" .
                     './scripts/post-create.sh',
             ],
@@ -104,7 +123,9 @@ class InstanceRepositoryTest extends TestCase
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                     ])
                 ),
-                'postDeployScript' => './scripts/post-create.sh',
+                'collectionTag' => $collectionTag,
+                'imageId' => $imageId,
+                'postCreateScript' => './scripts/post-create.sh',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
                     '# Post-create script' . "\n" .
@@ -124,21 +145,22 @@ class InstanceRepositoryTest extends TestCase
             ]),
         ];
 
+        $collectionTag = 'service-id';
+
         $dropletApi = \Mockery::mock(DropletApi::class);
         $dropletApi
             ->shouldReceive('getAll')
-            ->with('worker-manager')
+            ->with($collectionTag)
             ->andReturn($droplets)
         ;
 
         $instanceRepository = new InstanceRepository(
             $dropletApi,
             \Mockery::mock(InstanceConfigurationFactory::class),
-            'worker-manager',
-            'worker-manager-123456'
+            new InstanceTagFactory()
         );
 
-        $instances = $instanceRepository->findAll();
+        $instances = $instanceRepository->findAll($collectionTag);
 
         self::assertCount(count($droplets), $instances);
 

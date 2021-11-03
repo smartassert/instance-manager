@@ -2,7 +2,9 @@
 
 namespace App\Tests\Functional\Command;
 
+use App\Command\AbstractInstanceListCommand;
 use App\Command\InstanceListDestroyableCommand;
+use App\Services\CommandConfigurator;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -10,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class InstanceListDestroyableCommandTest extends KernelTestCase
 {
@@ -35,12 +38,12 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeThrowsExceptionDataProvider
+     * @dataProvider runThrowsExceptionDataProvider
      *
      * @param array<mixed>             $responseData
      * @param class-string<\Throwable> $expectedExceptionClass
      */
-    public function testExecuteThrowsException(
+    public function testRunThrowsException(
         array $responseData,
         string $expectedExceptionClass,
         string $expectedExceptionMessage,
@@ -52,13 +55,18 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         self::expectExceptionMessage($expectedExceptionMessage);
         self::expectExceptionCode($expectedExceptionCode);
 
-        $this->command->run(new ArrayInput([]), new BufferedOutput());
+        $this->command->run(
+            new ArrayInput([
+                '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+            ]),
+            new NullOutput()
+        );
     }
 
     /**
      * @return array<mixed>
      */
-    public function executeThrowsExceptionDataProvider(): array
+    public function runThrowsExceptionDataProvider(): array
     {
         return [
             'invalid api token' => [
@@ -73,12 +81,37 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeDataProvider
+     * @dataProvider runEmptyRequiredValueDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    {
+        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function runEmptyRequiredValueDataProvider(): array
+    {
+        return [
+            'empty collection tag' => [
+                'input' => [],
+                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider runDataProvider
      *
      * @param array<mixed> $input
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testExecuteSuccess(
+    public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
@@ -99,7 +132,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeDataProvider(): array
+    public function runDataProvider(): array
     {
         $excludedIp = '127.0.0.1';
 
@@ -252,6 +285,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         ];
 
         $input = [
+            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
             '--excluded-ip' => $excludedIp,
         ];
 

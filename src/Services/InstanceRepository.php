@@ -14,23 +14,24 @@ class InstanceRepository
     public function __construct(
         private DropletApi $dropletApi,
         private InstanceConfigurationFactory $instanceConfigurationFactory,
-        private string $instanceCollectionTag,
-        private string $instanceTag,
+        private InstanceTagFactory $instanceTagFactory,
     ) {
     }
 
     /**
      * @throws ExceptionInterface
      */
-    public function create(string $postCreateScript): Instance
+    public function create(string $collectionTag, string $imageId, string $postCreateScript): Instance
     {
-        $configuration = $this->instanceConfigurationFactory->create($postCreateScript);
+        $tag = $this->instanceTagFactory->create($collectionTag, $imageId);
+
+        $configuration = $this->instanceConfigurationFactory->create($postCreateScript, [$collectionTag, $tag]);
 
         $dropletEntity = $this->dropletApi->create(
-            $this->instanceTag,
+            $tag,
             $configuration->getRegion(),
             $configuration->getSize(),
-            $configuration->getImage(),
+            $imageId,
             $configuration->getBackups(),
             $configuration->getIpv6(),
             $configuration->getVpcUuid(),
@@ -47,17 +48,19 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function findAll(): InstanceCollection
+    public function findAll(string $collectionTag): InstanceCollection
     {
-        return $this->findWithTag($this->instanceCollectionTag);
+        return $this->findWithTag($collectionTag);
     }
 
     /**
      * @throws ExceptionInterface
      */
-    public function findCurrent(): ?Instance
+    public function findCurrent(string $collectionTag, string $imageId): ?Instance
     {
-        return $this->findWithTag($this->instanceTag)->getNewest();
+        $tag = $this->instanceTagFactory->create($collectionTag, $imageId);
+
+        return $this->findWithTag($tag)->getNewest();
     }
 
     /**

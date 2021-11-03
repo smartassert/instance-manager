@@ -49,9 +49,11 @@ jobs:
 
       - name: Get floating IP
         id: ip
-        env:
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-        run: echo "::set-output name=value::$(php bin/console app:ip:get)"
+        run: |
+          echo "::set-output name=value::$(
+            php bin/console app:ip:get \
+            --collection-tag="${{ github.event.inputs.service_id }}"
+          )"
 
       - name: Checkout bash-ga-ci-tools
         uses: actions/checkout@v2
@@ -64,13 +66,12 @@ jobs:
         id: instances
         if: ${{ steps.ip.outputs.value != '' }}
         env:
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
           INSTANCE_STATE_URL: ${{ steps.build-config.outputs.state_url }}
-          IP: ${{ steps.ip.outputs.value }}
         run: |
           INSTANCES=$(
-            INSTANCE_COLLECTION_TAG=$INSTANCE_COLLECTION_TAG php bin/console app:instance:list-destroyable \
-            --excluded-ip="$IP"
+            php bin/console app:instance:list-destroyable \
+            --excluded-ip="${{ steps.ip.outputs.value }}" \
+            --collection-tag="${{ github.event.inputs.service_id }}"
           )
 
           echo "::set-output name=value::$INSTANCES"
@@ -78,7 +79,6 @@ jobs:
       - name: Destroy matching instances
         if: ${{ steps.instances.outputs.value != '' }}
         env:
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
           INSTANCES: ${{ steps.instances.outputs.value }}
         run: |
           INSTANCE_IDS=$(echo "$INSTANCES" | jq '.instances[] | .id' | sed ':a;N;$!ba;s/\n/ /g')

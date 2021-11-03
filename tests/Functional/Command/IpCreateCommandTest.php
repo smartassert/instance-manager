@@ -3,6 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\IpCreateCommand;
+use App\Services\CommandConfigurator;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
@@ -10,15 +11,15 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class IpCreateCommandTest extends KernelTestCase
 {
-    private const INSTANCE_COLLECTION_TAG = 'instance-collection-tag-value';
+    private const COLLECTION_TAG = 'service-id';
 
     private IpCreateCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
-    private string $instanceTag;
 
     protected function setUp(): void
     {
@@ -35,10 +36,39 @@ class IpCreateCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
+    }
 
-        $instanceTag = self::getContainer()->getParameter('instance_tag');
-        \assert(is_string($instanceTag));
-        $this->instanceTag = $instanceTag;
+    /**
+     * @dataProvider runEmptyRequiredValueDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    {
+        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function runEmptyRequiredValueDataProvider(): array
+    {
+        return [
+            'empty collection tag' => [
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
+                ],
+                'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+            ],
+            'empty tag' => [
+                'input' => [
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                ],
+                'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_TAG,
+            ],
+        ];
     }
 
     /**
@@ -58,17 +88,14 @@ class IpCreateCommandTest extends KernelTestCase
         }
 
         $output = new BufferedOutput();
+        $input = new ArrayInput([
+            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
+        ]);
 
-        $exitCode = $this->command->run(new ArrayInput([]), $output);
+        $exitCode = $this->command->run($input, $output);
 
         self::assertSame($expectedExitCode, $exitCode);
-
-        $expectedOutput = str_replace(
-            '{{ instance-tag }}',
-            $this->instanceTag,
-            $expectedOutput
-        );
-
         self::assertJsonStringEqualsJsonString($expectedOutput, $output->fetch());
     }
 
@@ -123,7 +150,7 @@ class IpCreateCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::INSTANCE_COLLECTION_TAG,
+                                            self::COLLECTION_TAG,
                                         ],
                                     ],
                                 ],

@@ -3,20 +3,26 @@
 namespace App\Services;
 
 use SmartAssert\DigitalOceanDropletConfiguration\Configuration as DropletConfiguration;
-use SmartAssert\DigitalOceanDropletConfiguration\Factory;
+use SmartAssert\DigitalOceanDropletConfiguration\Factory as DropletConfigurationFactory;
 
 class InstanceConfigurationFactory
 {
     public function __construct(
-        private Factory $dropletConfigurationFactory,
+        private DropletConfigurationFactory $dropletConfigurationFactory,
     ) {
     }
 
-    public function create(string $postCreateScript): DropletConfiguration
+    /**
+     * @param string[] $tags
+     */
+    public function create(string $postCreateScript, array $tags): DropletConfiguration
     {
         $postCreateScript = '' !== $postCreateScript ? $postCreateScript : '# No post-create script';
 
-        $configuration = $this->dropletConfigurationFactory->create();
+        $configuration = $this->dropletConfigurationFactory->create([
+            DropletConfigurationFactory::KEY_TAGS => $tags,
+        ]);
+
         if ('' !== $configuration->getUserData()) {
             $configuration = $configuration->appendUserData("\n\n");
         }
