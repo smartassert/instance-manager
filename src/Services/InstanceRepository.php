@@ -22,12 +22,14 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function create(string $postCreateScript): Instance
+    public function create(string $collectionTag, string $imageId, string $postCreateScript): Instance
     {
-        $configuration = $this->instanceConfigurationFactory->create($postCreateScript);
+        $tag = $collectionTag . '-' . $imageId;
+
+        $configuration = $this->instanceConfigurationFactory->create($postCreateScript, [$collectionTag, $tag]);
 
         $dropletEntity = $this->dropletApi->create(
-            $this->instanceTag,
+            $tag,
             $configuration->getRegion(),
             $configuration->getSize(),
             $configuration->getImage(),

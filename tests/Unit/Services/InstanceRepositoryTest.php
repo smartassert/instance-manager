@@ -17,17 +17,17 @@ class InstanceRepositoryTest extends TestCase
 
     /**
      * @dataProvider createDataProvider
-     *
-     * @param string[] $expectedTags
      */
     public function testCreate(
         InstanceConfigurationFactory $instanceConfigurationFactory,
+        string $collectionTag,
+        string $imageId,
         string $postCreateScript,
         string $expectedUserData,
-        array $expectedTags,
     ): void {
         $dropletEntity = new DropletEntity();
-        $expectedDropletApiCreateNames = 'worker-manager-0.4.2';
+
+        $expectedTag = $collectionTag . '-' . $imageId;
 
         $dropletApi = \Mockery::mock(DropletApi::class);
         $dropletApi
@@ -46,13 +46,13 @@ class InstanceRepositoryTest extends TestCase
                 array $volumes,
                 array $tags,
             ) use (
-                $expectedDropletApiCreateNames,
                 $expectedUserData,
-                $expectedTags,
+                $collectionTag,
+                $expectedTag,
             ) {
-                self::assertSame($expectedDropletApiCreateNames, $names);
+                self::assertSame($expectedTag, $names);
                 self::assertSame($expectedUserData, $userData);
-                self::assertSame($expectedTags, $tags);
+                self::assertSame([$collectionTag, $expectedTag], $tags);
 
                 return true;
             })
@@ -66,7 +66,7 @@ class InstanceRepositoryTest extends TestCase
             'worker-manager-0.4.2'
         );
 
-        $instance = $instanceRepository->create($postCreateScript);
+        $instance = $instanceRepository->create($collectionTag, $imageId, $postCreateScript);
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertSame($dropletEntity, $instance->getDroplet());
@@ -77,73 +77,57 @@ class InstanceRepositoryTest extends TestCase
      */
     public function createDataProvider(): array
     {
-        $instanceCollectionTag = 'instance-collection-tag-value';
-        $instanceTag = 'instance-tag-value';
+        $collectionTag = 'service-id';
+        $imageId = '123456';
 
         return [
             'no default user data, no post-create script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
-                    new DropletConfigurationFactory(),
-                    $instanceCollectionTag,
-                    $instanceTag,
+                    new DropletConfigurationFactory()
                 ),
-                'postDeployScript' => '',
+                'collectionTag' => $collectionTag,
+                'imageId' => $imageId,
+                'postCreateScript' => '',
                 'expectedCreatedUserData' => '# Post-create script' . "\n" .
                     '# No post-create script',
-                'expectedTags' => [
-                    $instanceCollectionTag,
-                    $instanceTag,
-                ],
             ],
             'has default user data, no post-create script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                    ]),
-                    $instanceCollectionTag,
-                    $instanceTag,
+                    ])
                 ),
-                'postDeployScript' => '',
+                'collectionTag' => $collectionTag,
+                'imageId' => $imageId,
+                'postCreateScript' => '',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
                     '# Post-create script' . "\n" .
                     '# No post-create script',
-                'expectedTags' => [
-                    $instanceCollectionTag,
-                    $instanceTag,
-                ],
             ],
             'no default user data, has post-create script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
-                    new DropletConfigurationFactory(),
-                    $instanceCollectionTag,
-                    $instanceTag,
+                    new DropletConfigurationFactory()
                 ),
-                'postDeployScript' => './scripts/post-create.sh',
+                'collectionTag' => $collectionTag,
+                'imageId' => $imageId,
+                'postCreateScript' => './scripts/post-create.sh',
                 'expectedCreatedUserData' => '# Post-create script' . "\n" .
                     './scripts/post-create.sh',
-                'expectedTags' => [
-                    $instanceCollectionTag,
-                    $instanceTag,
-                ],
             ],
             'has default user data, has post-create script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                    ]),
-                    $instanceCollectionTag,
-                    $instanceTag,
+                    ])
                 ),
-                'postDeployScript' => './scripts/post-create.sh',
+                'collectionTag' => $collectionTag,
+                'imageId' => $imageId,
+                'postCreateScript' => './scripts/post-create.sh',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
                     '# Post-create script' . "\n" .
                     './scripts/post-create.sh',
-                'expectedTags' => [
-                    $instanceCollectionTag,
-                    $instanceTag,
-                ],
             ],
         ];
     }

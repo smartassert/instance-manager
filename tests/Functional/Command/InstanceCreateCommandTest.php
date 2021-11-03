@@ -11,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class InstanceCreateCommandTest extends KernelTestCase
 {
@@ -50,7 +51,10 @@ class InstanceCreateCommandTest extends KernelTestCase
         self::expectExceptionCode($expectedExceptionCode);
 
         $this->command->run(
-            new ArrayInput([]),
+            new ArrayInput([
+                '--' . InstanceCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+                '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
+            ]),
             new BufferedOutput()
         );
     }
@@ -68,6 +72,39 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'expectedExceptionClass' => RuntimeException::class,
                 'expectedExceptionMessage' => 'Unauthorized',
                 'expectedExceptionCode' => 401,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider executeEmptyRequiredValueDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testExecuteEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    {
+        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function executeEmptyRequiredValueDataProvider(): array
+    {
+        return [
+            'empty collection tag' => [
+                'input' => [
+                    '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
+                ],
+                'expectedReturnCode' => InstanceCreateCommand::RETURN_CODE_EMPTY_COLLECTION_TAG,
+            ],
+            'empty tag' => [
+                'input' => [
+                    '--' . InstanceCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+                ],
+                'expectedReturnCode' => InstanceCreateCommand::RETURN_CODE_EMPTY_TAG,
             ],
         ];
     }
@@ -105,7 +142,10 @@ class InstanceCreateCommandTest extends KernelTestCase
     {
         return [
             'already exists' => [
-                'input' => [],
+                'input' => [
+                    '--' . InstanceCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
+                ],
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -128,7 +168,10 @@ class InstanceCreateCommandTest extends KernelTestCase
                 ]),
             ],
             'created' => [
-                'input' => [],
+                'input' => [
+                    '--' . InstanceCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
+                ],
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
