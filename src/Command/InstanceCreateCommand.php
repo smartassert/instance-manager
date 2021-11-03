@@ -22,8 +22,8 @@ class InstanceCreateCommand extends Command
     public const OPTION_IMAGE_ID = 'image-id';
     public const OPTION_POST_CREATE_SCRIPT = 'post-create-script';
 
-    public const RETURN_CODE_EMPTY_COLLECTION_TAG = 3;
-    public const RETURN_CODE_EMPTY_TAG = 4;
+    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
+    public const EXIT_CODE_EMPTY_TAG = 4;
 
     public function __construct(
         private InstanceRepository $instanceRepository,
@@ -65,19 +65,19 @@ class InstanceCreateCommand extends Command
         if ('' === $collectionTag) {
             $output->writeln('"' . self::OPTION_COLLECTION_TAG . '" option empty');
 
-            return self::RETURN_CODE_EMPTY_COLLECTION_TAG;
+            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
         }
 
         $imageId = $this->getStringOption(self::OPTION_IMAGE_ID, $input);
         if ('' === $imageId) {
             $output->writeln('"' . self::OPTION_IMAGE_ID . '" option empty');
 
-            return self::RETURN_CODE_EMPTY_TAG;
+            return self::EXIT_CODE_EMPTY_TAG;
         }
 
         $postCreateScript = $this->getStringOption(self::OPTION_POST_CREATE_SCRIPT, $input);
 
-        $instance = $this->instanceRepository->findCurrent();
+        $instance = $this->instanceRepository->findCurrent($collectionTag, $imageId);
         if (null === $instance) {
             $instance = $this->instanceRepository->create($collectionTag, $imageId, $postCreateScript);
         }

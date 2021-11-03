@@ -149,7 +149,7 @@ class InstanceRepositoryTest extends KernelTestCase
             ])
         );
 
-        $instance = $this->instanceRepository->findCurrent();
+        $instance = $this->instanceRepository->findCurrent('service-id', '123456');
         self::assertEquals($expectedInstance, $instance);
     }
 

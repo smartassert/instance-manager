@@ -32,12 +32,12 @@ class InstanceCreateCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeThrowsExceptionDataProvider
+     * @dataProvider runThrowsExceptionDataProvider
      *
      * @param array<mixed>             $responseData
      * @param class-string<\Throwable> $expectedExceptionClass
      */
-    public function testExecuteThrowsException(
+    public function testRunThrowsException(
         array $responseData,
         string $expectedExceptionClass,
         string $expectedExceptionMessage,
@@ -62,7 +62,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeThrowsExceptionDataProvider(): array
+    public function runThrowsExceptionDataProvider(): array
     {
         return [
             'invalid api token' => [
@@ -77,11 +77,11 @@ class InstanceCreateCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeEmptyRequiredValueDataProvider
+     * @dataProvider runEmptyRequiredValueDataProvider
      *
      * @param array<mixed> $input
      */
-    public function testExecuteEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
     {
         $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
 
@@ -91,31 +91,31 @@ class InstanceCreateCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeEmptyRequiredValueDataProvider(): array
+    public function runEmptyRequiredValueDataProvider(): array
     {
         return [
             'empty collection tag' => [
                 'input' => [
                     '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
                 ],
-                'expectedReturnCode' => InstanceCreateCommand::RETURN_CODE_EMPTY_COLLECTION_TAG,
+                'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
             'empty tag' => [
                 'input' => [
                     '--' . InstanceCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
                 ],
-                'expectedReturnCode' => InstanceCreateCommand::RETURN_CODE_EMPTY_TAG,
+                'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_TAG,
             ],
         ];
     }
 
     /**
-     * @dataProvider executeDataProvider
+     * @dataProvider runDataProvider
      *
      * @param array<mixed> $input
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testExecuteSuccess(
+    public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
@@ -138,7 +138,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeDataProvider(): array
+    public function runDataProvider(): array
     {
         return [
             'already exists' => [

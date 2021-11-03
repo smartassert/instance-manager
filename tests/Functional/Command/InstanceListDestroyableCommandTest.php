@@ -37,12 +37,12 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeThrowsExceptionDataProvider
+     * @dataProvider runThrowsExceptionDataProvider
      *
      * @param array<mixed>             $responseData
      * @param class-string<\Throwable> $expectedExceptionClass
      */
-    public function testExecuteThrowsException(
+    public function testRunThrowsException(
         array $responseData,
         string $expectedExceptionClass,
         string $expectedExceptionMessage,
@@ -65,7 +65,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeThrowsExceptionDataProvider(): array
+    public function runThrowsExceptionDataProvider(): array
     {
         return [
             'invalid api token' => [
@@ -80,11 +80,11 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider executeEmptyRequiredValueDataProvider
+     * @dataProvider runEmptyRequiredValueDataProvider
      *
      * @param array<mixed> $input
      */
-    public function testExecuteEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
     {
         $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
 
@@ -94,23 +94,23 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeEmptyRequiredValueDataProvider(): array
+    public function runEmptyRequiredValueDataProvider(): array
     {
         return [
             'empty collection tag' => [
                 'input' => [],
-                'expectedReturnCode' => AbstractInstanceListCommand::RETURN_CODE_EMPTY_COLLECTION_TAG,
+                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
         ];
     }
 
     /**
-     * @dataProvider executeDataProvider
+     * @dataProvider runDataProvider
      *
      * @param array<mixed> $input
      * @param array<mixed> $httpResponseDataCollection
      */
-    public function testExecuteSuccess(
+    public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
@@ -131,7 +131,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function executeDataProvider(): array
+    public function runDataProvider(): array
     {
         $excludedIp = '127.0.0.1';
 

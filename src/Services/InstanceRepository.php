@@ -57,9 +57,11 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function findCurrent(): ?Instance
+    public function findCurrent(string $collectionTag, string $imageId): ?Instance
     {
-        return $this->findWithTag($this->instanceTag)->getNewest();
+        $tag = $this->instanceTagFactory->create($collectionTag, $imageId);
+
+        return $this->findWithTag($tag)->getNewest();
     }
 
     /**
