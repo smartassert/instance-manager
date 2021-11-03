@@ -62,7 +62,6 @@ class InstanceRepositoryTest extends TestCase
         $instanceRepository = new InstanceRepository(
             $dropletApi,
             $instanceConfigurationFactory,
-            'worker-manager',
             'worker-manager-0.4.2'
         );
 
@@ -155,7 +154,6 @@ class InstanceRepositoryTest extends TestCase
         $instanceRepository = new InstanceRepository(
             $dropletApi,
             \Mockery::mock(InstanceConfigurationFactory::class),
-            'worker-manager',
             'worker-manager-123456'
         );
 
