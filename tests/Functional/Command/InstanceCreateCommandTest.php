@@ -3,6 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
+use App\Services\CommandConfigurator;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -52,7 +53,7 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . InstanceCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+                '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
                 '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
             ]),
             new BufferedOutput()
@@ -102,7 +103,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . InstanceCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
                 ],
                 'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -143,7 +144,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         return [
             'already exists' => [
                 'input' => [
-                    '--' . InstanceCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
                     '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
@@ -169,7 +170,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             ],
             'created' => [
                 'input' => [
-                    '--' . InstanceCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
                     '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
