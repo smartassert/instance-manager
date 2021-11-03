@@ -17,11 +17,14 @@ class InstanceRepositoryTest extends TestCase
 
     /**
      * @dataProvider createDataProvider
+     *
+     * @param string[] $expectedTags
      */
     public function testCreate(
         InstanceConfigurationFactory $instanceConfigurationFactory,
         string $postCreateScript,
         string $expectedUserData,
+        array $expectedTags,
     ): void {
         $dropletEntity = new DropletEntity();
         $expectedDropletApiCreateNames = 'worker-manager-0.4.2';
@@ -37,14 +40,19 @@ class InstanceRepositoryTest extends TestCase
                 bool $backups,
                 bool $ipv6,
                 $vpcUuid,
-                array $sshKeys = [],
-                string $userData = ''
+                array $sshKeys,
+                string $userData,
+                bool $monitoring,
+                array $volumes,
+                array $tags,
             ) use (
                 $expectedDropletApiCreateNames,
-                $expectedUserData
+                $expectedUserData,
+                $expectedTags,
             ) {
                 self::assertSame($expectedDropletApiCreateNames, $names);
                 self::assertSame($expectedUserData, $userData);
+                self::assertSame($expectedTags, $tags);
 
                 return true;
             })
@@ -69,46 +77,73 @@ class InstanceRepositoryTest extends TestCase
      */
     public function createDataProvider(): array
     {
+        $instanceCollectionTag = 'instance-collection-tag-value';
+        $instanceTag = 'instance-tag-value';
+
         return [
             'no default user data, no post-create script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory(),
+                    $instanceCollectionTag,
+                    $instanceTag,
                 ),
                 'postDeployScript' => '',
                 'expectedCreatedUserData' => '# Post-create script' . "\n" .
                     '# No post-create script',
+                'expectedTags' => [
+                    $instanceCollectionTag,
+                    $instanceTag,
+                ],
             ],
             'has default user data, no post-create script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                    ])
+                    ]),
+                    $instanceCollectionTag,
+                    $instanceTag,
                 ),
                 'postDeployScript' => '',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
                     '# Post-create script' . "\n" .
                     '# No post-create script',
+                'expectedTags' => [
+                    $instanceCollectionTag,
+                    $instanceTag,
+                ],
             ],
             'no default user data, has post-create script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
-                    new DropletConfigurationFactory()
+                    new DropletConfigurationFactory(),
+                    $instanceCollectionTag,
+                    $instanceTag,
                 ),
                 'postDeployScript' => './scripts/post-create.sh',
                 'expectedCreatedUserData' => '# Post-create script' . "\n" .
                     './scripts/post-create.sh',
+                'expectedTags' => [
+                    $instanceCollectionTag,
+                    $instanceTag,
+                ],
             ],
             'has default user data, has post-create script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                    ])
+                    ]),
+                    $instanceCollectionTag,
+                    $instanceTag,
                 ),
                 'postDeployScript' => './scripts/post-create.sh',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
                     '# Post-create script' . "\n" .
                     './scripts/post-create.sh',
+                'expectedTags' => [
+                    $instanceCollectionTag,
+                    $instanceTag,
+                ],
             ],
         ];
     }

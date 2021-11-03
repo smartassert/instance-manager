@@ -16,13 +16,11 @@ class InstanceConfigurationFactoryTest extends TestCase
      * @dataProvider createDataProvider
      */
     public function testCreate(
-        DropletConfigurationFactory $dropletConfigurationFactory,
+        InstanceConfigurationFactory $factory,
         string $postCreateScript,
         Configuration $expected
     ): void {
-        $instanceConfigurationFactory = new InstanceConfigurationFactory($dropletConfigurationFactory);
-
-        $configuration = $instanceConfigurationFactory->create($postCreateScript);
+        $configuration = $factory->create($postCreateScript);
 
         self::assertEquals($expected, $configuration);
     }
@@ -32,9 +30,16 @@ class InstanceConfigurationFactoryTest extends TestCase
      */
     public function createDataProvider(): array
     {
+        $instanceCollectionTag = 'instance-collection-tag-value';
+        $instanceTag = 'instance-tag-value';
+
         return [
             'no default user data, no post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory(),
+                'factory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory(),
+                    $instanceCollectionTag,
+                    $instanceTag
+                ),
                 'postDeployScript' => '',
                 'expected' => new Configuration(
                     [],
@@ -49,13 +54,20 @@ class InstanceConfigurationFactoryTest extends TestCase
                     '# No post-create script',
                     true,
                     [],
-                    [],
+                    [
+                        $instanceCollectionTag,
+                        $instanceTag,
+                    ],
                 ),
             ],
             'has default single-line user data, no post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory([
-                    DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                ]),
+                'factory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory([
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
+                    ]),
+                    $instanceCollectionTag,
+                    $instanceTag
+                ),
                 'postDeployScript' => '',
                 'expected' => new Configuration(
                     [],
@@ -72,15 +84,22 @@ class InstanceConfigurationFactoryTest extends TestCase
                     '# No post-create script',
                     true,
                     [],
-                    [],
+                    [
+                        $instanceCollectionTag,
+                        $instanceTag,
+                    ],
                 ),
             ],
             'has default multi-line user data, no post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory([
-                    DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
-                        'echo "multi-line user data 2"' . "\n" .
-                        'echo "multi-line user data 3"'
-                ]),
+                'factory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory([
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
+                            'echo "multi-line user data 2"' . "\n" .
+                            'echo "multi-line user data 3"'
+                    ]),
+                    $instanceCollectionTag,
+                    $instanceTag
+                ),
                 'postDeployScript' => '',
                 'expected' => new Configuration(
                     [],
@@ -99,11 +118,18 @@ class InstanceConfigurationFactoryTest extends TestCase
                     '# No post-create script',
                     true,
                     [],
-                    [],
+                    [
+                        $instanceCollectionTag,
+                        $instanceTag,
+                    ],
                 ),
             ],
             'no default user data, has post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory(),
+                'factory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory(),
+                    $instanceCollectionTag,
+                    $instanceTag
+                ),
                 'postDeployScript' => './scripts/post-create.sh',
                 'expected' => new Configuration(
                     [],
@@ -118,13 +144,20 @@ class InstanceConfigurationFactoryTest extends TestCase
                     './scripts/post-create.sh',
                     true,
                     [],
-                    [],
+                    [
+                        $instanceCollectionTag,
+                        $instanceTag,
+                    ],
                 ),
             ],
             'has default single-line user data, has post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory([
-                    DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                ]),
+                'factory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory([
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
+                    ]),
+                    $instanceCollectionTag,
+                    $instanceTag
+                ),
                 'postDeployScript' => './scripts/post-create.sh',
                 'expected' => new Configuration(
                     [],
@@ -141,15 +174,22 @@ class InstanceConfigurationFactoryTest extends TestCase
                     './scripts/post-create.sh',
                     true,
                     [],
-                    [],
+                    [
+                        $instanceCollectionTag,
+                        $instanceTag,
+                    ],
                 ),
             ],
             'has default multi-line user data, has post-create script' => [
-                'dropletConfigurationFactory' => new DropletConfigurationFactory([
-                    DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
-                        'echo "multi-line user data 2"' . "\n" .
-                        'echo "multi-line user data 3"'
-                ]),
+                'factory' => new InstanceConfigurationFactory(
+                    new DropletConfigurationFactory([
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
+                            'echo "multi-line user data 2"' . "\n" .
+                            'echo "multi-line user data 3"'
+                    ]),
+                    $instanceCollectionTag,
+                    $instanceTag
+                ),
                 'postDeployScript' => './scripts/post-create.sh',
                 'expected' => new Configuration(
                     [],
@@ -168,7 +208,10 @@ class InstanceConfigurationFactoryTest extends TestCase
                     './scripts/post-create.sh',
                     true,
                     [],
-                    [],
+                    [
+                        $instanceCollectionTag,
+                        $instanceTag,
+                    ],
                 ),
             ],
         ];
