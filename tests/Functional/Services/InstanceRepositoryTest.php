@@ -51,11 +51,11 @@ class InstanceRepositoryTest extends KernelTestCase
         $this->mockHandler->append(
             $this->httpResponseFactory->createFromArray($successResponseData)
         );
-        $instance = $this->instanceRepository->create('');
+        $instance = $this->instanceRepository->create('collection-tag', 'image-id', '');
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertEquals(
-            $instance = InstanceFactory::create($dropletData),
+            InstanceFactory::create($dropletData),
             $instance
         );
     }

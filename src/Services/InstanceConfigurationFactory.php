@@ -9,22 +9,18 @@ class InstanceConfigurationFactory
 {
     public function __construct(
         private DropletConfigurationFactory $dropletConfigurationFactory,
-        private string $instanceCollectionTag,
-        private string $instanceTag,
     ) {
-        $this->instanceCollectionTag = trim($this->instanceCollectionTag);
-        $this->instanceTag = trim($this->instanceTag);
     }
 
-    public function create(string $postCreateScript): DropletConfiguration
+    /**
+     * @param string[] $tags
+     */
+    public function create(string $postCreateScript, array $tags): DropletConfiguration
     {
         $postCreateScript = '' !== $postCreateScript ? $postCreateScript : '# No post-create script';
 
         $configuration = $this->dropletConfigurationFactory->create([
-            DropletConfigurationFactory::KEY_TAGS => [
-                $this->instanceCollectionTag,
-                $this->instanceTag,
-            ],
+            DropletConfigurationFactory::KEY_TAGS => $tags,
         ]);
 
         if ('' !== $configuration->getUserData()) {

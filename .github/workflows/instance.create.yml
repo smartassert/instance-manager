@@ -79,7 +79,10 @@ jobs:
           INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: |
           CREATE_OUTPUT=$(
-            php bin/console app:instance:create --post-create-script="${{ steps.build-config.outputs.post_create_script }}"
+            php bin/console app:instance:create \
+            --post-create-script="${{ steps.build-config.outputs.post_create_script }}"
+            --collection-tag="$INSTANCE_COLLECTION_TAG" \
+            --image-id="$IMAGE_ID"
           )
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
