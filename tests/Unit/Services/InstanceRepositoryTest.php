@@ -63,8 +63,7 @@ class InstanceRepositoryTest extends TestCase
         $instanceRepository = new InstanceRepository(
             $dropletApi,
             $instanceConfigurationFactory,
-            new InstanceTagFactory(),
-            'worker-manager-0.4.2'
+            new InstanceTagFactory()
         );
 
         $instance = $instanceRepository->create($collectionTag, $imageId, $postCreateScript);
@@ -156,8 +155,7 @@ class InstanceRepositoryTest extends TestCase
         $instanceRepository = new InstanceRepository(
             $dropletApi,
             \Mockery::mock(InstanceConfigurationFactory::class),
-            new InstanceTagFactory(),
-            'worker-manager-123456'
+            new InstanceTagFactory()
         );
 
         $instances = $instanceRepository->findAll($collectionTag);

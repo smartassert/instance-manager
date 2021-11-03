@@ -15,7 +15,6 @@ class InstanceRepository
         private DropletApi $dropletApi,
         private InstanceConfigurationFactory $instanceConfigurationFactory,
         private InstanceTagFactory $instanceTagFactory,
-        private string $instanceTag,
     ) {
     }
 
