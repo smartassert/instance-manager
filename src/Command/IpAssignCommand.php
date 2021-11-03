@@ -17,7 +17,6 @@ use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
@@ -27,8 +26,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class IpAssignCommand extends Command
 {
     public const NAME = 'app:ip:assign';
-
-    public const OPTION_IMAGE_ID = 'image-id';
 
     public const EXIT_CODE_NO_CURRENT_INSTANCE = 3;
     public const EXIT_CODE_NO_IP = 4;
@@ -55,15 +52,9 @@ class IpAssignCommand extends Command
 
     protected function configure(): void
     {
-        $this->configurator->addCollectionTagOption($this);
-
-        $this
-            ->addOption(
-                self::OPTION_IMAGE_ID,
-                null,
-                InputOption::VALUE_REQUIRED,
-                'ID of image (snapshot) to create from'
-            )
+        $this->configurator
+            ->addCollectionTagOption($this)
+            ->addImageIdOption($this)
         ;
     }
 
@@ -79,9 +70,9 @@ class IpAssignCommand extends Command
             return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
         }
 
-        $imageId = $this->inputReader->getTrimmedStringOption(self::OPTION_IMAGE_ID, $input);
+        $imageId = $this->inputReader->getTrimmedStringOption(CommandConfigurator::OPTION_IMAGE_ID, $input);
         if ('' === $imageId) {
-            $output->writeln('"' . self::OPTION_IMAGE_ID . '" option empty');
+            $output->writeln('"' . CommandConfigurator::OPTION_IMAGE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_TAG;
         }

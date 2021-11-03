@@ -62,7 +62,7 @@ class IpAssignCommandTest extends KernelTestCase
         return [
             'empty collection tag' => [
                 'input' => [
-                    '--' . IpAssignCommand::OPTION_IMAGE_ID => self::IMAGE_ID,
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => self::IMAGE_ID,
                 ],
                 'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
@@ -99,7 +99,7 @@ class IpAssignCommandTest extends KernelTestCase
         $output = new BufferedOutput();
         $input = new ArrayInput([
             '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
-            '--' . IpAssignCommand::OPTION_IMAGE_ID => self::IMAGE_ID,
+            '--' . CommandConfigurator::OPTION_IMAGE_ID => self::IMAGE_ID,
         ]);
 
         $exitCode = $this->command->run($input, $output);
