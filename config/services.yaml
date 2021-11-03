@@ -91,6 +91,3 @@ services:
                 region: '%env(DIGITALOCEAN_DROPLET_REGION)%'
                 size: '%env(DIGITALOCEAN_DROPLET_SIZE)%'
                 image: '%image_id%'
-                tags:
-                    - '%instance_collection_tag%'
-                    - '%instance_tag%'
