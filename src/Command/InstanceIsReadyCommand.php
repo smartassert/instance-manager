@@ -13,10 +13,10 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: InstanceIsPostCreateCompleteCommand::NAME,
+    name: InstanceIsReadyCommand::NAME,
     description: 'Check if the post-create steps of an instance are complete',
 )]
-class InstanceIsPostCreateCompleteCommand extends AbstractInstanceObjectCommand
+class InstanceIsReadyCommand extends AbstractInstanceObjectCommand
 {
     use RetryableCommandTrait;
 

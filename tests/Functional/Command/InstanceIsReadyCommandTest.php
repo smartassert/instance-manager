@@ -3,7 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsHealthyCommand;
-use App\Command\InstanceIsPostCreateCompleteCommand;
+use App\Command\InstanceIsReadyCommand;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -12,9 +12,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
-class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
+class InstanceIsReadyCommandTest extends KernelTestCase
 {
-    private InstanceIsPostCreateCompleteCommand $command;
+    private InstanceIsReadyCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
 
@@ -22,8 +22,8 @@ class InstanceIsPostCreateCompleteCommandTest extends KernelTestCase
     {
         parent::setUp();
 
-        $command = self::getContainer()->get(InstanceIsPostCreateCompleteCommand::class);
-        \assert($command instanceof InstanceIsPostCreateCompleteCommand);
+        $command = self::getContainer()->get(InstanceIsReadyCommand::class);
+        \assert($command instanceof InstanceIsReadyCommand);
         $this->command = $command;
 
         $mockHandler = self::getContainer()->get(MockHandler::class);
