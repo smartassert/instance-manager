@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class IpCreateCommandTest extends KernelTestCase
 {
@@ -42,6 +43,39 @@ class IpCreateCommandTest extends KernelTestCase
     }
 
     /**
+     * @dataProvider runEmptyRequiredValueDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    {
+        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function runEmptyRequiredValueDataProvider(): array
+    {
+        return [
+            'empty collection tag' => [
+                'input' => [
+                    '--' . IpCreateCommand::OPTION_IMAGE_ID => '123456',
+                ],
+                'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+            ],
+            'empty tag' => [
+                'input' => [
+                    '--' . IpCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+                ],
+                'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_TAG,
+            ],
+        ];
+    }
+
+    /**
      * @dataProvider runSuccessDataProvider
      *
      * @param array<mixed> $httpResponseDataCollection
@@ -58,8 +92,12 @@ class IpCreateCommandTest extends KernelTestCase
         }
 
         $output = new BufferedOutput();
+        $input = new ArrayInput([
+            '--' . IpCreateCommand::OPTION_COLLECTION_TAG => 'service-id',
+            '--' . IpCreateCommand::OPTION_IMAGE_ID => '123456',
+        ]);
 
-        $exitCode = $this->command->run(new ArrayInput([]), $output);
+        $exitCode = $this->command->run($input, $output);
 
         self::assertSame($expectedExitCode, $exitCode);
 

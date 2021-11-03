@@ -12,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 use webignition\ObjectReflector\ObjectReflector;
 
 class IpAssignCommandTest extends KernelTestCase
@@ -40,6 +41,39 @@ class IpAssignCommandTest extends KernelTestCase
     }
 
     /**
+     * @dataProvider runEmptyRequiredValueDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    {
+        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function runEmptyRequiredValueDataProvider(): array
+    {
+        return [
+            'empty collection tag' => [
+                'input' => [
+                    '--' . IpAssignCommand::OPTION_IMAGE_ID => '123456',
+                ],
+                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+            ],
+            'empty tag' => [
+                'input' => [
+                    '--' . IpAssignCommand::OPTION_COLLECTION_TAG => 'service-id',
+                ],
+                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_TAG,
+            ],
+        ];
+    }
+
+    /**
      * @dataProvider runDataProvider
      *
      * @param array<mixed> $httpResponseDataCollection
@@ -61,8 +95,12 @@ class IpAssignCommandTest extends KernelTestCase
         }
 
         $output = new BufferedOutput();
+        $input = new ArrayInput([
+            '--' . IpAssignCommand::OPTION_COLLECTION_TAG => 'service-id',
+            '--' . IpAssignCommand::OPTION_IMAGE_ID => '123456',
+        ]);
 
-        $exitCode = $this->command->run(new ArrayInput([]), $output);
+        $exitCode = $this->command->run($input, $output);
 
         self::assertSame($expectedExitCode, $exitCode);
         self::assertJsonStringEqualsJsonString($expectedOutput, $output->fetch());

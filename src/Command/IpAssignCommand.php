@@ -11,9 +11,11 @@ use App\Services\FloatingIpRepository;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
 use DigitalOceanV2\Entity\Action as ActionEntity;
+use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
@@ -23,9 +25,15 @@ use Symfony\Component\Console\Output\OutputInterface;
 class IpAssignCommand extends Command
 {
     public const NAME = 'app:ip:assign';
+
+    public const OPTION_COLLECTION_TAG = 'collection-tag';
+    public const OPTION_IMAGE_ID = 'image-id';
+
     public const EXIT_CODE_NO_CURRENT_INSTANCE = 3;
     public const EXIT_CODE_NO_IP = 4;
     public const EXIT_CODE_ASSIGNMENT_TIMED_OUT = 5;
+    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 6;
+    public const EXIT_CODE_EMPTY_TAG = 7;
 
     private const MICROSECONDS_PER_SECOND = 1000000;
 
@@ -42,9 +50,44 @@ class IpAssignCommand extends Command
         parent::__construct(null);
     }
 
+    protected function configure(): void
+    {
+        $this
+            ->addOption(
+                self::OPTION_COLLECTION_TAG,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Tag applied to all instances'
+            )
+            ->addOption(
+                self::OPTION_IMAGE_ID,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'ID of image (snapshot) to create from'
+            )
+        ;
+    }
+
+    /**
+     * @throws ExceptionInterface
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $instance = $this->instanceRepository->findCurrent();
+        $collectionTag = $this->getStringOption(self::OPTION_COLLECTION_TAG, $input);
+        if ('' === $collectionTag) {
+            $output->writeln('"' . self::OPTION_COLLECTION_TAG . '" option empty');
+
+            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
+        }
+
+        $imageId = $this->getStringOption(self::OPTION_IMAGE_ID, $input);
+        if ('' === $imageId) {
+            $output->writeln('"' . self::OPTION_IMAGE_ID . '" option empty');
+
+            return self::EXIT_CODE_EMPTY_TAG;
+        }
+
+        $instance = $this->instanceRepository->findCurrent($collectionTag, $imageId);
         if (null === $instance) {
             $output->write($this->outputFactory->createErrorOutput('no-instance'));
 
@@ -110,5 +153,15 @@ class IpAssignCommand extends Command
 
             return self::EXIT_CODE_ASSIGNMENT_TIMED_OUT;
         }
+    }
+
+    private function getStringOption(string $name, InputInterface $input): string
+    {
+        $value = $input->getOption($name);
+        if (!is_string($value)) {
+            $value = '';
+        }
+
+        return trim($value);
     }
 }

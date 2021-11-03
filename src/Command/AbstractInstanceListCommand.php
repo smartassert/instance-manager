@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 abstract class AbstractInstanceListCommand extends Command
 {
     public const OPTION_COLLECTION_TAG = 'collection-tag';
-    public const RETURN_CODE_EMPTY_COLLECTION_TAG = 3;
+    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
 
     public function __construct(
         private InstanceRepository $instanceRepository,
@@ -51,7 +51,7 @@ abstract class AbstractInstanceListCommand extends Command
         if ('' === $collectionTag) {
             $output->writeln('"' . self::OPTION_COLLECTION_TAG . '" option empty');
 
-            return self::RETURN_CODE_EMPTY_COLLECTION_TAG;
+            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
         }
 
         $output->write((string) json_encode($this->findInstances(

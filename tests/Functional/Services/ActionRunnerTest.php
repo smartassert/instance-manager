@@ -130,7 +130,7 @@ class ActionRunnerTest extends KernelTestCase
         $instanceRepository = self::getContainer()->get(InstanceRepository::class);
         \assert($instanceRepository instanceof InstanceRepository);
 
-        $instance = $instanceRepository->findCurrent();
+        $instance = $instanceRepository->findCurrent('service-id', '123456');
         \assert($instance instanceof Instance);
 
         $decider = new ActionHandler(
