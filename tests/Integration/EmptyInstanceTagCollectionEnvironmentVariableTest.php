@@ -4,7 +4,6 @@ namespace App\Tests\Integration;
 
 use App\Command\IpAssignCommand;
 use App\Command\IpCreateCommand;
-use App\Command\IpGetCommand;
 
 class EmptyInstanceTagCollectionEnvironmentVariableTest extends AbstractEmptyEnvironmentVariableTest
 {
