@@ -4,6 +4,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\AbstractInstanceListCommand;
 use App\Command\InstanceListDestroyableCommand;
+use App\Services\CommandConfigurator;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -56,7 +57,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . AbstractInstanceListCommand::OPTION_COLLECTION_TAG => 'service-id',
+                '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
             ]),
             new NullOutput()
         );
@@ -284,7 +285,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         ];
 
         $input = [
-            '--' . AbstractInstanceListCommand::OPTION_COLLECTION_TAG => 'service-id',
+            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
             '--excluded-ip' => $excludedIp,
         ];
 
