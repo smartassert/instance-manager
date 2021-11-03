@@ -14,6 +14,7 @@ class InstanceRepository
     public function __construct(
         private DropletApi $dropletApi,
         private InstanceConfigurationFactory $instanceConfigurationFactory,
+        private InstanceTagFactory $instanceTagFactory,
         private string $instanceTag,
     ) {
     }
@@ -23,7 +24,7 @@ class InstanceRepository
      */
     public function create(string $collectionTag, string $imageId, string $postCreateScript): Instance
     {
-        $tag = $collectionTag . '-' . $imageId;
+        $tag = $this->instanceTagFactory->create($collectionTag, $imageId);
 
         $configuration = $this->instanceConfigurationFactory->create($postCreateScript, [$collectionTag, $tag]);
 
