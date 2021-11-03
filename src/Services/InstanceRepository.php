@@ -31,7 +31,7 @@ class InstanceRepository
             $tag,
             $configuration->getRegion(),
             $configuration->getSize(),
-            $configuration->getImage(),
+            $imageId,
             $configuration->getBackups(),
             $configuration->getIpv6(),
             $configuration->getVpcUuid(),

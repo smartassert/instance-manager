@@ -32,19 +32,6 @@ jobs:
       - name: PHPStan
         run: composer static-analysis
 
-  shellcheck:
-    name: ShellCheck
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Run
-        run: |
-          docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable ./ci/scripts/*.sh
-          docker run --rm -v "$PWD:/mnt" koalaman/shellcheck:stable ./ci/tests/*.bats
-
   actionlint:
     name: Actionlint
     runs-on: ubuntu-latest

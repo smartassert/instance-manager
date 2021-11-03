@@ -19,7 +19,6 @@ class IpCreateCommandTest extends KernelTestCase
     private IpCreateCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
-    private string $instanceTag;
 
     protected function setUp(): void
     {
@@ -36,10 +35,6 @@ class IpCreateCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
-
-        $instanceTag = self::getContainer()->getParameter('instance_tag');
-        \assert(is_string($instanceTag));
-        $this->instanceTag = $instanceTag;
     }
 
     /**
@@ -100,13 +95,6 @@ class IpCreateCommandTest extends KernelTestCase
         $exitCode = $this->command->run($input, $output);
 
         self::assertSame($expectedExitCode, $exitCode);
-
-        $expectedOutput = str_replace(
-            '{{ instance-tag }}',
-            $this->instanceTag,
-            $expectedOutput
-        );
-
         self::assertJsonStringEqualsJsonString($expectedOutput, $output->fetch());
     }
 
