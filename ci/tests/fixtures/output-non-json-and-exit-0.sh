@@ -1,1 +1,0 @@
-echo "non-json content"

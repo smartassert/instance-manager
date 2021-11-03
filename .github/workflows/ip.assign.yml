@@ -36,23 +36,23 @@ jobs:
         uses: php-actions/composer@v6
         with:
           args: --ignore-platform-reqs --quiet
+
       - name: Get floating IP
         id: ip
-        env:
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
         run: |
-          echo "::set-output name=value::$(php bin/console app:ip:get)"
+          echo "::set-output name=value::$(
+            php bin/console app:ip:get \
+            --collection-tag="${{ github.event.inputs.service_id }}"
+          )"
 
       - name: Re-assign IP if found
         if: ${{ steps.ip.outputs.value != '' }}
-        env:
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-          COMMAND: "php bin/console app:ip:assign"
-        run: ./ci/scripts/execute-command-output-json.sh
+        run: |
+          php bin/console app:ip:assign \
+          --collection-tag="${{ github.event.inputs.service_id }}"
 
       - name: Create IP if none found
         if: ${{ steps.ip.outputs.value == '' }}
-        env:
-          INSTANCE_COLLECTION_TAG: ${{ github.event.inputs.service_id }}
-          COMMAND: "php bin/console app:ip:create"
-        run: ./ci/scripts/execute-command-output-json.sh
+        run: |
+          php bin/console app:ip:create \
+          --collection-tag="${{ github.event.inputs.service_id }}"

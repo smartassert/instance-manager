@@ -50,7 +50,9 @@ class InstanceRepositoryTest extends TestCase
                 $expectedUserData,
                 $collectionTag,
                 $expectedTag,
+                $imageId
             ) {
+                self::assertSame($imageId, $image);
                 self::assertSame($expectedTag, $names);
                 self::assertSame($expectedUserData, $userData);
                 self::assertSame([$collectionTag, $expectedTag], $tags);
