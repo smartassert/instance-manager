@@ -20,7 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class InstanceCreateCommand extends Command
 {
     public const NAME = 'app:instance:create';
-    public const OPTION_IMAGE_ID = 'image-id';
     public const OPTION_POST_CREATE_SCRIPT = 'post-create-script';
 
     public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
@@ -37,15 +36,12 @@ class InstanceCreateCommand extends Command
 
     protected function configure(): void
     {
-        $this->configurator->addCollectionTagOption($this);
+        $this->configurator
+            ->addCollectionTagOption($this)
+            ->addImageIdOption($this)
+        ;
 
         $this
-            ->addOption(
-                self::OPTION_IMAGE_ID,
-                null,
-                InputOption::VALUE_REQUIRED,
-                'ID of image (snapshot) to create from'
-            )
             ->addOption(
                 self::OPTION_POST_CREATE_SCRIPT,
                 null,
@@ -67,9 +63,9 @@ class InstanceCreateCommand extends Command
             return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
         }
 
-        $imageId = $this->inputReader->getTrimmedStringOption(self::OPTION_IMAGE_ID, $input);
+        $imageId = $this->inputReader->getTrimmedStringOption(CommandConfigurator::OPTION_IMAGE_ID, $input);
         if ('' === $imageId) {
-            $output->writeln('"' . self::OPTION_IMAGE_ID . '" option empty');
+            $output->writeln('"' . CommandConfigurator::OPTION_IMAGE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_TAG;
         }

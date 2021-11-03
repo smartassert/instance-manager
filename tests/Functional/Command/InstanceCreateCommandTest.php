@@ -54,7 +54,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $this->command->run(
             new ArrayInput([
                 '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
-                '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
+                '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
             ]),
             new BufferedOutput()
         );
@@ -97,7 +97,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         return [
             'empty collection tag' => [
                 'input' => [
-                    '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
                 ],
                 'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
@@ -145,7 +145,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             'already exists' => [
                 'input' => [
                     '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
-                    '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
                     [
@@ -171,7 +171,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             'created' => [
                 'input' => [
                     '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
-                    '--' . InstanceCreateCommand::OPTION_IMAGE_ID => '123456',
+                    '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
                     [
