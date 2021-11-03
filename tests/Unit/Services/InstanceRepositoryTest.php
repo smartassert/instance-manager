@@ -5,6 +5,7 @@ namespace App\Tests\Unit\Services;
 use App\Model\Instance;
 use App\Services\InstanceConfigurationFactory;
 use App\Services\InstanceRepository;
+use App\Services\InstanceTagFactory;
 use DigitalOceanV2\Api\Droplet as DropletApi;
 use DigitalOceanV2\Entity\Droplet as DropletEntity;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -62,6 +63,7 @@ class InstanceRepositoryTest extends TestCase
         $instanceRepository = new InstanceRepository(
             $dropletApi,
             $instanceConfigurationFactory,
+            new InstanceTagFactory(),
             'worker-manager-0.4.2'
         );
 
@@ -154,6 +156,7 @@ class InstanceRepositoryTest extends TestCase
         $instanceRepository = new InstanceRepository(
             $dropletApi,
             \Mockery::mock(InstanceConfigurationFactory::class),
+            new InstanceTagFactory(),
             'worker-manager-123456'
         );
 
