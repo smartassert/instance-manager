@@ -143,10 +143,12 @@ class InstanceRepositoryTest extends TestCase
             ]),
         ];
 
+        $collectionTag = 'service-id';
+
         $dropletApi = \Mockery::mock(DropletApi::class);
         $dropletApi
             ->shouldReceive('getAll')
-            ->with('worker-manager')
+            ->with($collectionTag)
             ->andReturn($droplets)
         ;
 
@@ -157,7 +159,7 @@ class InstanceRepositoryTest extends TestCase
             'worker-manager-123456'
         );
 
-        $instances = $instanceRepository->findAll();
+        $instances = $instanceRepository->findAll($collectionTag);
 
         self::assertCount(count($droplets), $instances);
 

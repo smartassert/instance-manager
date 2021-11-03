@@ -77,7 +77,7 @@ class InstanceRepositoryTest extends KernelTestCase
             ])
         );
 
-        $instances = $this->instanceRepository->findAll();
+        $instances = $this->instanceRepository->findAll('service-id');
 
         self::assertCount(count($expectedInstances), $instances);
 

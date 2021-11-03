@@ -2,6 +2,7 @@
 
 namespace App\Tests\Functional\Command;
 
+use App\Command\AbstractInstanceListCommand;
 use App\Command\InstanceListDestroyableCommand;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -10,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class InstanceListDestroyableCommandTest extends KernelTestCase
 {
@@ -52,7 +54,12 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         self::expectExceptionMessage($expectedExceptionMessage);
         self::expectExceptionCode($expectedExceptionCode);
 
-        $this->command->run(new ArrayInput([]), new BufferedOutput());
+        $this->command->run(
+            new ArrayInput([
+                '--' . AbstractInstanceListCommand::OPTION_COLLECTION_TAG => 'service-id',
+            ]),
+            new NullOutput()
+        );
     }
 
     /**
@@ -68,6 +75,31 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                 'expectedExceptionClass' => RuntimeException::class,
                 'expectedExceptionMessage' => 'Unauthorized',
                 'expectedExceptionCode' => 401,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider executeEmptyRequiredValueDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testExecuteEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    {
+        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+
+        self::assertSame($expectedReturnCode, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function executeEmptyRequiredValueDataProvider(): array
+    {
+        return [
+            'empty collection tag' => [
+                'input' => [],
+                'expectedReturnCode' => AbstractInstanceListCommand::RETURN_CODE_EMPTY_COLLECTION_TAG,
             ],
         ];
     }
@@ -252,6 +284,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         ];
 
         $input = [
+            '--' . AbstractInstanceListCommand::OPTION_COLLECTION_TAG => 'service-id',
             '--excluded-ip' => $excludedIp,
         ];
 
