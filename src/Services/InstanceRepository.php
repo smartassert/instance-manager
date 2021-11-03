@@ -14,7 +14,6 @@ class InstanceRepository
     public function __construct(
         private DropletApi $dropletApi,
         private InstanceConfigurationFactory $instanceConfigurationFactory,
-        private string $instanceCollectionTag,
         private string $instanceTag,
     ) {
     }
