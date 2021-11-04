@@ -1,5 +1,4 @@
 {
   "state_url": "/",
-  "health_check_url": "/health-check",
-  "post_create_script": ""
+  "health_check_url": "/health-check"
 }
