@@ -24,9 +24,9 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
      *
      * @param string[] $tags
      */
-    public function testCreate(string $postCreateScript, array $tags, Configuration $expected): void
+    public function testCreate(string $firstBootScript, array $tags, Configuration $expected): void
     {
-        self::assertEquals($expected, $this->instanceConfigurationFactory->create($postCreateScript, $tags));
+        self::assertEquals($expected, $this->instanceConfigurationFactory->create($firstBootScript, $tags));
     }
 
     /**
@@ -35,8 +35,8 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
     public function createDataProvider(): array
     {
         return [
-            'no post-create script, no tags' => [
-                'postCreateScript' => '',
+            'no first-boot script, no tags' => [
+                'firstBootScript' => '',
                 'tags' => [],
                 'expected' => new Configuration(
                     [],
@@ -47,14 +47,14 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
                     false,
                     false,
                     [],
-                    '# Post-create script' . "\n" . '# No post-create script',
+                    '# First-boot script' . "\n" . '# No first-boot script',
                     true,
                     [],
                     [],
                 ),
             ],
-            'has post-create script, no tags' => [
-                'postCreateScript' => './scripts/post-create.sh',
+            'has first-boot script, no tags' => [
+                'firstBootScript' => './scripts/first-boot.sh',
                 'tags' => [],
                 'expected' => new Configuration(
                     [],
@@ -65,14 +65,14 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
                     false,
                     false,
                     [],
-                    '# Post-create script' . "\n" . './scripts/post-create.sh',
+                    '# First-boot script' . "\n" . './scripts/first-boot.sh',
                     true,
                     [],
                     [],
                 ),
             ],
-            'no post-create script, has tags' => [
-                'postCreateScript' => '',
+            'no first-boot script, has tags' => [
+                'firstBootScript' => '',
                 'tags' => [
                     'instance-collection-tag-value',
                     'instance-tag-value',
@@ -86,7 +86,7 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
                     false,
                     false,
                     [],
-                    '# Post-create script' . "\n" . '# No post-create script',
+                    '# First-boot script' . "\n" . '# No first-boot script',
                     true,
                     [],
                     [
@@ -95,8 +95,8 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
                     ],
                 ),
             ],
-            'has post-create script, has tags' => [
-                'postCreateScript' => './scripts/post-create.sh',
+            'has first-boot script, has tags' => [
+                'firstBootScript' => './scripts/first-boot.sh',
                 'tags' => [
                     'instance-collection-tag-value',
                     'instance-tag-value',
@@ -110,7 +110,7 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
                     false,
                     false,
                     [],
-                    '# Post-create script' . "\n" . './scripts/post-create.sh',
+                    '# First-boot script' . "\n" . './scripts/first-boot.sh',
                     true,
                     [],
                     [
