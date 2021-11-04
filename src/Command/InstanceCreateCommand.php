@@ -20,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 class InstanceCreateCommand extends Command
 {
     public const NAME = 'app:instance:create';
-    public const OPTION_POST_CREATE_SCRIPT = 'post-create-script';
+    public const OPTION_FIRST_BOOT_SCRIPT = 'first-boot-script';
 
     public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
     public const EXIT_CODE_EMPTY_TAG = 4;
@@ -43,7 +43,7 @@ class InstanceCreateCommand extends Command
 
         $this
             ->addOption(
-                self::OPTION_POST_CREATE_SCRIPT,
+                self::OPTION_FIRST_BOOT_SCRIPT,
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Script to call once creation is complete'
@@ -70,11 +70,11 @@ class InstanceCreateCommand extends Command
             return self::EXIT_CODE_EMPTY_TAG;
         }
 
-        $postCreateScript = $this->inputReader->getTrimmedStringOption(self::OPTION_POST_CREATE_SCRIPT, $input);
+        $firstBootScript = $this->inputReader->getTrimmedStringOption(self::OPTION_FIRST_BOOT_SCRIPT, $input);
 
         $instance = $this->instanceRepository->findCurrent($collectionTag, $imageId);
         if (null === $instance) {
-            $instance = $this->instanceRepository->create($collectionTag, $imageId, $postCreateScript);
+            $instance = $this->instanceRepository->create($collectionTag, $imageId, $firstBootScript);
         }
 
         $output->write($this->outputFactory->createSuccessOutput(['id' => $instance->getId()]));

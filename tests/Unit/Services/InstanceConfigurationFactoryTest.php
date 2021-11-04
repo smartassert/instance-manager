@@ -19,11 +19,11 @@ class InstanceConfigurationFactoryTest extends TestCase
      */
     public function testCreate(
         InstanceConfigurationFactory $factory,
-        string $postCreateScript,
+        string $firstBootScript,
         array $tags,
         Configuration $expected
     ): void {
-        $configuration = $factory->create($postCreateScript, $tags);
+        $configuration = $factory->create($firstBootScript, $tags);
 
         self::assertEquals($expected, $configuration);
     }
@@ -39,9 +39,9 @@ class InstanceConfigurationFactoryTest extends TestCase
         $tags = [$instanceCollectionTag, $instanceTag];
 
         return [
-            'no default user data, no post-create script, no tags' => [
+            'no default user data, no first-boot script, no tags' => [
                 'factory' => new InstanceConfigurationFactory(new DropletConfigurationFactory()),
-                'postDeployScript' => '',
+                'firstBootScript' => '',
                 'tags' => [],
                 'expected' => new Configuration(
                     [],
@@ -52,16 +52,16 @@ class InstanceConfigurationFactoryTest extends TestCase
                     false,
                     false,
                     [],
-                    '# Post-create script' . "\n" .
-                    '# No post-create script',
+                    '# First-boot script' . "\n" .
+                    '# No first-boot script',
                     true,
                     [],
                     [],
                 ),
             ],
-            'no default user data, no post-create script' => [
+            'no default user data, no first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(new DropletConfigurationFactory()),
-                'postDeployScript' => '',
+                'firstBootScript' => '',
                 'tags' => $tags,
                 'expected' => new Configuration(
                     [],
@@ -72,20 +72,20 @@ class InstanceConfigurationFactoryTest extends TestCase
                     false,
                     false,
                     [],
-                    '# Post-create script' . "\n" .
-                    '# No post-create script',
+                    '# First-boot script' . "\n" .
+                    '# No first-boot script',
                     true,
                     [],
                     $tags,
                 ),
             ],
-            'has default single-line user data, no post-create script' => [
+            'has default single-line user data, no first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                     ])
                 ),
-                'postDeployScript' => '',
+                'firstBootScript' => '',
                 'tags' => $tags,
                 'expected' => new Configuration(
                     [],
@@ -98,14 +98,14 @@ class InstanceConfigurationFactoryTest extends TestCase
                     [],
                     'echo "single-line user data"' . "\n" .
                     '' . "\n" .
-                    '# Post-create script' . "\n" .
-                    '# No post-create script',
+                    '# First-boot script' . "\n" .
+                    '# No first-boot script',
                     true,
                     [],
                     $tags,
                 ),
             ],
-            'has default multi-line user data, no post-create script' => [
+            'has default multi-line user data, no first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
@@ -113,7 +113,7 @@ class InstanceConfigurationFactoryTest extends TestCase
                             'echo "multi-line user data 3"'
                     ])
                 ),
-                'postDeployScript' => '',
+                'firstBootScript' => '',
                 'tags' => $tags,
                 'expected' => new Configuration(
                     [],
@@ -128,18 +128,18 @@ class InstanceConfigurationFactoryTest extends TestCase
                     'echo "multi-line user data 2"' . "\n" .
                     'echo "multi-line user data 3"' . "\n" .
                     '' . "\n" .
-                    '# Post-create script' . "\n" .
-                    '# No post-create script',
+                    '# First-boot script' . "\n" .
+                    '# No first-boot script',
                     true,
                     [],
                     $tags,
                 ),
             ],
-            'no default user data, has post-create script' => [
+            'no default user data, has first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
-                'postDeployScript' => './scripts/post-create.sh',
+                'firstBootScript' => './scripts/first-boot.sh',
                 'tags' => $tags,
                 'expected' => new Configuration(
                     [],
@@ -150,20 +150,20 @@ class InstanceConfigurationFactoryTest extends TestCase
                     false,
                     false,
                     [],
-                    '# Post-create script' . "\n" .
-                    './scripts/post-create.sh',
+                    '# First-boot script' . "\n" .
+                    './scripts/first-boot.sh',
                     true,
                     [],
                     $tags,
                 ),
             ],
-            'has default single-line user data, has post-create script' => [
+            'has default single-line user data, has first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                     ])
                 ),
-                'postDeployScript' => './scripts/post-create.sh',
+                'firstBootScript' => './scripts/first-boot.sh',
                 'tags' => $tags,
                 'expected' => new Configuration(
                     [],
@@ -176,14 +176,14 @@ class InstanceConfigurationFactoryTest extends TestCase
                     [],
                     'echo "single-line user data"' . "\n" .
                     '' . "\n" .
-                    '# Post-create script' . "\n" .
-                    './scripts/post-create.sh',
+                    '# First-boot script' . "\n" .
+                    './scripts/first-boot.sh',
                     true,
                     [],
                     $tags,
                 ),
             ],
-            'has default multi-line user data, has post-create script' => [
+            'has default multi-line user data, has first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
@@ -191,7 +191,7 @@ class InstanceConfigurationFactoryTest extends TestCase
                             'echo "multi-line user data 3"'
                     ])
                 ),
-                'postDeployScript' => './scripts/post-create.sh',
+                'firstBootScript' => './scripts/first-boot.sh',
                 'tags' => $tags,
                 'expected' => new Configuration(
                     [],
@@ -206,8 +206,8 @@ class InstanceConfigurationFactoryTest extends TestCase
                     'echo "multi-line user data 2"' . "\n" .
                     'echo "multi-line user data 3"' . "\n" .
                     '' . "\n" .
-                    '# Post-create script' . "\n" .
-                    './scripts/post-create.sh',
+                    '# First-boot script' . "\n" .
+                    './scripts/first-boot.sh',
                     true,
                     [],
                     $tags,

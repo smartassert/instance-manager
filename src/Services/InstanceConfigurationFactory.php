@@ -15,9 +15,9 @@ class InstanceConfigurationFactory
     /**
      * @param string[] $tags
      */
-    public function create(string $postCreateScript, array $tags): DropletConfiguration
+    public function create(string $firstBootScript, array $tags): DropletConfiguration
     {
-        $postCreateScript = '' !== $postCreateScript ? $postCreateScript : '# No post-create script';
+        $firstBootScript = '' !== $firstBootScript ? $firstBootScript : '# No first-boot script';
 
         $configuration = $this->dropletConfigurationFactory->create([
             DropletConfigurationFactory::KEY_TAGS => $tags,
@@ -28,7 +28,7 @@ class InstanceConfigurationFactory
         }
 
         return $configuration->appendUserData(
-            '# Post-create script' . "\n" . $postCreateScript
+            '# First-boot script' . "\n" . $firstBootScript
         );
     }
 }

@@ -23,7 +23,7 @@ class InstanceRepositoryTest extends TestCase
         InstanceConfigurationFactory $instanceConfigurationFactory,
         string $collectionTag,
         string $imageId,
-        string $postCreateScript,
+        string $firstBootScript,
         string $expectedUserData,
     ): void {
         $dropletEntity = new DropletEntity();
@@ -68,7 +68,7 @@ class InstanceRepositoryTest extends TestCase
             new InstanceTagFactory()
         );
 
-        $instance = $instanceRepository->create($collectionTag, $imageId, $postCreateScript);
+        $instance = $instanceRepository->create($collectionTag, $imageId, $firstBootScript);
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertSame($dropletEntity, $instance->getDroplet());
@@ -83,17 +83,17 @@ class InstanceRepositoryTest extends TestCase
         $imageId = '123456';
 
         return [
-            'no default user data, no post-create script' => [
+            'no default user data, no first-boot script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
                 'collectionTag' => $collectionTag,
                 'imageId' => $imageId,
-                'postCreateScript' => '',
-                'expectedCreatedUserData' => '# Post-create script' . "\n" .
-                    '# No post-create script',
+                'firstBootScript' => '',
+                'expectedCreatedUserData' => '# First-boot script' . "\n" .
+                    '# No first-boot script',
             ],
-            'has default user data, no post-create script' => [
+            'has default user data, no first-boot script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
@@ -101,23 +101,23 @@ class InstanceRepositoryTest extends TestCase
                 ),
                 'collectionTag' => $collectionTag,
                 'imageId' => $imageId,
-                'postCreateScript' => '',
+                'firstBootScript' => '',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
-                    '# Post-create script' . "\n" .
-                    '# No post-create script',
+                    '# First-boot script' . "\n" .
+                    '# No first-boot script',
             ],
-            'no default user data, has post-create script' => [
+            'no default user data, has first-boot script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
                 'collectionTag' => $collectionTag,
                 'imageId' => $imageId,
-                'postCreateScript' => './scripts/post-create.sh',
-                'expectedCreatedUserData' => '# Post-create script' . "\n" .
-                    './scripts/post-create.sh',
+                'firstBootScript' => './scripts/first-boot.sh',
+                'expectedCreatedUserData' => '# First-boot script' . "\n" .
+                    './scripts/first-boot.sh',
             ],
-            'has default user data, has post-create script' => [
+            'has default user data, has first-boot script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
@@ -125,11 +125,11 @@ class InstanceRepositoryTest extends TestCase
                 ),
                 'collectionTag' => $collectionTag,
                 'imageId' => $imageId,
-                'postCreateScript' => './scripts/post-create.sh',
+                'firstBootScript' => './scripts/first-boot.sh',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
                     '' . "\n" .
-                    '# Post-create script' . "\n" .
-                    './scripts/post-create.sh',
+                    '# First-boot script' . "\n" .
+                    './scripts/first-boot.sh',
             ],
         ];
     }

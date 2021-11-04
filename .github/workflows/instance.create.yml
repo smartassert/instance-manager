@@ -77,7 +77,7 @@ jobs:
         run: |
           CREATE_OUTPUT=$(
             php bin/console app:instance:create \
-            --post-create-script="${{ steps.build-config.outputs.post_create_script }}" \
+            --first-boot-script="[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh" \
             --collection-tag="${{ github.event.inputs.service_id }}" \
             --image-id="${{ steps.image_id.outputs.image_id }}"
           )
