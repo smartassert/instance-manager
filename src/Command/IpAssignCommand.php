@@ -111,8 +111,8 @@ class IpAssignCommand extends Command
         try {
             $this->actionRunner->run(
                 new ActionHandler(
-                    function (ActionEntity $actionEntity): bool {
-                        return 'completed' === $actionEntity->status;
+                    function (mixed $actionResult): bool {
+                        return $actionResult instanceof ActionEntity && 'completed' === $actionResult->status;
                     },
                     function () use ($actionEntity) {
                         return $this->actionRepository->update($actionEntity);
