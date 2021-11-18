@@ -78,7 +78,7 @@ class IpAssignCommandTest extends KernelTestCase
     /**
      * @dataProvider runSuccessDataProvider
      *
-     * @param array<mixed> $httpResponseDataCollection
+     * @param array<int, array<mixed>> $httpResponseDataCollection
      */
     public function testRunSuccess(
         ?callable $setup,
