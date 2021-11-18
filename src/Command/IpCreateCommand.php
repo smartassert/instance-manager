@@ -97,8 +97,8 @@ class IpCreateCommand extends Command
 
         $this->actionRunner->run(
             new ActionHandler(
-                function (Instance $instance) use ($ip) {
-                    return $instance->hasIp($ip);
+                function (mixed $actionResult) use ($ip) {
+                    return $actionResult instanceof Instance && $actionResult->hasIp($ip);
                 },
                 function () use ($instance) {
                     return $this->instanceRepository->find($instance->getId());
