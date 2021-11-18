@@ -6,7 +6,7 @@ use App\Model\InstanceSorter\InstanceCreatedDateSorter;
 use App\Model\InstanceSorter\InstanceSorterInterface;
 
 /**
- * @implements \IteratorAggregate<Instance>
+ * @implements \IteratorAggregate<int|string, Instance>
  */
 class InstanceCollection implements \IteratorAggregate, \Countable, \JsonSerializable
 {
