@@ -134,8 +134,8 @@ class ActionRunnerTest extends KernelTestCase
         \assert($instance instanceof Instance);
 
         $decider = new ActionHandler(
-            function (Instance $instance) use ($expectedIp) {
-                return $instance->hasIp($expectedIp);
+            function (mixed $actionResult) use ($expectedIp) {
+                return $actionResult instanceof Instance && $actionResult->hasIp($expectedIp);
             },
             function () use ($instance, $instanceRepository) {
                 return $instanceRepository->find($instance->getId());
