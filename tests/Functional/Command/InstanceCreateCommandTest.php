@@ -113,7 +113,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     /**
      * @dataProvider runDataProvider
      *
-     * @param array<mixed> $input
+     * @param array<mixed>             $input
      * @param array<int, array<mixed>> $httpResponseDataCollection
      */
     public function testRunSuccess(

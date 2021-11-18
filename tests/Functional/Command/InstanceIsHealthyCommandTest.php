@@ -82,7 +82,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     /**
      * @dataProvider runInvalidInputDataProvider
      *
-     * @param array<mixed> $input
+     * @param array<mixed>             $input
      * @param array<int, array<mixed>> $httpResponseDataCollection
      */
     public function testRunInvalidInput(
@@ -153,7 +153,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     /**
      * @dataProvider runDataProvider
      *
-     * @param array<mixed> $input
+     * @param array<mixed>             $input
      * @param array<int, array<mixed>> $httpResponseDataCollection
      */
     public function testRunSuccess(
