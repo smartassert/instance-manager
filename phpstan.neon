@@ -8,3 +8,7 @@ parameters:
     -
       message: '#Parameter \#8 \$sshKeys of method DigitalOceanV2\\Api\\Droplet::create\(\) expects array<int>, array<int\|string> given#'
       path: src/Services/InstanceRepository.php
+
+    -
+      message: '#Parameter \#2 \$array of function implode expects array<string>, array<DigitalOceanV2\\Entity\\Tag> given#'
+      path: src/Model/Instance.php
