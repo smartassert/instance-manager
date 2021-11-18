@@ -29,7 +29,7 @@ abstract class AbstractInstanceActionCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $id = $input->getOption(self::OPTION_ID);
-        $this->id = ctype_digit($id) ? (int) $id : null;
+        $this->id = is_int($id) || is_string($id) && ctype_digit($id) ? (int) $id : null;
 
         return Command::SUCCESS;
     }

@@ -83,8 +83,8 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     /**
      * @dataProvider runInvalidInputDataProvider
      *
-     * @param array<mixed> $input
-     * @param array<mixed> $httpResponseDataCollection
+     * @param array<mixed>             $input
+     * @param array<int, array<mixed>> $httpResponseDataCollection
      */
     public function testRunInvalidInput(
         array $input,

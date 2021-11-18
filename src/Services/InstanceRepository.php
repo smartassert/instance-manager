@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Model\ExcludeNotFoundDropletAction;
 use App\Model\Instance;
 use App\Model\InstanceCollection;
 use DigitalOceanV2\Api\Droplet as DropletApi;
 use DigitalOceanV2\Entity\Droplet as DropletEntity;
 use DigitalOceanV2\Exception\ExceptionInterface;
+use DigitalOceanV2\Exception\RuntimeException;
 
 class InstanceRepository
 {
@@ -68,19 +68,29 @@ class InstanceRepository
      */
     public function find(int $id): ?Instance
     {
-        return (new ExcludeNotFoundDropletAction(function (int $id) {
+        try {
             return new Instance($this->dropletApi->getById($id));
-        }))($id);
+        } catch (ExceptionInterface $exception) {
+            if ($exception instanceof RuntimeException && 404 === $exception->getCode()) {
+                return null;
+            }
+
+            throw $exception;
+        }
     }
 
     /**
-     * @throws ExceptionInterface
+     * @throws RuntimeException
      */
     public function delete(int $id): void
     {
-        (new ExcludeNotFoundDropletAction(function (int $id) {
+        try {
             $this->dropletApi->remove($id);
-        }))($id);
+        } catch (ExceptionInterface $exception) {
+            if ($exception instanceof RuntimeException && 404 !== $exception->getCode()) {
+                throw $exception;
+            }
+        }
     }
 
     /**

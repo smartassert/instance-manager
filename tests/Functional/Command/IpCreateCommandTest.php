@@ -74,7 +74,7 @@ class IpCreateCommandTest extends KernelTestCase
     /**
      * @dataProvider runSuccessDataProvider
      *
-     * @param array<mixed> $httpResponseDataCollection
+     * @param array<int, array<mixed>> $httpResponseDataCollection
      */
     public function testRunSuccess(
         array $httpResponseDataCollection,
