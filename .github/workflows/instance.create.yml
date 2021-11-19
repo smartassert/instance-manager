@@ -51,19 +51,17 @@ jobs:
       - name: Experimental secret access
 #        env:
 #          SECRETS_CONTEXT: ${{ toJson(secrets) }}
-        run:
+        run: |
           FOO=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "{{ key }}={{ value }}\n" <<< '{"key1":"value1","key2":"value2"}')
           echo "$FOO"
 
-          IFS='
-          '
+          IFS=$'\n'
           count=0
           for item in $FOO
           do
             count=$((count+1))
             echo $count $item
           done
-
 
       - name: Read service configuration
         id: build-config
