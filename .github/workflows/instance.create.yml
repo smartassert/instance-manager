@@ -15,6 +15,21 @@ jobs:
       DIGITALOCEAN_API_TOKEN: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
 
     steps:
+      - name: Experimental secret access
+        run:
+          echo "TEST_001 literal access"
+          echo "${{ secrets.TEST_001 }}"
+
+          echo "TEST_002 literal access"
+          echo "${{ secrets.TEST_002 }}"
+
+          echo "TEST_OO1 indirect access 1"
+          echo "${{ secrets['TEST_001'] }}"
+
+          echo "TEST_OO1 indirect access 2"
+          name="TEST_001"
+          echo "${{ secrets[$name] }}"
+
       - name: Checkout
         uses: actions/checkout@v2
 
