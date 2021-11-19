@@ -35,11 +35,11 @@ jobs:
 
       - name: Experimental secret access
         env:
-          SECRET_LITERAL: ${{ secrets['TEST_001'] }}
+          #SECRET_LITERAL: ${{ secrets['TEST_001'] }}
           SECRET_INDIRECT: ${{ secrets[steps.secret-name.outputs.value] }}
         run:
-          echo "$SECRET_LITERAL"
-          echo "$SECRET_INDIRECT"
+          #echo "$SECRET_LITERAL"
+          echo "$SECRET_INDIRECT" > "secret_indirect.txt"
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
