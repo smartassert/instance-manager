@@ -28,11 +28,18 @@ jobs:
 #          echo "${{ secrets[$key] }}"
 #          #echo "${{ secrets['TEST_001'] }}" > "foo.txt"
 
+      - name: Step setting secret name
+        id: secret-name
+        run:
+          echo "::set-output name=value::TEST_001"
+
       - name: Experimental secret access
         env:
-          SECRETS: ${{ fromJson(secrets) }}
+          SECRET_LITERAL: ${{ secrets['TEST_001'] }}
+          SECRET_INDIRECT: ${ secrets[steps.secret-name.outputs.value] }
         run:
-          echo "$SECRETS"
+          echo "$SECRET_LITERAL"
+          echo "$SECRET_INDIRECT"
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
