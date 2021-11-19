@@ -36,7 +36,7 @@ jobs:
       - name: Experimental secret access
         env:
           SECRET_LITERAL: ${{ secrets['TEST_001'] }}
-          SECRET_INDIRECT: ${ secrets[steps.secret-name.outputs.value] }
+          SECRET_INDIRECT: ${{ secrets[steps.secret-name.outputs.value] }}
         run:
           echo "$SECRET_LITERAL"
           echo "$SECRET_INDIRECT"
