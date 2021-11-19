@@ -15,6 +15,9 @@ jobs:
       DIGITALOCEAN_API_TOKEN: ${{ secrets.DIGITALOCEAN_API_TOKEN }}
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
       - name: Experimental secret access
         run:
           echo "TEST_001 literal access"
@@ -23,11 +26,16 @@ jobs:
           echo "TEST_002 literal access"
           echo "${{ secrets.TEST_002 }}"
 
-          echo "TEST_OO1 indirect access 1"
+          echo "TEST_OO1 indirect access"
           echo "${{ secrets['TEST_001'] }}"
 
-      - name: Checkout
-        uses: actions/checkout@v2
+          echo "TEST_OO1 indirect access to file"
+          echo "${{ secrets['TEST_001'] }}" > "foo.txt"
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "secret commited to file?"
 
       - name: Checkout bash-ga-ci-tools
         uses: actions/checkout@v2
