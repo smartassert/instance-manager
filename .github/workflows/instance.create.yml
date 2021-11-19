@@ -20,16 +20,6 @@ jobs:
 
       - name: Experimental secret access
         run:
-          echo "TEST_001 literal access"
-          echo "${{ secrets.TEST_001 }}"
-
-          echo "TEST_002 literal access"
-          echo "${{ secrets.TEST_002 }}"
-
-          echo "TEST_OO1 indirect access"
-          echo "${{ secrets['TEST_001'] }}"
-
-          echo "TEST_OO1 indirect access to file"
           echo "${{ secrets['TEST_001'] }}" > "foo.txt"
 
       - name: Commit
