@@ -1,0 +1,31 @@
+name: service.set-image
+
+on:
+  repository_dispatch:
+    types: [service-set-env]
+  workflow_dispatch:
+    inputs:
+      service_id:
+        description: The service for which the configuration is being stored
+        required: true
+      env_vars:
+        description: JSON-string of key:value pairs to be set as environment variables on first boot
+        required: true
+
+jobs:
+  store-service-configuration:
+    name: Store ${{ github.event.inputs.service_id }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Output repository_dispatch inputs
+        if: ${{ github.event_name == 'repository_dispatch' }}
+        env:
+          INPUTS: ${{ toJson(github.event.client_payload) }}
+        run: echo "$INPUTS"
+
+      - name: Output workflow_dispatch inputs
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        env:
+          INPUTS: ${{ toJson(github.event.inputs) }}
+        run: echo "$INPUTS"
