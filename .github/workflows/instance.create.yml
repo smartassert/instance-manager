@@ -52,6 +52,9 @@ jobs:
 #        env:
 #          SECRETS_CONTEXT: ${{ toJson(secrets) }}
         run: |
+          SERVICE_ID="${{ github.event.inputs.service_id }}"
+          ALLOWED_SECRET_KEY_PREFIX="$(echo ${SERVICE_ID^^})_"
+
           FOO=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "{{ key }}={{ value }}\n" <<< '{"key1":"value1","key2":"value2"}')
           echo "$FOO"
 
@@ -60,10 +63,13 @@ jobs:
           for item in $FOO
           do
             echo "$item"
-            key=$(cut -d'=' -f1 <<< "$item")
-            value=$(cut -d'=' -f1 <<< "$item")
-            echo "key: $key"
-            echo "value: $value"
+
+            if [[ $item == "$ALLOWED_SECRET_KEY_PREFIX"* ]]; then
+              key=$(cut -d'=' -f1 <<< "$item")
+              value=$(cut -d'=' -f1 <<< "$item")
+              echo "key: $key"
+              echo "value: $value"
+            fi
           done
 
       - name: Read service configuration
