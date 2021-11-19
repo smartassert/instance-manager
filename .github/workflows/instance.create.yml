@@ -56,6 +56,11 @@ jobs:
 
           echo "$FOO"
 
+          while IFS= read -r line; do
+            echo "... $line ..."
+          done <<< "$FOO"
+
+
 #      - name: Commit
 #        uses: stefanzweifel/git-auto-commit-action@v4
 #        with:
