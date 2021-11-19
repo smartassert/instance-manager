@@ -26,10 +26,6 @@ jobs:
           echo "TEST_OO1 indirect access 1"
           echo "${{ secrets['TEST_001'] }}"
 
-          echo "TEST_OO1 indirect access 2"
-          name="TEST_001"
-          echo "${{ secrets[$name] }}"
-
       - name: Checkout
         uses: actions/checkout@v2
 
