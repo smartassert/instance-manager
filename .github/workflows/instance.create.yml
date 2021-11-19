@@ -140,7 +140,7 @@ jobs:
           echo "env var options:"
           echo "$ENV_VAR_OPTIONS"
 
-          SECRETS_PLACEHOLDERS=$(grep -Eo "\{\{ secrets\.[A-Za-z0-9_-]+ \}\}" <<< "$ENV_VAR_OPTIONS")
+          SECRETS_PLACEHOLDERS=$(grep -Eo "\{\{ secrets\.[A-Za-z0-9_-]+ \}\}" <<< "$ENV_VAR_OPTIONS" | cat)
           echo "secrets placeholders"
           echo "$SECRETS_PLACEHOLDERS"
 
