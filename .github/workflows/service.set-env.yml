@@ -1,4 +1,4 @@
-name: service.set-image
+name: service.set-env
 
 on:
   repository_dispatch:
@@ -29,3 +29,47 @@ jobs:
         env:
           INPUTS: ${{ toJson(github.event.inputs) }}
         run: echo "$INPUTS"
+
+      - name: Set service_id
+        id: service_id
+        env:
+          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
+          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
+        run: |
+          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+          if [ "" = "$VALUE" ]; then
+            echo "service_id not set"
+            exit 1
+          fi
+
+          echo "::set-output name=value::$VALUE"
+
+      - name: Set env_vars
+        id: env_vars
+        env:
+          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.env_vars }}
+          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.env_vars }}
+        run: |
+          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+          if [ "" = "$VALUE" ]; then
+            echo "env_vars not set"
+            exit 1
+          fi
+
+          echo "::set-output name=value::$VALUE"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Store
+        env:
+          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/env.json
+          ENV_VARS_JSON: ${{ steps.env_vars.outputs.value }}
+        run: |
+          mkdir -p "$(dirname "$CONFIGURATION_PATH")"
+          jq "." <<< "$ENV_VARS_JSON" > "$CONFIGURATION_PATH"
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Automatic env update for ${{ steps.service_id.outputs.value }}"
