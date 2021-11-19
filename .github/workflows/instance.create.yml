@@ -52,7 +52,7 @@ jobs:
         env:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
         run: |
-          jq -r '.USERS_TEST_001' <<< "$SECRETS_CONTEXT"
+          jq -r '.USERS_TEST_001' <<< "$SECRETS_CONTEXT" > "./secret.txt"
 
           SERVICE_ID="${{ github.event.inputs.service_id }}"
           ALLOWED_SECRET_KEY_PREFIX="$(echo ${SERVICE_ID^^})_"
@@ -73,6 +73,11 @@ jobs:
               echo "value: $value"
             fi
           done
+
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Write secret to file for ${{ steps.service_id.outputs.value }}"
 
       - name: Read service configuration
         id: build-config
