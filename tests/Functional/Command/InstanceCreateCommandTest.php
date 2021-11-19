@@ -4,7 +4,9 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
 use App\Services\CommandConfigurator;
+use App\Services\InstanceRepository;
 use App\Tests\Services\HttpResponseFactory;
+use App\Tests\Services\InstanceFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
 use Psr\Http\Message\ResponseInterface;
@@ -13,6 +15,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
+use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceCreateCommandTest extends KernelTestCase
 {
@@ -200,6 +203,61 @@ class InstanceCreateCommandTest extends KernelTestCase
                     'status' => 'success',
                     'id' => 789,
                 ]),
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider passesFirstBootScriptDataProvider
+     */
+    public function testPassesFirstBootScript(string $firstBootScript): void
+    {
+        $collectionTag = 'collection-tag';
+        $imageId = 'image-id';
+
+        $input = new ArrayInput([
+            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => $collectionTag,
+            '--' . CommandConfigurator::OPTION_IMAGE_ID => $imageId,
+            '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScript,
+        ]);
+
+        $instanceRepository = \Mockery::mock(InstanceRepository::class);
+        $instanceRepository
+            ->shouldReceive('findCurrent')
+            ->with($collectionTag, $imageId)
+            ->andReturnNull()
+        ;
+
+        $instance = InstanceFactory::create([
+            'id' => 123,
+        ]);
+
+        $instanceRepository
+            ->shouldReceive('create')
+            ->with($collectionTag, $imageId, $firstBootScript)
+            ->andReturn($instance)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            InstanceCreateCommand::class,
+            'instanceRepository',
+            $instanceRepository
+        );
+
+        $commandReturnCode = $this->command->run($input, new NullOutput());
+
+        self::assertSame(Command::SUCCESS, $commandReturnCode);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function passesFirstBootScriptDataProvider(): array
+    {
+        return [
+            'default' => [
+                'firstBootScript' => 'non-empty',
             ],
         ];
     }

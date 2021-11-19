@@ -71,6 +71,8 @@ class InstanceCreateCommand extends Command
         }
 
         $firstBootScript = $this->inputReader->getTrimmedStringOption(self::OPTION_FIRST_BOOT_SCRIPT, $input);
+//        var_dump($firstBootScript);
+//        exit();
 
         $instance = $this->instanceRepository->findCurrent($collectionTag, $imageId);
         if (null === $instance) {
