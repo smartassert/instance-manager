@@ -55,16 +55,15 @@ jobs:
           FOO=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "{{ key }}={{ value }}\n" <<< '{"key1":"value1","key2":"value2"}')
           echo "$FOO"
 
-          while IFS=$'\n' read -r line; do
-          echo "... $line ..."
-          done <<< "$FOO"
-
           IFS=$'\n'
           count=0
           for item in $FOO
           do
-            count=$((count+1))
-            echo $count $item
+            echo "$item"
+            key=$(cut -d'=' -f1 <<< "$item")
+            value=$(cut -d'=' -f1 <<< "$item")
+            echo "key: $key"
+            echo "value: $value"
           done
 
       - name: Read service configuration
