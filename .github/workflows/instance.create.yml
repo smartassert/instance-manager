@@ -55,25 +55,6 @@ jobs:
           FOO=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "{{ key }}={{ value }}\n" <<< '{"key1":"value1","key2":"value2"}')
           echo "$FOO"
 
-#          IFS='
-#          '
-#          count=0
-#          for item in $items
-#          do
-#            count=$((count+1))
-#            echo $count $item
-#          done
-
-          while IFS=$'\n' read -r line; do
-            echo "... $line ..."
-          done <<< "$FOO"
-
-
-#      - name: Commit
-#        uses: stefanzweifel/git-auto-commit-action@v4
-#        with:
-#          commit_message: "secret commited to file?"
-
       - name: Read service configuration
         id: build-config
         env:
