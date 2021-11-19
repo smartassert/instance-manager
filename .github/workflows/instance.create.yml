@@ -49,9 +49,11 @@ jobs:
           ref: main
 
       - name: Experimental secret access
-#        env:
-#          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+        env:
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
         run: |
+          jq -r '.USERS_TEST_001' <<< "$SECRETS_CONTEXT"
+
           SERVICE_ID="${{ github.event.inputs.service_id }}"
           ALLOWED_SECRET_KEY_PREFIX="$(echo ${SERVICE_ID^^})_"
 
