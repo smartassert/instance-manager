@@ -53,10 +53,18 @@ jobs:
 #          SECRETS_CONTEXT: ${{ toJson(secrets) }}
         run:
           FOO=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "{{ key }}={{ value }}\n" <<< '{"key1":"value1","key2":"value2"}')
-
           echo "$FOO"
 
-          while IFS= read -r line; do
+#          IFS='
+#          '
+#          count=0
+#          for item in $items
+#          do
+#            count=$((count+1))
+#            echo $count $item
+#          done
+
+          while IFS=$'\n' read -r line; do
             echo "... $line ..."
           done <<< "$FOO"
 
