@@ -1,1 +1,1 @@
-php bin/console app:instance:create      --first-boot-script='[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh'   --collection-tag='users'  --image-id='95045690'
+php bin/console app:instance:create   --env-var='normalKey1=normal value 1'  --env-var='normal_key2=normal value 2'     --first-boot-script='[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh'   --collection-tag='users'  --image-id='95045690'
