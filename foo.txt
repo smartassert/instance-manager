@@ -1,1 +1,0 @@
-TEST_OO1 indirect access to file echo TEST_001_SECRET_VALUE
