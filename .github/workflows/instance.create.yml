@@ -20,7 +20,11 @@ jobs:
 
       - name: Experimental secret access
         run:
-          echo "${{ secrets['TEST_001'] }}" > "foo.txt"
+          echo "${{ secrets['TEST_001'] }}"
+
+          key="TEST_001"
+          echo "${{ secrets[$key] }}"
+          #echo "${{ secrets['TEST_001'] }}" > "foo.txt"
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
