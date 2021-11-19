@@ -1,0 +1,1 @@
+php bin/console app:instance:create      --first-boot-script='[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh'   --collection-tag='users'  --image-id='95045690'
