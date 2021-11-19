@@ -74,13 +74,21 @@ jobs:
 
       - name: Create
         id: instance
+        env:
+          ENV_SOURCE_PATH: ./services/${{ github.event.inputs.service_id }}/env.json
         run: |
-          CREATE_OUTPUT=$(
-            php bin/console app:instance:create \
-            --first-boot-script="[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh" \
-            --collection-tag="${{ github.event.inputs.service_id }}" \
-            --image-id="${{ steps.image_id.outputs.image_id }}"
-          )
+          ENV_VAR_OPTIONS=""
+          if [ -f "$ENV_SOURCE_PATH" ]; then
+            ENV_VAR_OPTIONS=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "--env-var='{{ key }}={{ value }}' " < "$ENV_SOURCE_PATH")
+          fi
+
+          COMMAND="php bin/console app:instance:create \
+            $ENV_VAR_OPTIONS \
+            --first-boot-script='[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh' \
+            --collection-tag='${{ github.event.inputs.service_id }}' \
+            --image-id='${{ steps.image_id.outputs.image_id }}'"
+
+          CREATE_OUTPUT=$(eval "$COMMAND")
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
       - name: Health check
