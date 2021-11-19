@@ -137,35 +137,38 @@ jobs:
             ENV_VAR_OPTIONS=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "--env-var='{{ key }}={{ value }}' " < "$ENV_SOURCE_PATH")
           fi
 
-          SECRETS_PLACEHOLDERS=$(grep -Eo "\{\{ secrets\.[A-Za-z0-9_-]+ \}\}" <<< "$ENV_VAR_OPTIONS")
+          echo "env var options:"
+          echo "$ENV_VAR_OPTIONS"
 
-          IFS=$'\n'
-          for item in $SECRETS_PLACEHOLDERS; do
-            SECRET_KEY_NAME="${item/"{{ secrets."/""}"
-            SECRET_KEY_NAME="${SECRET_KEY_NAME/" }}"/""}"
+          #SECRETS_PLACEHOLDERS=$(grep -Eo "\{\{ secrets\.[A-Za-z0-9_-]+ \}\}" <<< "$ENV_VAR_OPTIONS")
 
-            echo "$item"
-            echo "$SECRET_KEY_NAME"
+          #IFS=$'\n'
+          #for item in $SECRETS_PLACEHOLDERS; do
+          #  SECRET_KEY_NAME="${item/"{{ secrets."/""}"
+          #  SECRET_KEY_NAME="${SECRET_KEY_NAME/" }}"/""}"
+          #
+          #  echo "$item"
+          #  echo "$SECRET_KEY_NAME"
+          #
+          #  SECRET_EXISTS=$(jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTENT")
+          #
+          #  if [ "false" = "$SECRET_EXISTS" ]; then
+          #    echo "Secret '$SECRET_KEY_NAME' has not been defined"
+          #    exit 1
+          #  fi
+          #
+          #  SECRET_VALUE=$(jq -r ".$SECRET_KEY_NAME" <<< "$SECRETS_CONTENT")
+          #
+          #  ENV_VAR_OPTIONS="${ENV_VAR_OPTIONS//"{{ secrets.$SECRET_KEY_NAME }}"/"$SECRET_VALUE"}"
+          #done
 
-            SECRET_EXISTS=$(jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTENT")
+          #COMMAND="php bin/console app:instance:create \
+          #  $ENV_VAR_OPTIONS \
+          #  --first-boot-script='[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh' \
+          #  --collection-tag='${{ github.event.inputs.service_id }}' \
+          #  --image-id='${{ steps.image_id.outputs.image_id }}'"
 
-            if [ "false" = "$SECRET_EXISTS" ]; then
-              echo "Secret '$SECRET_KEY_NAME' has not been defined"
-              exit 1
-            fi
-
-            SECRET_VALUE=$(jq -r ".$SECRET_KEY_NAME" <<< "$SECRETS_CONTENT")
-
-            ENV_VAR_OPTIONS="${ENV_VAR_OPTIONS//"{{ secrets.$SECRET_KEY_NAME }}"/"$SECRET_VALUE"}"
-          done
-
-          COMMAND="php bin/console app:instance:create \
-            $ENV_VAR_OPTIONS \
-            --first-boot-script='[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh' \
-            --collection-tag='${{ github.event.inputs.service_id }}' \
-            --image-id='${{ steps.image_id.outputs.image_id }}'"
-
-          echo "$COMMAND" > ./command.txt
+          #echo "$COMMAND" > ./command.txt
 
 #          CREATE_OUTPUT=$(eval "$COMMAND")
 #          echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
