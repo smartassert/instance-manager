@@ -271,23 +271,23 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'firstBootScriptOption' => '',
                 'envVarOptions' => [
                     'key1=value1',
-                    'key2=value2',
+                    'key2=one "two" three',
                     'key3=value3',
                 ],
-                'expectedFirstBootScript' => 'export key1=value1' . "\n" .
-                    'export key2=value2' . "\n" .
-                    'export key3=value3',
+                'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
+                    'export key2="one \"two\" three"' . "\n" .
+                    'export key3="value3"',
             ],
             'first boot script option and env var options' => [
                 'firstBootScriptOption' => './first-boot.sh',
                 'envVarOptions' => [
                     'key1=value1',
-                    'key2=value2',
+                    'key2=one "two" three',
                     'key3=value3',
                 ],
-                'expectedFirstBootScript' => 'export key1=value1' . "\n" .
-                    'export key2=value2' . "\n" .
-                    'export key3=value3' . "\n" .
+                'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
+                    'export key2="one \"two\" three"' . "\n" .
+                    'export key3="value3"' . "\n" .
                     './first-boot.sh',
             ],
         ];

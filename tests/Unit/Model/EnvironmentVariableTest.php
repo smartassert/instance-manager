@@ -15,12 +15,12 @@ class EnvironmentVariableTest extends TestCase
         );
 
         self::assertSame(
-            'key=',
+            'key=""',
             (string) new EnvironmentVariable('key', '')
         );
 
         self::assertSame(
-            'key=value',
+            'key="value"',
             (string) new EnvironmentVariable('key', 'value')
         );
     }
