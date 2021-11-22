@@ -8,6 +8,8 @@ parameters:
     instance_health_check_url: '%env(INSTANCE_HEALTH_CHECK_URL)%'
     ip_create_assignment_timeout_in_seconds: '%env(IP_CREATE_ASSIGNMENT_TIMEOUT_IN_SECONDS)%'
     ip_create_assignment_retry_in_seconds: '%env(IP_CREATE_ASSIGNMENT_RETRY_IN_SECONDS)%'
+    instance_service_script_caller: '[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh'
+
 
 services:
     # default configuration for services in *this* file
@@ -90,4 +92,4 @@ services:
 
     App\Services\BootScriptFactory:
         arguments:
-            $serviceScriptCaller: '[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh'
+            $serviceScriptCaller: '%instance_service_script_caller%'

@@ -2,7 +2,7 @@
 
 namespace App\Command;
 
-use App\Model\EnvironmentVariableList;
+use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\InstanceRepository;
@@ -11,7 +11,6 @@ use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
@@ -21,8 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class InstanceCreateCommand extends Command
 {
     public const NAME = 'app:instance:create';
-    public const OPTION_FIRST_BOOT_SCRIPT = 'first-boot-script';
-    public const OPTION_ENV_VAR = 'env-var';
 
     public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
     public const EXIT_CODE_EMPTY_TAG = 4;
@@ -32,6 +29,7 @@ class InstanceCreateCommand extends Command
         private OutputFactory $outputFactory,
         private CommandConfigurator $configurator,
         private CommandInputReader $inputReader,
+        private BootScriptFactory $bootScriptFactory,
     ) {
         parent::__construct();
     }
@@ -41,22 +39,6 @@ class InstanceCreateCommand extends Command
         $this->configurator
             ->addCollectionTagOption($this)
             ->addImageIdOption($this)
-        ;
-
-        $this
-            ->addOption(
-                self::OPTION_FIRST_BOOT_SCRIPT,
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Script to call once creation is complete'
-            )
-            ->addOption(
-                self::OPTION_ENV_VAR,
-                null,
-                InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
-                'foo description',
-                []
-            )
         ;
     }
 
@@ -81,34 +63,15 @@ class InstanceCreateCommand extends Command
 
         $instance = $this->instanceRepository->findCurrent($collectionTag, $imageId);
         if (null === $instance) {
-            $firstBootScript = $this->createFirstBootScript(
-                new EnvironmentVariableList($input->getOption(self::OPTION_ENV_VAR)),
-                $this->inputReader->getTrimmedStringOption(self::OPTION_FIRST_BOOT_SCRIPT, $input)
+            $instance = $this->instanceRepository->create(
+                $collectionTag,
+                $imageId,
+                $this->bootScriptFactory->create($collectionTag)
             );
-
-            $instance = $this->instanceRepository->create($collectionTag, $imageId, $firstBootScript);
         }
 
         $output->write($this->outputFactory->createSuccessOutput(['id' => $instance->getId()]));
 
         return Command::SUCCESS;
-    }
-
-    private function createFirstBootScript(
-        EnvironmentVariableList $environmentVariables,
-        string $serviceFirstBootScript
-    ): string {
-        $script = '';
-
-        foreach ($environmentVariables as $environmentVariable) {
-            $script .= 'export ' . $environmentVariable . "\n";
-        }
-        $script = trim($script);
-
-        if ('' !== $script && '' !== $serviceFirstBootScript) {
-            $script .= "\n";
-        }
-
-        return $script . $serviceFirstBootScript;
     }
 }
