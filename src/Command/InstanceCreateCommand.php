@@ -65,6 +65,14 @@ class InstanceCreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $firstBootScript = $this->createFirstBootScript(
+            new EnvironmentVariableList($input->getOption(self::OPTION_ENV_VAR)),
+            $this->inputReader->getTrimmedStringOption(self::OPTION_FIRST_BOOT_SCRIPT, $input)
+        );
+
+        var_dump($firstBootScript);
+        return 0;
+
         $collectionTag = $this->inputReader->getTrimmedStringOption(CommandConfigurator::OPTION_COLLECTION_TAG, $input);
         if ('' === $collectionTag) {
             $output->writeln('"' . CommandConfigurator::OPTION_COLLECTION_TAG . '" option empty');
