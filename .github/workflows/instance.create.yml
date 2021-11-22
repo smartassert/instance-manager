@@ -137,12 +137,12 @@ jobs:
             ENV_VAR_OPTIONS=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "--env-var='{{ key }}={{ value }}' " < "$ENV_SOURCE_PATH")
           fi
 
-          echo "env var options:"
-          echo "$ENV_VAR_OPTIONS"
+          #echo "env var options:"
+          #echo "$ENV_VAR_OPTIONS"
 
           SECRETS_PLACEHOLDERS=$(grep -Eo "\{\{ secrets\.[A-Za-z0-9_-]+ \}\}" <<< "$ENV_VAR_OPTIONS" | cat)
-          echo "secrets placeholders"
-          echo "$SECRETS_PLACEHOLDERS"
+          #echo "secrets placeholders"
+          #echo "$SECRETS_PLACEHOLDERS"
 
           IFS=$'\n'
           for item in $SECRETS_PLACEHOLDERS; do
