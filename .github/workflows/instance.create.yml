@@ -79,7 +79,7 @@ jobs:
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
         run: |
           SERVICE_ID="${{ github.event.inputs.service_id }}"
-          ALLOWED_SECRET_KEY_PREFIX="$(echo ${SERVICE_ID^^})_"
+          ALLOWED_SECRET_KEY_PREFIX="${SERVICE_ID^^}_"
 
           ENV_VAR_OPTIONS=""
           if [ -f "$ENV_SOURCE_PATH" ]; then
