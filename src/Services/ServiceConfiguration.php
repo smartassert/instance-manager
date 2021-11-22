@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableList;
 
 class ServiceConfiguration
@@ -31,7 +30,7 @@ class ServiceConfiguration
         $environmentVariables = [];
         foreach ($data as $key => $value) {
             if (is_string($key) && is_string($value)) {
-                $environmentVariables[] = new EnvironmentVariable($key, $value);
+                $environmentVariables[] = $key . '=' . $value;
             }
         }
 
