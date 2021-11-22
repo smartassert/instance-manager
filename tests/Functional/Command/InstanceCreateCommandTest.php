@@ -209,16 +209,22 @@ class InstanceCreateCommandTest extends KernelTestCase
 
     /**
      * @dataProvider passesFirstBootScriptDataProvider
+     *
+     * @param string[] $envVarOptions
      */
-    public function testPassesFirstBootScript(string $firstBootScript): void
-    {
+    public function testPassesFirstBootScript(
+        string $firstBootScriptOption,
+        array $envVarOptions,
+        string $expectedFirstBootScript,
+    ): void {
         $collectionTag = 'collection-tag';
         $imageId = 'image-id';
 
         $input = new ArrayInput([
             '--' . CommandConfigurator::OPTION_COLLECTION_TAG => $collectionTag,
             '--' . CommandConfigurator::OPTION_IMAGE_ID => $imageId,
-            '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScript,
+            '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScriptOption,
+            '--' . InstanceCreateCommand::OPTION_ENV_VAR => $envVarOptions,
         ]);
 
         $instanceRepository = \Mockery::mock(InstanceRepository::class);
@@ -234,7 +240,7 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $instanceRepository
             ->shouldReceive('create')
-            ->with($collectionTag, $imageId, $firstBootScript)
+            ->with($collectionTag, $imageId, $expectedFirstBootScript)
             ->andReturn($instance)
         ;
 
@@ -256,8 +262,33 @@ class InstanceCreateCommandTest extends KernelTestCase
     public function passesFirstBootScriptDataProvider(): array
     {
         return [
-            'default' => [
-                'firstBootScript' => 'non-empty',
+            'first boot script option only' => [
+                'firstBootScriptOption' => './first-boot.sh',
+                'envVarOptions' => [],
+                'expectedFirstBootScript' => './first-boot.sh',
+            ],
+            'env var options only' => [
+                'firstBootScriptOption' => '',
+                'envVarOptions' => [
+                    'key1=value1',
+                    'key2=one "two" three',
+                    'key3=value3',
+                ],
+                'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
+                    'export key2="one \"two\" three"' . "\n" .
+                    'export key3="value3"',
+            ],
+            'first boot script option and env var options' => [
+                'firstBootScriptOption' => './first-boot.sh',
+                'envVarOptions' => [
+                    'key1=value1',
+                    'key2=one "two" three',
+                    'key3=value3',
+                ],
+                'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
+                    'export key2="one \"two\" three"' . "\n" .
+                    'export key3="value3"' . "\n" .
+                    './first-boot.sh',
             ],
         ];
     }
