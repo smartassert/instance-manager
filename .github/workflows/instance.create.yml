@@ -149,10 +149,15 @@ jobs:
             SECRET_KEY_NAME="${item/"{{ secrets."/""}"
             SECRET_KEY_NAME="${SECRET_KEY_NAME/" }}"/""}"
 
+            echo "item:"
             echo "$item"
+            echo "secret key name:"
             echo "$SECRET_KEY_NAME"
 
+            echo "pre secret exists check ..."
             SECRET_EXISTS=$(jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTENT")
+            echo "post secret exists check ..."
+
             echo "secret exists?"
             echo "$SECRET_EXISTS"
 
