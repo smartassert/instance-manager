@@ -18,66 +18,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-#      - name: Experimental secret access
-#        run:
-#          echo "${{ secrets['TEST_001'] }}"
-#
-#          key="TEST_001"
-#
-#
-#          echo "${{ secrets[$key] }}"
-#          #echo "${{ secrets['TEST_001'] }}" > "foo.txt"
-
-#      - name: Step setting secret name
-#        id: secret-name
-#        run:
-#          echo "::set-output name=value::TEST_001"
-#
-#      - name: Experimental secret access
-#        env:
-#          #SECRET_LITERAL: ${{ secrets['TEST_001'] }}
-#          SECRET_INDIRECT: ${{ secrets[steps.secret-name.outputs.value] }}
-#        run:
-#          #echo "$SECRET_LITERAL"
-#          echo "$SECRET_INDIRECT" > "secret_indirect.txt"
-
       - name: Checkout bash-ga-ci-tools
         uses: actions/checkout@v2
         with:
           repository: smartassert/bash-ga-ci-tools
           path: ./vendor/smartassert/bash-ga-ci-tools
           ref: main
-
-#      - name: Experimental secret access
-#        env:
-#          SECRETS_CONTEXT: ${{ toJson(secrets) }}
-#        run: |
-#          jq -r '.USERS_TEST_001' <<< "$SECRETS_CONTEXT" > "./secret.txt"
-#
-#          SERVICE_ID="${{ github.event.inputs.service_id }}"
-#          ALLOWED_SECRET_KEY_PREFIX="$(echo ${SERVICE_ID^^})_"
-#
-#          FOO=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "{{ key }}={{ value }}\n" <<< '{"key1":"value1","key2":"value2"}')
-#          echo "$FOO"
-#
-#          IFS=$'\n'
-#          count=0
-#          for item in $FOO
-#          do
-#            echo "$item"
-#
-#            if [[ $item == "$ALLOWED_SECRET_KEY_PREFIX"* ]]; then
-#              key=$(cut -d'=' -f1 <<< "$item")
-#              value=$(cut -d'=' -f1 <<< "$item")
-#              echo "key: $key"
-#              echo "value: $value"
-#            fi
-#          done
-#
-#      - name: Commit
-#        uses: stefanzweifel/git-auto-commit-action@v4
-#        with:
-#          commit_message: "Write secret to file for ${{ steps.service_id.outputs.value }}"
 
       - name: Read service configuration
         id: build-config
@@ -137,27 +83,14 @@ jobs:
             ENV_VAR_OPTIONS=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "--env-var='{{ key }}={{ value }}' " < "$ENV_SOURCE_PATH")
           fi
 
-          #echo "env var options:"
-          #echo "$ENV_VAR_OPTIONS"
-
           SECRETS_PLACEHOLDERS=$(grep -Eo "\{\{ secrets\.[A-Za-z0-9_-]+ \}\}" <<< "$ENV_VAR_OPTIONS" | cat)
-          #echo "secrets placeholders"
-          #echo "$SECRETS_PLACEHOLDERS"
 
           IFS=$'\n'
           for item in $SECRETS_PLACEHOLDERS; do
             SECRET_KEY_NAME="${item/"{{ secrets."/""}"
             SECRET_KEY_NAME="${SECRET_KEY_NAME/" }}"/""}"
 
-            echo "item:"
-            echo "$item"
-            echo "secret key name:"
-            echo "$SECRET_KEY_NAME"
-
             SECRET_EXISTS=$(jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTEXT")
-            echo "secret exists?"
-            echo "$SECRET_EXISTS"
-
             if [ "false" = "$SECRET_EXISTS" ]; then
               echo "Secret '$SECRET_KEY_NAME' has not been defined"
               exit 1
@@ -174,16 +107,8 @@ jobs:
             --collection-tag='${{ github.event.inputs.service_id }}' \
            --image-id='${{ steps.image_id.outputs.image_id }}'"
 
-          echo "$COMMAND" > ./command.txt
-
           CREATE_OUTPUT=$(eval "$COMMAND")
-          echo "$CREATE_OUTPUT"
-#          echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
-
-      - name: Commit
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: "Temp command check for ${{ steps.service_id.outputs.value }}"
+          echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
 #      - name: Health check
 #        if: ${{ steps.build-config.outputs.health_check_url != '' }}
