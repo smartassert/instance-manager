@@ -49,19 +49,19 @@ jobs:
 
           ./vendor/smartassert/bash-ga-ci-tools/src/create-ga-outputs-from-json-scalar-object.sh < "$CONFIGURATION_PATH"
 
-#      - name: Checkout bash-ga-deploy-tools
-#        uses: actions/checkout@v2
-#        with:
-#          repository: smartassert/bash-ga-deploy-tools
-#          path: ./vendor/smartassert/bash-ga-deploy-tools
-#          ref: main
-#
-#      - name: Check snapshot exists
-#        env:
-#          IMAGE_ID: ${{ steps.image_id.outputs.image_id }}
-#          EXPECTED_EXISTS: "true"
-#        run: ./vendor/smartassert/bash-ga-deploy-tools/src/digitalocean-snapshot/verify-existence.sh
-#
+      - name: Checkout bash-ga-deploy-tools
+        uses: actions/checkout@v2
+        with:
+          repository: smartassert/bash-ga-deploy-tools
+          path: ./vendor/smartassert/bash-ga-deploy-tools
+          ref: main
+
+      - name: Check snapshot exists
+        env:
+          IMAGE_ID: ${{ steps.image_id.outputs.image_id }}
+          EXPECTED_EXISTS: "true"
+        run: ./vendor/smartassert/bash-ga-deploy-tools/src/digitalocean-snapshot/verify-existence.sh
+
       - name: Setup php
         uses: shivammathur/setup-php@v2
         with:
@@ -115,23 +115,20 @@ jobs:
             --collection-tag='${{ github.event.inputs.service_id }}' \
            --image-id='${{ steps.image_id.outputs.image_id }}'"
 
-          echo "$COMMAND"
-
           CREATE_OUTPUT=$(eval "$COMMAND")
-          echo "$CREATE_OUTPUT"
-          #echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
+          echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq -r ".id")"
 
-#      - name: Health check
-#        if: ${{ steps.build-config.outputs.health_check_url != '' }}
-#        env:
-#          INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.health_check_url }}
-#        run: php bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }}
-#
-#      - name: Readiness check
-#        env:
-#          INSTANCE_STATE_URL: ${{ steps.build-config.outputs.state_url }}
-#        run: php bin/console app:instance:is-ready --id=${{ steps.instance.outputs.id }}
-#
-#      - name: Remove instance on failure
-#        if: ${{ failure() }}
-#        run: php bin/console app:instance:destroy --id="${{ steps.instance.outputs.id }}"
+      - name: Health check
+        if: ${{ steps.build-config.outputs.health_check_url != '' }}
+        env:
+          INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.health_check_url }}
+        run: php bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }}
+
+      - name: Readiness check
+        env:
+          INSTANCE_STATE_URL: ${{ steps.build-config.outputs.state_url }}
+        run: php bin/console app:instance:is-ready --id=${{ steps.instance.outputs.id }}
+
+      - name: Remove instance on failure
+        if: ${{ failure() }}
+        run: php bin/console app:instance:destroy --id="${{ steps.instance.outputs.id }}"
