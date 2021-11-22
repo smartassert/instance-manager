@@ -81,11 +81,6 @@ jobs:
           SERVICE_ID="${{ github.event.inputs.service_id }}"
           ALLOWED_SECRET_KEY_PREFIX="$(echo ${SERVICE_ID^^})_"
 
-          echo "service id:"
-          echo "$SERVICE_ID"
-          echo "allowed prefix:"
-          echo "$ALLOWED_SECRET_KEY_PREFIX"
-
           ENV_VAR_OPTIONS=""
           if [ -f "$ENV_SOURCE_PATH" ]; then
             ENV_VAR_OPTIONS=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "--env-var='{{ key }}={{ value }}' " < "$ENV_SOURCE_PATH")
@@ -104,7 +99,7 @@ jobs:
               exit 1
             fi
 
-            if [[ $item != "$ALLOWED_SECRET_KEY_PREFIX"* ]]; then
+            if [[ "$SECRET_KEY_NAME" != "$ALLOWED_SECRET_KEY_PREFIX"* ]]; then
               echo "Secret '$SECRET_KEY_NAME' cannot be accessed by service '$SERVICE_ID'"
               exit 2
             fi
