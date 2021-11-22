@@ -15,8 +15,3 @@ services:
 
     App\Tests\Services\HttpResponseFactory:
         public: true
-
-    App\Services\ServiceConfiguration:
-        public: true
-        arguments:
-            $configurationDirectory: '%kernel.project_dir%/services'

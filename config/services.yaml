@@ -87,3 +87,7 @@ services:
     App\Services\ServiceConfiguration:
         arguments:
             $configurationDirectory: '%kernel.project_dir%/services'
+
+    App\Services\BootScriptFactory:
+        arguments:
+            $serviceScriptCaller: '[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh'
