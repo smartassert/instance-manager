@@ -154,12 +154,7 @@ jobs:
             echo "secret key name:"
             echo "$SECRET_KEY_NAME"
 
-            echo "pre secret exists check ..."
-            jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTEXT"
-            echo "$?"
             SECRET_EXISTS=$(jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTEXT")
-            echo "post secret exists check ..."
-
             echo "secret exists?"
             echo "$SECRET_EXISTS"
 
