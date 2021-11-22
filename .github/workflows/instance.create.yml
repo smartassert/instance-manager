@@ -155,9 +155,9 @@ jobs:
             echo "$SECRET_KEY_NAME"
 
             echo "pre secret exists check ..."
-            jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTENT"
+            jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTEXT"
             echo "$?"
-            SECRET_EXISTS=$(jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTENT")
+            SECRET_EXISTS=$(jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTEXT")
             echo "post secret exists check ..."
 
             echo "secret exists?"
@@ -168,7 +168,7 @@ jobs:
               exit 1
             fi
 
-            SECRET_VALUE=$(jq -r ".$SECRET_KEY_NAME" <<< "$SECRETS_CONTENT")
+            SECRET_VALUE=$(jq -r ".$SECRET_KEY_NAME" <<< "$SECRETS_CONTEXT")
 
             ENV_VAR_OPTIONS="${ENV_VAR_OPTIONS//"{{ secrets.$SECRET_KEY_NAME }}"/"$SECRET_VALUE"}"
           done
