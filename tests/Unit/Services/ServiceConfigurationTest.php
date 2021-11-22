@@ -2,7 +2,6 @@
 
 namespace App\Tests\Unit\Services;
 
-use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableList;
 use App\Services\ServiceConfiguration;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -127,15 +126,15 @@ class ServiceConfigurationTest extends TestCase
                 'serviceId' => 'service2',
                 'envVarFileContent' => '{"key1":"value1"}',
                 'expectedEnvironmentVariables' => new EnvironmentVariableList([
-                    new EnvironmentVariable('key1', 'value1'),
+                    'key1=value1',
                 ]),
             ],
             'multiple' => [
                 'serviceId' => 'service3',
                 'envVarFileContent' => '{"key1":"value1", "key2":"value2"}',
                 'expectedEnvironmentVariables' => new EnvironmentVariableList([
-                    new EnvironmentVariable('key1', 'value1'),
-                    new EnvironmentVariable('key2', 'value2'),
+                    'key1=value1',
+                    'key2=value2',
                 ]),
             ],
         ];
