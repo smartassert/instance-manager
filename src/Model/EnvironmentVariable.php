@@ -16,7 +16,7 @@ class EnvironmentVariable
             return '';
         }
 
-        return $this->key . '=' . $this->value;
+        return $this->key . '="' . str_replace('"', '\\"', $this->value) . '"';
     }
 
     public function getKey(): string
