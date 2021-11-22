@@ -3,8 +3,10 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
+use App\Model\EnvironmentVariableList;
 use App\Services\CommandConfigurator;
 use App\Services\InstanceRepository;
+use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -209,12 +211,10 @@ class InstanceCreateCommandTest extends KernelTestCase
 
     /**
      * @dataProvider passesFirstBootScriptDataProvider
-     *
-     * @param string[] $envVarOptions
      */
     public function testPassesFirstBootScript(
         string $firstBootScriptOption,
-        array $envVarOptions,
+        EnvironmentVariableList $environmentVariableList,
         string $expectedFirstBootScript,
     ): void {
         $collectionTag = 'collection-tag';
@@ -224,7 +224,6 @@ class InstanceCreateCommandTest extends KernelTestCase
             '--' . CommandConfigurator::OPTION_COLLECTION_TAG => $collectionTag,
             '--' . CommandConfigurator::OPTION_IMAGE_ID => $imageId,
             '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScriptOption,
-            '--' . InstanceCreateCommand::OPTION_ENV_VAR => $envVarOptions,
         ]);
 
         $instanceRepository = \Mockery::mock(InstanceRepository::class);
@@ -251,6 +250,20 @@ class InstanceCreateCommandTest extends KernelTestCase
             $instanceRepository
         );
 
+        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+        $serviceConfiguration
+            ->shouldReceive('getEnvironmentVariables')
+            ->with($collectionTag)
+            ->andReturn($environmentVariableList)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            InstanceCreateCommand::class,
+            'serviceConfiguration',
+            $serviceConfiguration
+        );
+
         $commandReturnCode = $this->command->run($input, new NullOutput());
 
         self::assertSame(Command::SUCCESS, $commandReturnCode);
@@ -264,27 +277,27 @@ class InstanceCreateCommandTest extends KernelTestCase
         return [
             'first boot script option only' => [
                 'firstBootScriptOption' => './first-boot.sh',
-                'envVarOptions' => [],
+                'environmentVariableList' => new EnvironmentVariableList([]),
                 'expectedFirstBootScript' => './first-boot.sh',
             ],
             'env var options only' => [
                 'firstBootScriptOption' => '',
-                'envVarOptions' => [
+                'environmentVariableList' => new EnvironmentVariableList([
                     'key1=value1',
                     'key2=one "two" three',
                     'key3=value3',
-                ],
+                ]),
                 'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
                     'export key2="one \"two\" three"' . "\n" .
                     'export key3="value3"',
             ],
             'first boot script option and env var options' => [
                 'firstBootScriptOption' => './first-boot.sh',
-                'envVarOptions' => [
+                'environmentVariableList' => new EnvironmentVariableList([
                     'key1=value1',
                     'key2=one "two" three',
                     'key3=value3',
-                ],
+                ]),
                 'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
                     'export key2="one \"two\" three"' . "\n" .
                     'export key3="value3"' . "\n" .
