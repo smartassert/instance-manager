@@ -81,6 +81,11 @@ jobs:
           SERVICE_ID="${{ github.event.inputs.service_id }}"
           ALLOWED_SECRET_KEY_PREFIX="$(echo ${SERVICE_ID^^})_"
 
+          echo "service id:"
+          echo "$SERVICE_ID"
+          echo "allowed prefix:"
+          echo "$ALLOWED_SECRET_KEY_PREFIX"
+
           ENV_VAR_OPTIONS=""
           if [ -f "$ENV_SOURCE_PATH" ]; then
             ENV_VAR_OPTIONS=$(./vendor/smartassert/bash-ga-ci-tools/src/output-json-scalar-object.sh "--env-var='{{ key }}={{ value }}' " < "$ENV_SOURCE_PATH")
