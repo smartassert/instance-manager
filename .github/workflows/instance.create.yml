@@ -176,7 +176,8 @@ jobs:
 
           echo "$COMMAND" > ./command.txt
 
-#          CREATE_OUTPUT=$(eval "$COMMAND")
+          CREATE_OUTPUT=$(eval "$COMMAND")
+          echo "$CREATE_OUTPUT"
 #          echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq ".id")"
 
       - name: Commit
