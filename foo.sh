@@ -23,6 +23,7 @@ for item in $SECRETS_PLACEHOLDERS; do
   echo "$SECRET_KEY_NAME"
 
   SECRET_EXISTS=$(jq "has(\"$SECRET_KEY_NAME\")" <<< "$SECRETS_CONTENT")
+  echo "$SECRET_EXISTS"
 
   if [ "false" = "$SECRET_EXISTS" ]; then
     echo "Secret '$SECRET_KEY_NAME' has not been defined"
