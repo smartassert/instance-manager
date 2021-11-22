@@ -3,8 +3,11 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
+use App\Model\EnvironmentVariableList;
+use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
 use App\Services\InstanceRepository;
+use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -209,12 +212,9 @@ class InstanceCreateCommandTest extends KernelTestCase
 
     /**
      * @dataProvider passesFirstBootScriptDataProvider
-     *
-     * @param string[] $envVarOptions
      */
     public function testPassesFirstBootScript(
-        string $firstBootScriptOption,
-        array $envVarOptions,
+        EnvironmentVariableList $serviceEnvironmentVariables,
         string $expectedFirstBootScript,
     ): void {
         $collectionTag = 'collection-tag';
@@ -223,9 +223,32 @@ class InstanceCreateCommandTest extends KernelTestCase
         $input = new ArrayInput([
             '--' . CommandConfigurator::OPTION_COLLECTION_TAG => $collectionTag,
             '--' . CommandConfigurator::OPTION_IMAGE_ID => $imageId,
-            '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScriptOption,
-            '--' . InstanceCreateCommand::OPTION_ENV_VAR => $envVarOptions,
         ]);
+
+        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+        $serviceConfiguration
+            ->shouldReceive('getEnvironmentVariables')
+            //->with('foo')
+            ->andReturn($serviceEnvironmentVariables)
+        ;
+
+        $bootScriptFactory = self::getContainer()->get(BootScriptFactory::class);
+        \assert($bootScriptFactory instanceof BootScriptFactory);
+        ObjectReflector::setProperty(
+            $bootScriptFactory,
+            $bootScriptFactory::class,
+            'serviceConfiguration',
+            $serviceConfiguration
+        );
+
+        $instanceServiceScriptCaller = self::getContainer()->getParameter('instance_service_script_caller');
+        \assert(is_string($instanceServiceScriptCaller));
+
+        $expectedFirstBootScript = str_replace(
+            '{{ instance_service_script_caller }}',
+            $instanceServiceScriptCaller,
+            $expectedFirstBootScript
+        );
 
         $instanceRepository = \Mockery::mock(InstanceRepository::class);
         $instanceRepository
@@ -263,32 +286,19 @@ class InstanceCreateCommandTest extends KernelTestCase
     {
         return [
             'first boot script option only' => [
-                'firstBootScriptOption' => './first-boot.sh',
-                'envVarOptions' => [],
-                'expectedFirstBootScript' => './first-boot.sh',
+                'serviceEnvironmentVariables' => new EnvironmentVariableList([]),
+                'expectedFirstBootScript' => '{{ instance_service_script_caller }}',
             ],
-            'env var options only' => [
-                'firstBootScriptOption' => '',
-                'envVarOptions' => [
+            'with service environment variables' => [
+                'serviceEnvironmentVariables' => new EnvironmentVariableList([
                     'key1=value1',
                     'key2=one "two" three',
                     'key3=value3',
-                ],
-                'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
-                    'export key2="one \"two\" three"' . "\n" .
-                    'export key3="value3"',
-            ],
-            'first boot script option and env var options' => [
-                'firstBootScriptOption' => './first-boot.sh',
-                'envVarOptions' => [
-                    'key1=value1',
-                    'key2=one "two" three',
-                    'key3=value3',
-                ],
+                ]),
                 'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
                     'export key2="one \"two\" three"' . "\n" .
                     'export key3="value3"' . "\n" .
-                    './first-boot.sh',
+                    '{{ instance_service_script_caller }}',
             ],
         ];
     }
