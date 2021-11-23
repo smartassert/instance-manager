@@ -3,6 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
+use App\Exception\MissingSecretException;
 use App\Model\EnvironmentVariableList;
 use App\Services\CommandConfigurator;
 use App\Services\InstanceRepository;
@@ -214,16 +215,18 @@ class InstanceCreateCommandTest extends KernelTestCase
      */
     public function testPassesFirstBootScript(
         string $firstBootScriptOption,
+        string $secretsJsonOption,
         EnvironmentVariableList $environmentVariableList,
         string $expectedFirstBootScript,
     ): void {
-        $collectionTag = 'collection-tag';
+        $collectionTag = 'service_name';
         $imageId = 'image-id';
 
         $input = new ArrayInput([
             '--' . CommandConfigurator::OPTION_COLLECTION_TAG => $collectionTag,
             '--' . CommandConfigurator::OPTION_IMAGE_ID => $imageId,
             '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScriptOption,
+            '--' . InstanceCreateCommand::OPTION_SECRETS_JSON => $secretsJsonOption,
         ]);
 
         $instanceRepository = \Mockery::mock(InstanceRepository::class);
@@ -277,11 +280,13 @@ class InstanceCreateCommandTest extends KernelTestCase
         return [
             'first boot script option only' => [
                 'firstBootScriptOption' => './first-boot.sh',
+                'secretsJsonOption' => '',
                 'environmentVariableList' => new EnvironmentVariableList([]),
                 'expectedFirstBootScript' => './first-boot.sh',
             ],
-            'env var options only' => [
+            'env var options only, no secrets' => [
                 'firstBootScriptOption' => '',
+                'secretsJsonOption' => '',
                 'environmentVariableList' => new EnvironmentVariableList([
                     'key1=value1',
                     'key2=one "two" three',
@@ -291,8 +296,21 @@ class InstanceCreateCommandTest extends KernelTestCase
                     'export key2="one \"two\" three"' . "\n" .
                     'export key3="value3"',
             ],
-            'first boot script option and env var options' => [
+            'env var options only, has secrets' => [
+                'firstBootScriptOption' => '',
+                'secretsJsonOption' => '{"SERVICE_NAME_SECRET_001":"secret 001 value"}',
+                'environmentVariableList' => new EnvironmentVariableList([
+                    'key1={{ secrets.SERVICE_NAME_SECRET_001 }}',
+                    'key2=one "two" three',
+                    'key3=value3',
+                ]),
+                'expectedFirstBootScript' => 'export key1="secret 001 value"' . "\n" .
+                    'export key2="one \"two\" three"' . "\n" .
+                    'export key3="value3"',
+            ],
+            'first boot script option and env var options, no secrets' => [
                 'firstBootScriptOption' => './first-boot.sh',
+                'secretsJsonOption' => '',
                 'environmentVariableList' => new EnvironmentVariableList([
                     'key1=value1',
                     'key2=one "two" three',
@@ -302,6 +320,82 @@ class InstanceCreateCommandTest extends KernelTestCase
                     'export key2="one \"two\" three"' . "\n" .
                     'export key3="value3"' . "\n" .
                     './first-boot.sh',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider throwsMissingSecretExceptionDataProvider
+     */
+    public function testThrowsMissingSecretException(
+        string $collectionTag,
+        string $secretsJsonOption,
+        EnvironmentVariableList $environmentVariableList,
+        string $expectedExceptionMessage
+    ): void {
+        $imageId = 'image-id';
+
+        $input = new ArrayInput([
+            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => $collectionTag,
+            '--' . CommandConfigurator::OPTION_IMAGE_ID => $imageId,
+            '--' . InstanceCreateCommand::OPTION_SECRETS_JSON => $secretsJsonOption,
+        ]);
+
+        $instanceRepository = \Mockery::mock(InstanceRepository::class);
+        $instanceRepository
+            ->shouldReceive('findCurrent')
+            ->with($collectionTag, $imageId)
+            ->andReturnNull()
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            InstanceCreateCommand::class,
+            'instanceRepository',
+            $instanceRepository
+        );
+
+        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+        $serviceConfiguration
+            ->shouldReceive('getEnvironmentVariables')
+            ->with($collectionTag)
+            ->andReturn($environmentVariableList)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            InstanceCreateCommand::class,
+            'serviceConfiguration',
+            $serviceConfiguration
+        );
+
+        self::expectException(MissingSecretException::class);
+        self::expectExceptionMessage($expectedExceptionMessage);
+
+        $this->command->run($input, new NullOutput());
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function throwsMissingSecretExceptionDataProvider(): array
+    {
+        return [
+            'no secrets, env var references missing secret' => [
+                'collectionTagOption' => 'service_name',
+                'secretsJsonOption' => '',
+                'environmentVariableList' => new EnvironmentVariableList([
+                    'key1={{ secrets.SERVICE_NAME_SECRET_001 }}',
+                ]),
+                'expectedExceptionMessage' => 'Secret "SERVICE_NAME_SECRET_001" not found',
+            ],
+            'has secrets, env var references missing secret not having service id as prefix' => [
+                'collectionTagOption' => 'service_name',
+                'secretsJsonOption' => '',
+                'environmentVariableList' => new EnvironmentVariableList([
+                    'key1={{ secrets.DIFFERENT_SERVICE_NAME_SECRET_001 }}',
+                ]),
+                'expectedExceptionMessage' => 'Secret "DIFFERENT_SERVICE_NAME_SECRET_001" not found',
             ],
         ];
     }
