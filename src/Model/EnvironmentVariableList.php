@@ -3,14 +3,16 @@
 namespace App\Model;
 
 /**
- * @implements \IteratorAggregate<int, EnvironmentVariable>
+ * @iterable<int, EnvironmentVariable>
  */
-class EnvironmentVariableList implements \IteratorAggregate
+class EnvironmentVariableList implements SecretPlaceholderContainerCollectionInterface
 {
     /**
      * @var EnvironmentVariable[]
      */
     private array $environmentVariables;
+
+    private int $iteratorPosition = 0;
 
     public function __construct(mixed $keyPairValues)
     {
@@ -19,12 +21,49 @@ class EnvironmentVariableList implements \IteratorAggregate
         }
     }
 
-    /**
-     * @return \Iterator<int, EnvironmentVariable>
-     */
-    public function getIterator(): \Iterator
+    public function set(
+        SecretPlaceholderContainerInterface $placeholderContainer
+    ): SecretPlaceholderContainerCollectionInterface {
+        if ($placeholderContainer instanceof EnvironmentVariable) {
+            $new = clone $this;
+            foreach ($new->environmentVariables as $index => $environmentVariable) {
+                if ($environmentVariable->getKey() === $placeholderContainer->getKey()) {
+                    $new->environmentVariables[$index] = new EnvironmentVariable(
+                        $placeholderContainer->getKey(),
+                        $placeholderContainer->getValue()
+                    );
+                }
+            }
+
+            return $new;
+        }
+
+        return $this;
+    }
+
+    public function current(): SecretPlaceholderContainerInterface
     {
-        return new \ArrayIterator($this->environmentVariables);
+        return $this->environmentVariables[$this->iteratorPosition];
+    }
+
+    public function next(): void
+    {
+        ++$this->iteratorPosition;
+    }
+
+    public function key(): int
+    {
+        return $this->iteratorPosition;
+    }
+
+    public function valid(): bool
+    {
+        return isset($this->environmentVariables[$this->iteratorPosition]);
+    }
+
+    public function rewind(): void
+    {
+        $this->iteratorPosition = 0;
     }
 
     /**
