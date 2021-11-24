@@ -4,7 +4,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\AbstractInstanceListCommand;
 use App\Command\InstanceListCommand;
-use App\Services\CommandConfigurator;
+use App\Command\Option;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -57,7 +57,7 @@ class InstanceListCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
             ]),
             new NullOutput()
         );
@@ -287,7 +287,7 @@ class InstanceListCommandTest extends KernelTestCase
         return [
             'no instances' => [
                 'input' => [
-                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
                 ],
                 'httpResponseDataCollection' => [
                     'droplets' => [
@@ -305,7 +305,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'single instance' => [
                 'input' => [
-                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
                 ],
                 'httpResponseDataCollection' => [
                     'droplets' => [
@@ -328,7 +328,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, no filter' => [
                 'input' => [
-                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
                 ],
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
@@ -341,7 +341,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, filter to idle=true' => [
                 'input' => [
-                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
                     '--' . InstanceListCommand::OPTION_INCLUDE => (string) json_encode([
                         [
                             'idle' => true,
@@ -356,7 +356,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, filter to not contains IP matching IP' => [
                 'input' => [
-                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
                     '--' . InstanceListCommand::OPTION_EXCLUDE => (string) json_encode([
                         [
                             'ips' => $matchingIp,
@@ -373,7 +373,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, filter to idle=true, not contains IP matching IP' => [
                 'input' => [
-                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
                     '--' . InstanceListCommand::OPTION_INCLUDE => (string) json_encode([
                         [
                             'idle' => true,

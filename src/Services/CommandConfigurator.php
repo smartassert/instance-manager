@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Command\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 
 class CommandConfigurator
 {
-    public const OPTION_COLLECTION_TAG = 'collection-tag';
     public const OPTION_IMAGE_ID = 'image-id';
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
@@ -16,7 +16,7 @@ class CommandConfigurator
     public function addCollectionTagOption(Command $command): self
     {
         $command->addOption(
-            self::OPTION_COLLECTION_TAG,
+            Option::OPTION_COLLECTION_TAG,
             null,
             InputOption::VALUE_REQUIRED,
             'Tag applied to all instances'

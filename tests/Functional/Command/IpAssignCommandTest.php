@@ -3,6 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\IpAssignCommand;
+use App\Command\Option;
 use App\Exception\ActionTimeoutException;
 use App\Services\ActionRunner;
 use App\Services\CommandConfigurator;
@@ -68,7 +69,7 @@ class IpAssignCommandTest extends KernelTestCase
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+                    '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
                 ],
                 'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -98,7 +99,7 @@ class IpAssignCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
             '--' . CommandConfigurator::OPTION_IMAGE_ID => self::IMAGE_ID,
         ]);
 
