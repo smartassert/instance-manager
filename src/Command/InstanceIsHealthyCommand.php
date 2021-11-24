@@ -60,8 +60,8 @@ class InstanceIsHealthyCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $collectionTag = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $collectionTag) {
+        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
+        if ('' === $serviceId) {
             $output->write('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
@@ -74,7 +74,7 @@ class InstanceIsHealthyCommand extends Command
             return $this->commandInstanceRepository->getErrorCode();
         }
 
-        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($collectionTag);
+        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($serviceId);
         if (null === $healthCheckUrl) {
             return Command::SUCCESS;
         }

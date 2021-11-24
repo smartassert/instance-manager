@@ -62,8 +62,8 @@ class IpCreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $collectionTag = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $collectionTag) {
+        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
+        if ('' === $serviceId) {
             $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
@@ -76,7 +76,7 @@ class IpCreateCommand extends Command
             return self::EXIT_CODE_EMPTY_TAG;
         }
 
-        $instance = $this->instanceRepository->findCurrent($collectionTag, $imageId);
+        $instance = $this->instanceRepository->findCurrent($serviceId, $imageId);
         if (null === $instance) {
             $output->write($this->outputFactory->createErrorOutput('no-instance'));
 
@@ -85,7 +85,7 @@ class IpCreateCommand extends Command
 
         $instanceId = $instance->getId();
 
-        $assignedIp = $this->floatingIpRepository->find($collectionTag);
+        $assignedIp = $this->floatingIpRepository->find($serviceId);
         if ($assignedIp instanceof AssignedIp) {
             $output->write($this->outputFactory->createErrorOutput('has-ip', ['ip' => $assignedIp->getIp()]));
 

@@ -19,7 +19,7 @@ class FloatingIpRepository
      *
      * @throws ExceptionInterface
      */
-    public function find(string $collectionTag): ?AssignedIp
+    public function find(string $serviceId): ?AssignedIp
     {
         $floatingIpEntities = $this->floatingIpApi->getAll();
 
@@ -27,7 +27,7 @@ class FloatingIpRepository
             $assignee = $floatingIpEntity->droplet;
 
             if ($assignee instanceof DropletEntity) {
-                if (in_array($collectionTag, $assignee->tags)) {
+                if (in_array($serviceId, $assignee->tags)) {
                     return new AssignedIp($floatingIpEntity);
                 }
             }
