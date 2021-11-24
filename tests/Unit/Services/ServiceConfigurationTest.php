@@ -240,20 +240,19 @@ class ServiceConfigurationTest extends TestCase
         callable $action,
         callable $assertions
     ): void {
-        $mockNamespace = 'App\Services';
+        $mockSetup = function (string $mockNamespace, string $expectedFilePath) {
+            PHPMockery::mock($mockNamespace, 'file_exists')
+                ->with($expectedFilePath)
+                ->andReturn(true)
+            ;
 
-        PHPMockery::mock($mockNamespace, 'file_exists')
-            ->with($expectedFilePath)
-            ->andReturn(true)
-        ;
+            PHPMockery::mock($mockNamespace, 'is_readable')
+                ->with($expectedFilePath)
+                ->andReturn(false)
+            ;
+        };
 
-        PHPMockery::mock($mockNamespace, 'is_readable')
-            ->with($expectedFilePath)
-            ->andReturn(false)
-        ;
-
-        $result = $action($serviceId);
-        $assertions($result);
+        $this->doTestFileOperationFailure($serviceId, $expectedFilePath, $mockSetup, $action, $assertions);
     }
 
     private function doTestFileDoesNotExist(
@@ -262,12 +261,26 @@ class ServiceConfigurationTest extends TestCase
         callable $action,
         callable $assertions
     ): void {
+        $mockSetup = function (string $mockNamespace, string $expectedFilePath) {
+            PHPMockery::mock($mockNamespace, 'file_exists')
+                ->with($expectedFilePath)
+                ->andReturn(false)
+            ;
+        };
+
+        $this->doTestFileOperationFailure($serviceId, $expectedFilePath, $mockSetup, $action, $assertions);
+    }
+
+    private function doTestFileOperationFailure(
+        string $serviceId,
+        string $expectedFilePath,
+        callable $mockSetup,
+        callable $action,
+        callable $assertions
+    ): void {
         $mockNamespace = 'App\Services';
 
-        PHPMockery::mock($mockNamespace, 'file_exists')
-            ->with($expectedFilePath)
-            ->andReturn(false)
-        ;
+        $mockSetup($mockNamespace, $expectedFilePath);
 
         $result = $action($serviceId);
         $assertions($result);
