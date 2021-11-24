@@ -83,3 +83,7 @@ services:
             $defaults:
                 region: '%env(DIGITALOCEAN_DROPLET_REGION)%'
                 size: '%env(DIGITALOCEAN_DROPLET_SIZE)%'
+
+    App\Services\ServiceConfiguration:
+        arguments:
+            $configurationDirectory: '%kernel.project_dir%/services'

@@ -2,11 +2,15 @@
 
 namespace App\Command;
 
+use App\Exception\MissingSecretException;
 use App\Model\EnvironmentVariableList;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\InstanceRepository;
+use App\Services\KeyValueCollectionFactory;
 use App\Services\OutputFactory;
+use App\Services\SecretCollectionHydrator;
+use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -22,7 +26,7 @@ class InstanceCreateCommand extends Command
 {
     public const NAME = 'app:instance:create';
     public const OPTION_FIRST_BOOT_SCRIPT = 'first-boot-script';
-    public const OPTION_ENV_VAR = 'env-var';
+    public const OPTION_SECRETS_JSON = 'secrets-json';
 
     public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
     public const EXIT_CODE_EMPTY_TAG = 4;
@@ -32,6 +36,9 @@ class InstanceCreateCommand extends Command
         private OutputFactory $outputFactory,
         private CommandConfigurator $configurator,
         private CommandInputReader $inputReader,
+        private ServiceConfiguration $serviceConfiguration,
+        private KeyValueCollectionFactory $keyValueCollectionFactory,
+        private SecretCollectionHydrator $secretCollectionHydrator,
     ) {
         parent::__construct();
     }
@@ -51,11 +58,10 @@ class InstanceCreateCommand extends Command
                 'Script to call once creation is complete'
             )
             ->addOption(
-                self::OPTION_ENV_VAR,
+                self::OPTION_SECRETS_JSON,
                 null,
-                InputOption::VALUE_IS_ARRAY | InputOption::VALUE_REQUIRED,
-                'foo description',
-                []
+                InputOption::VALUE_REQUIRED,
+                'JSON-object of key:value secrets'
             )
         ;
     }
@@ -81,8 +87,35 @@ class InstanceCreateCommand extends Command
 
         $instance = $this->instanceRepository->findCurrent($collectionTag, $imageId);
         if (null === $instance) {
+            $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($collectionTag);
+            $secretsOption = $input->getOption(self::OPTION_SECRETS_JSON);
+
+            if (is_string($secretsOption) && '' !== $secretsOption) {
+                $secrets = $this->keyValueCollectionFactory->createFromJsonForKeysMatchingPrefix(
+                    strtoupper($collectionTag),
+                    $secretsOption
+                );
+
+                $environmentVariables = $this->secretCollectionHydrator->hydrate(
+                    $environmentVariables,
+                    $secrets
+                );
+            }
+
+            foreach ($environmentVariables as $environmentVariable) {
+                $secretPlaceholder = $environmentVariable->getSecretPlaceholder();
+
+                if (null !== $secretPlaceholder) {
+                    throw new MissingSecretException($secretPlaceholder);
+                }
+            }
+
+            if (false === $environmentVariables instanceof EnvironmentVariableList) {
+                $environmentVariables = new EnvironmentVariableList([]);
+            }
+
             $firstBootScript = $this->createFirstBootScript(
-                new EnvironmentVariableList($input->getOption(self::OPTION_ENV_VAR)),
+                $environmentVariables,
                 $this->inputReader->getTrimmedStringOption(self::OPTION_FIRST_BOOT_SCRIPT, $input)
             );
 

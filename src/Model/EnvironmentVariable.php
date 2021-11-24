@@ -2,30 +2,34 @@
 
 namespace App\Model;
 
-class EnvironmentVariable
+class EnvironmentVariable extends KeyValue implements SecretPlaceholderContainerInterface
 {
-    public function __construct(
-        private string $key,
-        private string $value,
-    ) {
-    }
-
     public function __toString(): string
     {
-        if ('' === $this->key) {
+        $key = $this->getKey();
+        if ('' === $key) {
             return '';
         }
 
-        return $this->key . '="' . str_replace('"', '\\"', $this->value) . '"';
+        return $key . '="' . str_replace('"', '\\"', $this->getValue()) . '"';
     }
 
-    public function getKey(): string
+    public function getSecretPlaceholder(): ?SecretPlaceholderInterface
     {
-        return $this->key;
+        $value = $this->getValue();
+
+        return SecretPlaceholder::is($value) ? new SecretPlaceholder($value) : null;
     }
 
-    public function getValue(): string
+    public function replace(
+        SecretPlaceholderInterface $placeholder,
+        string $secret
+    ): SecretPlaceholderContainerInterface {
+        return new EnvironmentVariable($this->getKey(), $secret);
+    }
+
+    public function equals(SecretPlaceholderContainerInterface $placeholderContainer): bool
     {
-        return $this->value;
+        return (string) $this === (string) $placeholderContainer;
     }
 }
