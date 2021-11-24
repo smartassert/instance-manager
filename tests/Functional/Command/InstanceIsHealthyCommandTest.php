@@ -56,6 +56,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
+                '--collection-tag' => 'service_id',
                 '--id' => '123',
             ]),
             new BufferedOutput()
@@ -102,7 +103,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
 
         self::assertSame($expectedReturnCode, $commandReturnCode);
-        self::assertJsonStringEqualsJsonString($expectedOutput, $output->fetch());
+        self::assertSame($expectedOutput, $output->fetch());
     }
 
     /**
@@ -111,8 +112,18 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     public function runInvalidInputDataProvider(): array
     {
         return [
+            'collection-tag invalid, missing' => [
+                'input' => [
+                    '--id' => '123',
+                ],
+                'httpResponseDataCollection' => [],
+                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+                'expectedOutput' => '"collection-tag" option empty',
+            ],
             'id invalid, missing' => [
-                'input' => [],
+                'input' => [
+                    '--collection-tag' => 'service_id',
+                ],
                 'httpResponseDataCollection' => [],
                 'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_ID_INVALID,
                 'expectedOutput' => (string) json_encode([
@@ -122,6 +133,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'id invalid, not numeric' => [
                 'input' => [
+                    '--collection-tag' => 'service_id',
                     '--id' => 'not-numeric',
                 ],
                 'httpResponseDataCollection' => [],
@@ -133,6 +145,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not found' => [
                 'input' => [
+                    '--collection-tag' => 'service_id',
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [
@@ -184,6 +197,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         return [
             'no health data' => [
                 'input' => [
+                    '--collection-tag' => 'service_id',
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [
@@ -211,6 +225,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not healthy, retry-limit=1' => [
                 'input' => [
+                    '--collection-tag' => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 1,
                     '--retry-delay' => 0,
@@ -248,6 +263,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not healthy, not-healthy, retry-limit=2' => [
                 'input' => [
+                    '--collection-tag' => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
@@ -291,6 +307,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not healthy, healthy, retry-limit=2' => [
                 'input' => [
+                    '--collection-tag' => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
@@ -334,6 +351,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'healthy' => [
                 'input' => [
+                    '--collection-tag' => 'service_id',
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [

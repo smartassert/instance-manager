@@ -4,6 +4,7 @@ namespace App\Command;
 
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
+use App\Services\CommandInputReader;
 use App\Services\CommandInstanceRepository;
 use App\Services\InstanceClient;
 use DigitalOceanV2\Exception\ExceptionInterface;
@@ -23,6 +24,7 @@ class InstanceIsHealthyCommand extends Command
     public const NAME = 'app:instance:is-healthy';
     public const EXIT_CODE_ID_INVALID = 3;
     public const EXIT_CODE_NOT_FOUND = 4;
+    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 5;
 
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
@@ -34,6 +36,7 @@ class InstanceIsHealthyCommand extends Command
         private CommandActionRunner $commandActionRunner,
         private CommandConfigurator $configurator,
         private CommandInstanceRepository $commandInstanceRepository,
+        private CommandInputReader $inputReader,
     ) {
         parent::__construct();
     }
@@ -44,6 +47,7 @@ class InstanceIsHealthyCommand extends Command
 
         $this->configurator
             ->addId($this)
+            ->addCollectionTagOption($this)
             ->addRetryLimitOption($this, self::DEFAULT_RETRY_LIMIT)
             ->addRetryDelayOption($this, self::DEFAULT_RETRY_DELAY)
         ;
@@ -54,6 +58,13 @@ class InstanceIsHealthyCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $collectionTag = $this->inputReader->getTrimmedStringOption(Option::OPTION_COLLECTION_TAG, $input);
+        if ('' === $collectionTag) {
+            $output->write('"' . Option::OPTION_COLLECTION_TAG . '" option empty');
+
+            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
+        }
+
         $instance = $this->commandInstanceRepository->get($input);
         if (null === $instance) {
             $output->write($this->commandInstanceRepository->getErrorMessage());
@@ -65,8 +76,8 @@ class InstanceIsHealthyCommand extends Command
             $this->getRetryLimit($input),
             $this->getRetryDelay($input),
             $output,
-            function (bool $isLastAttempt) use ($output, $instance): bool {
-                $response = $this->instanceClient->getHealth($instance);
+            function (bool $isLastAttempt) use ($collectionTag, $output, $instance): bool {
+                $response = $this->instanceClient->getHealth($collectionTag, $instance);
                 $isHealthy = 200 === $response->getStatusCode();
 
                 $output->write($response->getBody()->getContents());
