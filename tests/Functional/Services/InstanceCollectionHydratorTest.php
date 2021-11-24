@@ -90,7 +90,7 @@ class InstanceCollectionHydratorTest extends KernelTestCase
         }
 
         $instanceCollection = new InstanceCollection($instances);
-        $hydratedCollection = $this->instanceCollectionHydrator->hydrate($instanceCollection);
+        $hydratedCollection = $this->instanceCollectionHydrator->hydrate($instanceCollection, '/state');
 
         foreach ($hydratedCollection as $hydratedInstance) {
             $expectedInstanceStateData = $expectedStateData[$hydratedInstance->getId()];
