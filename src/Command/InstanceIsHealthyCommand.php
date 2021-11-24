@@ -4,8 +4,8 @@ namespace App\Command;
 
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInstanceRepository;
 use App\Services\CommandInputReader;
+use App\Services\CommandInstanceRepository;
 use App\Services\InstanceClient;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
