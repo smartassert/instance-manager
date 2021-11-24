@@ -71,16 +71,16 @@ class InstanceCreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $collectionTag = $this->inputReader->getTrimmedStringOption(CommandConfigurator::OPTION_COLLECTION_TAG, $input);
+        $collectionTag = $this->inputReader->getTrimmedStringOption(Option::OPTION_COLLECTION_TAG, $input);
         if ('' === $collectionTag) {
-            $output->writeln('"' . CommandConfigurator::OPTION_COLLECTION_TAG . '" option empty');
+            $output->writeln('"' . Option::OPTION_COLLECTION_TAG . '" option empty');
 
             return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
         }
 
-        $imageId = $this->inputReader->getTrimmedStringOption(CommandConfigurator::OPTION_IMAGE_ID, $input);
+        $imageId = $this->inputReader->getTrimmedStringOption(Option::OPTION_IMAGE_ID, $input);
         if ('' === $imageId) {
-            $output->writeln('"' . CommandConfigurator::OPTION_IMAGE_ID . '" option empty');
+            $output->writeln('"' . Option::OPTION_IMAGE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_TAG;
         }

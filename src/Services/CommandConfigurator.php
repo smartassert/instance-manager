@@ -2,21 +2,16 @@
 
 namespace App\Services;
 
+use App\Command\Option;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 
 class CommandConfigurator
 {
-    public const OPTION_COLLECTION_TAG = 'collection-tag';
-    public const OPTION_IMAGE_ID = 'image-id';
-    public const OPTION_RETRY_LIMIT = 'retry-limit';
-    public const OPTION_RETRY_DELAY = 'retry-delay';
-    public const OPTION_ID = 'id';
-
     public function addCollectionTagOption(Command $command): self
     {
         $command->addOption(
-            self::OPTION_COLLECTION_TAG,
+            Option::OPTION_COLLECTION_TAG,
             null,
             InputOption::VALUE_REQUIRED,
             'Tag applied to all instances'
@@ -28,7 +23,7 @@ class CommandConfigurator
     public function addImageIdOption(Command $command): self
     {
         $command->addOption(
-            self::OPTION_IMAGE_ID,
+            Option::OPTION_IMAGE_ID,
             null,
             InputOption::VALUE_REQUIRED,
             'ID of image (snapshot)'
@@ -40,7 +35,7 @@ class CommandConfigurator
     public function addRetryLimitOption(Command $command, int $default): self
     {
         $command->addOption(
-            self::OPTION_RETRY_LIMIT,
+            Option::OPTION_RETRY_LIMIT,
             null,
             InputOption::VALUE_REQUIRED,
             'How many times to retry command is not successful',
@@ -53,7 +48,7 @@ class CommandConfigurator
     public function addRetryDelayOption(Command $command, int $default): self
     {
         $command->addOption(
-            self::OPTION_RETRY_DELAY,
+            Option::OPTION_RETRY_DELAY,
             null,
             InputOption::VALUE_REQUIRED,
             'How long to wait, in seconds, if command is not successful',
@@ -66,7 +61,7 @@ class CommandConfigurator
     public function addId(Command $command): self
     {
         $command->addOption(
-            self::OPTION_ID,
+            Option::OPTION_ID,
             null,
             InputOption::VALUE_REQUIRED,
             'ID of the instance'

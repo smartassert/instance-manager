@@ -3,7 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\IpCreateCommand;
-use App\Services\CommandConfigurator;
+use App\Command\Option;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
@@ -58,13 +58,13 @@ class IpCreateCommandTest extends KernelTestCase
         return [
             'empty collection tag' => [
                 'input' => [
-                    '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
+                    '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],
                 'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . CommandConfigurator::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
                 ],
                 'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -89,8 +89,8 @@ class IpCreateCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . CommandConfigurator::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
-            '--' . CommandConfigurator::OPTION_IMAGE_ID => '123456',
+            '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . Option::OPTION_IMAGE_ID => '123456',
         ]);
 
         $exitCode = $this->command->run($input, $output);

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Command\Option;
 use App\Model\Instance;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Input\InputInterface;
@@ -29,7 +30,7 @@ class CommandInstanceRepository
         $this->errorCode = 0;
         $this->errorMessage = '';
 
-        $id = $this->commandInputReader->getIntegerOption(CommandConfigurator::OPTION_ID, $input);
+        $id = $this->commandInputReader->getIntegerOption(Option::OPTION_ID, $input);
         if (null === $id) {
             $this->errorMessage = $this->outputFactory->createErrorOutput('id-invalid');
             $this->errorCode = self::EXIT_CODE_ID_INVALID;

@@ -33,7 +33,7 @@ class InstanceDestroyCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $id = $this->commandInputReader->getIntegerOption(CommandConfigurator::OPTION_ID, $input);
+        $id = $this->commandInputReader->getIntegerOption(Option::OPTION_ID, $input);
         if (is_int($id)) {
             $this->instanceRepository->delete($id);
         }
