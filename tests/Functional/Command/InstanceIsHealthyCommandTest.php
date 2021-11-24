@@ -3,6 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsHealthyCommand;
+use App\Command\Option;
 use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -58,7 +59,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--collection-tag' => 'service_id',
+                '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                 '--id' => '123',
             ]),
             new BufferedOutput()
@@ -124,7 +125,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'id invalid, missing' => [
                 'input' => [
-                    '--collection-tag' => 'service_id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                 ],
                 'httpResponseDataCollection' => [],
                 'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_ID_INVALID,
@@ -135,7 +136,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'id invalid, not numeric' => [
                 'input' => [
-                    '--collection-tag' => 'service_id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                     '--id' => 'not-numeric',
                 ],
                 'httpResponseDataCollection' => [],
@@ -147,7 +148,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not found' => [
                 'input' => [
-                    '--collection-tag' => 'service_id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [
@@ -182,7 +183,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
             $serviceConfiguration
                 ->shouldReceive('getHealthCheckUrl')
-                ->with($input['--collection-tag'])
+                ->with($input['--' . Option::OPTION_COLLECTION_TAG])
                 ->andReturn($healthCheckUrl)
             ;
 
@@ -216,7 +217,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         return [
             'no health check url' => [
                 'input' => [
-                    '--collection-tag' => 'service_id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                     '--id' => '123',
                 ],
                 'healthCheckUrl' => null,
@@ -238,7 +239,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'no health data' => [
                 'input' => [
-                    '--collection-tag' => 'service_id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                     '--id' => '123',
                 ],
                 'healthCheckUrl' => '/health-check',
@@ -267,7 +268,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not healthy, retry-limit=1' => [
                 'input' => [
-                    '--collection-tag' => 'service_id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 1,
                     '--retry-delay' => 0,
@@ -306,7 +307,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not healthy, not-healthy, retry-limit=2' => [
                 'input' => [
-                    '--collection-tag' => 'service_id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
@@ -351,7 +352,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not healthy, healthy, retry-limit=2' => [
                 'input' => [
-                    '--collection-tag' => 'service_id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
@@ -396,7 +397,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'healthy' => [
                 'input' => [
-                    '--collection-tag' => 'service_id',
+                    '--' . Option::OPTION_COLLECTION_TAG => 'service_id',
                     '--id' => '123',
                 ],
                 'healthCheckUrl' => '/health-check',
