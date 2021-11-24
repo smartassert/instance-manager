@@ -86,9 +86,10 @@ jobs:
 
       - name: Health check
         if: ${{ steps.build-config.outputs.health_check_url != '' }}
-        env:
-          INSTANCE_HEALTH_CHECK_URL: ${{ steps.build-config.outputs.health_check_url }}
-        run: php bin/console app:instance:is-healthy --id=${{ steps.instance.outputs.id }}
+        run: |
+          php bin/console app:instance:is-healthy \
+          --collection-tag='${{ github.event.inputs.service_id }}' \
+          --id=${{ steps.instance.outputs.id }}
 
       - name: Readiness check
         env:
