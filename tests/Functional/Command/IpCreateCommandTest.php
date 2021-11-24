@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class IpCreateCommandTest extends KernelTestCase
 {
-    private const COLLECTION_TAG = 'service-id';
+    private const COLLECTION_TAG = 'service_id';
 
     private IpCreateCommand $command;
     private MockHandler $mockHandler;
@@ -64,7 +64,7 @@ class IpCreateCommandTest extends KernelTestCase
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_TAG,
             ],

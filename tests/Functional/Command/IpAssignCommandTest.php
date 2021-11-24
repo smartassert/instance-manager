@@ -18,7 +18,7 @@ use webignition\ObjectReflector\ObjectReflector;
 
 class IpAssignCommandTest extends KernelTestCase
 {
-    private const COLLECTION_TAG = 'service-id';
+    private const COLLECTION_TAG = 'service_id';
     private const IMAGE_ID = '123456';
 
     private IpAssignCommand $command;

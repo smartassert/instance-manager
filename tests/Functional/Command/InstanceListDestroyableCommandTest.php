@@ -57,7 +57,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . Option::OPTION_SERVICE_ID => 'service-id',
+                '--' . Option::OPTION_SERVICE_ID => 'service_id',
             ]),
             new NullOutput()
         );
@@ -285,7 +285,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         ];
 
         $input = [
-            '--' . Option::OPTION_SERVICE_ID => 'service-id',
+            '--' . Option::OPTION_SERVICE_ID => 'service_id',
             '--excluded-ip' => $excludedIp,
         ];
 

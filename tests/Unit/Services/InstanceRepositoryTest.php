@@ -21,14 +21,14 @@ class InstanceRepositoryTest extends TestCase
      */
     public function testCreate(
         InstanceConfigurationFactory $instanceConfigurationFactory,
-        string $collectionTag,
+        string $serviceId,
         string $imageId,
         string $firstBootScript,
         string $expectedUserData,
     ): void {
         $dropletEntity = new DropletEntity();
 
-        $expectedTag = $collectionTag . '-' . $imageId;
+        $expectedTag = $serviceId . '-' . $imageId;
 
         $dropletApi = \Mockery::mock(DropletApi::class);
         $dropletApi
@@ -48,14 +48,14 @@ class InstanceRepositoryTest extends TestCase
                 array $tags,
             ) use (
                 $expectedUserData,
-                $collectionTag,
+                $serviceId,
                 $expectedTag,
                 $imageId
             ) {
                 self::assertSame($imageId, $image);
                 self::assertSame($expectedTag, $names);
                 self::assertSame($expectedUserData, $userData);
-                self::assertSame([$collectionTag, $expectedTag], $tags);
+                self::assertSame([$serviceId, $expectedTag], $tags);
 
                 return true;
             })
@@ -68,7 +68,7 @@ class InstanceRepositoryTest extends TestCase
             new InstanceTagFactory()
         );
 
-        $instance = $instanceRepository->create($collectionTag, $imageId, $firstBootScript);
+        $instance = $instanceRepository->create($serviceId, $imageId, $firstBootScript);
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertSame($dropletEntity, $instance->getDroplet());
@@ -79,7 +79,7 @@ class InstanceRepositoryTest extends TestCase
      */
     public function createDataProvider(): array
     {
-        $collectionTag = 'service-id';
+        $serviceId = 'service_id';
         $imageId = '123456';
 
         return [
@@ -87,7 +87,7 @@ class InstanceRepositoryTest extends TestCase
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
-                'collectionTag' => $collectionTag,
+                'collectionTag' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => '',
                 'expectedCreatedUserData' => '# First-boot script' . "\n" .
@@ -99,7 +99,7 @@ class InstanceRepositoryTest extends TestCase
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                     ])
                 ),
-                'collectionTag' => $collectionTag,
+                'collectionTag' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => '',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
@@ -111,7 +111,7 @@ class InstanceRepositoryTest extends TestCase
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
-                'collectionTag' => $collectionTag,
+                'collectionTag' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => './scripts/first-boot.sh',
                 'expectedCreatedUserData' => '# First-boot script' . "\n" .
@@ -123,7 +123,7 @@ class InstanceRepositoryTest extends TestCase
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                     ])
                 ),
-                'collectionTag' => $collectionTag,
+                'collectionTag' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => './scripts/first-boot.sh',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
@@ -145,12 +145,12 @@ class InstanceRepositoryTest extends TestCase
             ]),
         ];
 
-        $collectionTag = 'service-id';
+        $serviceId = 'service_id';
 
         $dropletApi = \Mockery::mock(DropletApi::class);
         $dropletApi
             ->shouldReceive('getAll')
-            ->with($collectionTag)
+            ->with($serviceId)
             ->andReturn($droplets)
         ;
 
@@ -160,7 +160,7 @@ class InstanceRepositoryTest extends TestCase
             new InstanceTagFactory()
         );
 
-        $instances = $instanceRepository->findAll($collectionTag);
+        $instances = $instanceRepository->findAll($serviceId);
 
         self::assertCount(count($droplets), $instances);
 

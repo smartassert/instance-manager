@@ -59,7 +59,7 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . Option::OPTION_SERVICE_ID => 'service-id',
+                '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 '--' . Option::OPTION_IMAGE_ID => '123456',
             ]),
             new BufferedOutput()
@@ -109,7 +109,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -150,7 +150,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         return [
             'already exists' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
@@ -176,7 +176,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             ],
             'created' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
@@ -219,11 +219,11 @@ class InstanceCreateCommandTest extends KernelTestCase
         EnvironmentVariableList $environmentVariableList,
         string $expectedFirstBootScript,
     ): void {
-        $collectionTag = 'service_name';
+        $serviceId = 'service_id';
         $imageId = 'image-id';
 
         $input = new ArrayInput([
-            '--' . Option::OPTION_SERVICE_ID => $collectionTag,
+            '--' . Option::OPTION_SERVICE_ID => $serviceId,
             '--' . Option::OPTION_IMAGE_ID => $imageId,
             '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScriptOption,
             '--' . InstanceCreateCommand::OPTION_SECRETS_JSON => $secretsJsonOption,
@@ -232,7 +232,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $instanceRepository = \Mockery::mock(InstanceRepository::class);
         $instanceRepository
             ->shouldReceive('findCurrent')
-            ->with($collectionTag, $imageId)
+            ->with($serviceId, $imageId)
             ->andReturnNull()
         ;
 
@@ -242,7 +242,7 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $instanceRepository
             ->shouldReceive('create')
-            ->with($collectionTag, $imageId, $expectedFirstBootScript)
+            ->with($serviceId, $imageId, $expectedFirstBootScript)
             ->andReturn($instance)
         ;
 
@@ -256,7 +256,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
         $serviceConfiguration
             ->shouldReceive('getEnvironmentVariables')
-            ->with($collectionTag)
+            ->with($serviceId)
             ->andReturn($environmentVariableList)
         ;
 
@@ -298,9 +298,9 @@ class InstanceCreateCommandTest extends KernelTestCase
             ],
             'env var options only, has secrets' => [
                 'firstBootScriptOption' => '',
-                'secretsJsonOption' => '{"SERVICE_NAME_SECRET_001":"secret 001 value"}',
+                'secretsJsonOption' => '{"SERVICE_ID_SECRET_001":"secret 001 value"}',
                 'environmentVariableList' => new EnvironmentVariableList([
-                    'key1={{ secrets.SERVICE_NAME_SECRET_001 }}',
+                    'key1={{ secrets.SERVICE_ID_SECRET_001 }}',
                     'key2=one "two" three',
                     'key3=value3',
                 ]),
@@ -328,7 +328,7 @@ class InstanceCreateCommandTest extends KernelTestCase
      * @dataProvider throwsMissingSecretExceptionDataProvider
      */
     public function testThrowsMissingSecretException(
-        string $collectionTag,
+        string $serviceId,
         string $secretsJsonOption,
         EnvironmentVariableList $environmentVariableList,
         string $expectedExceptionMessage
@@ -336,7 +336,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $imageId = 'image-id';
 
         $input = new ArrayInput([
-            '--' . Option::OPTION_SERVICE_ID => $collectionTag,
+            '--' . Option::OPTION_SERVICE_ID => $serviceId,
             '--' . Option::OPTION_IMAGE_ID => $imageId,
             '--' . InstanceCreateCommand::OPTION_SECRETS_JSON => $secretsJsonOption,
         ]);
@@ -344,7 +344,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $instanceRepository = \Mockery::mock(InstanceRepository::class);
         $instanceRepository
             ->shouldReceive('findCurrent')
-            ->with($collectionTag, $imageId)
+            ->with($serviceId, $imageId)
             ->andReturnNull()
         ;
 
@@ -358,7 +358,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
         $serviceConfiguration
             ->shouldReceive('getEnvironmentVariables')
-            ->with($collectionTag)
+            ->with($serviceId)
             ->andReturn($environmentVariableList)
         ;
 
@@ -382,20 +382,20 @@ class InstanceCreateCommandTest extends KernelTestCase
     {
         return [
             'no secrets, env var references missing secret' => [
-                'collectionTagOption' => 'service_name',
+                'collectionTagOption' => 'service_id',
                 'secretsJsonOption' => '',
                 'environmentVariableList' => new EnvironmentVariableList([
-                    'key1={{ secrets.SERVICE_NAME_SECRET_001 }}',
+                    'key1={{ secrets.SERVICE_ID_SECRET_001 }}',
                 ]),
-                'expectedExceptionMessage' => 'Secret "SERVICE_NAME_SECRET_001" not found',
+                'expectedExceptionMessage' => 'Secret "SERVICE_ID_SECRET_001" not found',
             ],
             'has secrets, env var references missing secret not having service id as prefix' => [
-                'collectionTagOption' => 'service_name',
+                'collectionTagOption' => 'service_id',
                 'secretsJsonOption' => '',
                 'environmentVariableList' => new EnvironmentVariableList([
-                    'key1={{ secrets.DIFFERENT_SERVICE_NAME_SECRET_001 }}',
+                    'key1={{ secrets.DIFFERENT_SERVICE_ID_SECRET_001 }}',
                 ]),
-                'expectedExceptionMessage' => 'Secret "DIFFERENT_SERVICE_NAME_SECRET_001" not found',
+                'expectedExceptionMessage' => 'Secret "DIFFERENT_SERVICE_ID_SECRET_001" not found',
             ],
         ];
     }

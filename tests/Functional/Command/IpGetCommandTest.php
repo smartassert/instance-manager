@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class IpGetCommandTest extends KernelTestCase
 {
-    private const COLLECTION_TAG = 'service-id';
+    private const COLLECTION_TAG = 'service_id';
 
     private IpGetCommand $command;
     private MockHandler $mockHandler;
