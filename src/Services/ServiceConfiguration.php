@@ -16,7 +16,7 @@ class ServiceConfiguration
 
     public function getEnvironmentVariables(string $serviceId): EnvironmentVariableList
     {
-        $data = $this->readJsonScalarObject($serviceId, self::ENV_VAR_FILENAME);
+        $data = $this->readJsonFileToArray($serviceId, self::ENV_VAR_FILENAME);
 
         $environmentVariables = [];
         foreach ($data as $key => $value) {
@@ -30,7 +30,7 @@ class ServiceConfiguration
 
     public function getHealthCheckUrl(string $serviceId): ?string
     {
-        $data = $this->readJsonScalarObject($serviceId, self::CONFIGURATION_FILENAME);
+        $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);
         $healthCheckUrl = $data['health_check_url'] ?? null;
 
         return is_string($healthCheckUrl) ? $healthCheckUrl : null;
@@ -39,7 +39,7 @@ class ServiceConfiguration
     /**
      * @return array<mixed>
      */
-    private function readJsonScalarObject(string $serviceId, string $filename): array
+    private function readJsonFileToArray(string $serviceId, string $filename): array
     {
         $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . $filename;
         if (!file_exists($filePath) || !is_readable($filePath)) {
