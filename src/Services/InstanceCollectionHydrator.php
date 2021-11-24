@@ -8,7 +8,7 @@ use Psr\Http\Client\ClientExceptionInterface;
 class InstanceCollectionHydrator
 {
     public function __construct(
-        private InstanceHydrator $instanceHydrator,
+        private InstanceClient $instanceClient,
     ) {
     }
 
@@ -18,7 +18,9 @@ class InstanceCollectionHydrator
 
         foreach ($collection as $instance) {
             try {
-                $hydratedInstances[] = $this->instanceHydrator->hydrate($instance);
+                $hydratedInstances[] = $instance->withAdditionalState(
+                    $this->instanceClient->getState($instance)
+                );
             } catch (ClientExceptionInterface) {
                 // Intentionally ignore HTTP exceptions
             }
