@@ -8,8 +8,6 @@ use Symfony\Component\Console\Input\InputOption;
 
 class CommandConfigurator
 {
-    public const OPTION_ID = 'id';
-
     public function addCollectionTagOption(Command $command): self
     {
         $command->addOption(
@@ -63,7 +61,7 @@ class CommandConfigurator
     public function addId(Command $command): self
     {
         $command->addOption(
-            self::OPTION_ID,
+            Option::OPTION_ID,
             null,
             InputOption::VALUE_REQUIRED,
             'ID of the instance'
