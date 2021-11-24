@@ -208,6 +208,96 @@ class ServiceConfigurationTest extends TestCase
         ];
     }
 
+    public function testGetStateUrlFileDoesNotExist(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileDoesNotExist(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getStateUrl($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
+    }
+
+    public function testGetStateUrlFileIsNotReadable(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileIsNotReadable(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getStateUrl($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
+    }
+
+    /**
+     * @dataProvider getStateUrlSuccessDataProvider
+     */
+    public function testGetStateUrlSuccess(
+        string $serviceId,
+        string $fileContent,
+        ?string $expectedStateUrl
+    ): void {
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            $fileContent
+        );
+
+        $healthCheckUrl = $this->serviceConfiguration->getStateUrl($serviceId);
+
+        self::assertEquals($expectedStateUrl, $healthCheckUrl);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getStateUrlSuccessDataProvider(): array
+    {
+        return [
+            'empty' => [
+                'serviceId' => 'service1',
+                'fileContent' => '{}',
+                'expectedStateUrl' => null,
+            ],
+            'content not a json array' => [
+                'serviceId' => 'service1',
+                'fileContent' => 'true',
+                'expectedStateUrl' => null,
+            ],
+            'single invalid item, key not a string' => [
+                'serviceId' => 'service2',
+                'fileContent' => '{0:"value1"}',
+                'expectedStateUrl' => null,
+            ],
+            'single invalid item, value not a string' => [
+                'serviceId' => 'service2',
+                'fileContent' => '{"key1":true}',
+                'expectedStateUrl' => null,
+            ],
+            'invalid, not a string' => [
+                'serviceId' => 'service2',
+                'fileContent' => '{"state_url":true}',
+                'expectedStateUrl' => null,
+            ],
+            'valid' => [
+                'serviceId' => 'service2',
+                'fileContent' => '{"state_url":"http://example.com/health-check"}',
+                'expectedStateUrl' => 'http://example.com/health-check',
+            ],
+        ];
+    }
+
     private function createFileReadSuccessMocks(string $namespace, string $filePath, string $content): void
     {
         PHPMockery::mock($namespace, 'file_exists')
