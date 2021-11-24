@@ -27,41 +27,32 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::ENV_VAR_FILENAME);
-
-        $mockNamespace = 'App\Services';
-
-        PHPMockery::mock($mockNamespace, 'file_exists')
-            ->with($expectedFilePath)
-            ->andReturn(false)
-        ;
-
-        $environmentVariableList = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
-
-        self::assertEquals(new EnvironmentVariableList([]), $environmentVariableList);
+        $this->doTestFileDoesNotExist(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::ENV_VAR_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getEnvironmentVariables($serviceId);
+            },
+            function ($result) {
+                self::assertEquals(new EnvironmentVariableList([]), $result);
+            }
+        );
     }
 
     public function testGetEnvironmentVariablesFileIsNotReadable(): void
     {
         $serviceId = 'service_id';
 
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::ENV_VAR_FILENAME);
-
-        $mockNamespace = 'App\Services';
-
-        PHPMockery::mock($mockNamespace, 'file_exists')
-            ->with($expectedFilePath)
-            ->andReturn(true)
-        ;
-
-        PHPMockery::mock($mockNamespace, 'is_readable')
-            ->with($expectedFilePath)
-            ->andReturn(false)
-        ;
-
-        $environmentVariableList = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
-
-        self::assertEquals(new EnvironmentVariableList([]), $environmentVariableList);
+        $this->doTestFileIsNotReadable(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::ENV_VAR_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getEnvironmentVariables($serviceId);
+            },
+            function ($result) {
+                self::assertEquals(new EnvironmentVariableList([]), $result);
+            }
+        );
     }
 
     /**
@@ -144,41 +135,32 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
-
-        $mockNamespace = 'App\Services';
-
-        PHPMockery::mock($mockNamespace, 'file_exists')
-            ->with($expectedFilePath)
-            ->andReturn(false)
-        ;
-
-        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($serviceId);
-
-        self::assertNull($healthCheckUrl);
+        $this->doTestFileDoesNotExist(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getHealthCheckUrl($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
     }
 
     public function testGetHealthCheckUrlFileIsNotReadable(): void
     {
         $serviceId = 'service_id';
 
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
-
-        $mockNamespace = 'App\Services';
-
-        PHPMockery::mock($mockNamespace, 'file_exists')
-            ->with($expectedFilePath)
-            ->andReturn(true)
-        ;
-
-        PHPMockery::mock($mockNamespace, 'is_readable')
-            ->with($expectedFilePath)
-            ->andReturn(false)
-        ;
-
-        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($serviceId);
-
-        self::assertNull($healthCheckUrl);
+        $this->doTestFileIsNotReadable(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getHealthCheckUrl($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
     }
 
     /**
@@ -250,6 +232,45 @@ class ServiceConfigurationTest extends TestCase
                 'expectedHealthCheckUrl' => 'http://example.com/health-check',
             ],
         ];
+    }
+
+    private function doTestFileIsNotReadable(
+        string $serviceId,
+        string $expectedFilePath,
+        callable $action,
+        callable $assertions
+    ): void {
+        $mockNamespace = 'App\Services';
+
+        PHPMockery::mock($mockNamespace, 'file_exists')
+            ->with($expectedFilePath)
+            ->andReturn(true)
+        ;
+
+        PHPMockery::mock($mockNamespace, 'is_readable')
+            ->with($expectedFilePath)
+            ->andReturn(false)
+        ;
+
+        $result = $action($serviceId);
+        $assertions($result);
+    }
+
+    private function doTestFileDoesNotExist(
+        string $serviceId,
+        string $expectedFilePath,
+        callable $action,
+        callable $assertions
+    ): void {
+        $mockNamespace = 'App\Services';
+
+        PHPMockery::mock($mockNamespace, 'file_exists')
+            ->with($expectedFilePath)
+            ->andReturn(false)
+        ;
+
+        $result = $action($serviceId);
+        $assertions($result);
     }
 
     private function createExpectedDataFilePath(string $serviceId, string $filename): string
