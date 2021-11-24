@@ -40,7 +40,6 @@ services:
     App\Services\InstanceClient:
         arguments:
             $stateUrl: '%instance_state_url%'
-            $healthCheckUrl: '%instance_health_check_url%'
 
     GuzzleHttp\HandlerStack:
         class: GuzzleHttp\HandlerStack

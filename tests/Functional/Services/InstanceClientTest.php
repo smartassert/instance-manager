@@ -47,7 +47,7 @@ class InstanceClientTest extends KernelTestCase
 
         self::assertSame(
             $response,
-            $this->instanceClient->getHealth($instance)
+            $this->instanceClient->getHealth('service_id', $instance)
         );
     }
 
