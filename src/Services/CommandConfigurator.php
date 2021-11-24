@@ -11,7 +11,7 @@ class CommandConfigurator
     public function addCollectionTagOption(Command $command): self
     {
         $command->addOption(
-            Option::OPTION_COLLECTION_TAG,
+            Option::OPTION_SERVICE_ID,
             null,
             InputOption::VALUE_REQUIRED,
             'Tag applied to all instances'

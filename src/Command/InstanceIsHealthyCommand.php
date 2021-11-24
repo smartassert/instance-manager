@@ -60,9 +60,9 @@ class InstanceIsHealthyCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $collectionTag = $this->inputReader->getTrimmedStringOption(Option::OPTION_COLLECTION_TAG, $input);
+        $collectionTag = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
         if ('' === $collectionTag) {
-            $output->write('"' . Option::OPTION_COLLECTION_TAG . '" option empty');
+            $output->write('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
         }

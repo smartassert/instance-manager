@@ -85,7 +85,7 @@ class IpGetCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
         ]);
 
         $exitCode = $this->command->run($input, $output);

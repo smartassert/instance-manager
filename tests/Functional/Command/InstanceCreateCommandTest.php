@@ -59,7 +59,7 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                '--' . Option::OPTION_SERVICE_ID => 'service-id',
                 '--' . Option::OPTION_IMAGE_ID => '123456',
             ]),
             new BufferedOutput()
@@ -109,7 +109,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service-id',
                 ],
                 'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -150,7 +150,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         return [
             'already exists' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service-id',
                     '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
@@ -176,7 +176,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             ],
             'created' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service-id',
                     '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
@@ -223,7 +223,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $imageId = 'image-id';
 
         $input = new ArrayInput([
-            '--' . Option::OPTION_COLLECTION_TAG => $collectionTag,
+            '--' . Option::OPTION_SERVICE_ID => $collectionTag,
             '--' . Option::OPTION_IMAGE_ID => $imageId,
             '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScriptOption,
             '--' . InstanceCreateCommand::OPTION_SECRETS_JSON => $secretsJsonOption,
@@ -336,7 +336,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $imageId = 'image-id';
 
         $input = new ArrayInput([
-            '--' . Option::OPTION_COLLECTION_TAG => $collectionTag,
+            '--' . Option::OPTION_SERVICE_ID => $collectionTag,
             '--' . Option::OPTION_IMAGE_ID => $imageId,
             '--' . InstanceCreateCommand::OPTION_SECRETS_JSON => $secretsJsonOption,
         ]);

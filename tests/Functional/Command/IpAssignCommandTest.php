@@ -68,7 +68,7 @@ class IpAssignCommandTest extends KernelTestCase
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+                    '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
                 ],
                 'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -98,7 +98,7 @@ class IpAssignCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
             '--' . Option::OPTION_IMAGE_ID => self::IMAGE_ID,
         ]);
 
