@@ -8,7 +8,6 @@ use Symfony\Component\Console\Input\InputOption;
 
 class CommandConfigurator
 {
-    public const OPTION_IMAGE_ID = 'image-id';
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
     public const OPTION_ID = 'id';
@@ -28,7 +27,7 @@ class CommandConfigurator
     public function addImageIdOption(Command $command): self
     {
         $command->addOption(
-            self::OPTION_IMAGE_ID,
+            Option::OPTION_IMAGE_ID,
             null,
             InputOption::VALUE_REQUIRED,
             'ID of image (snapshot)'

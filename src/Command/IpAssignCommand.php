@@ -70,9 +70,9 @@ class IpAssignCommand extends Command
             return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
         }
 
-        $imageId = $this->inputReader->getTrimmedStringOption(CommandConfigurator::OPTION_IMAGE_ID, $input);
+        $imageId = $this->inputReader->getTrimmedStringOption(Option::OPTION_IMAGE_ID, $input);
         if ('' === $imageId) {
-            $output->writeln('"' . CommandConfigurator::OPTION_IMAGE_ID . '" option empty');
+            $output->writeln('"' . Option::OPTION_IMAGE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_TAG;
         }
