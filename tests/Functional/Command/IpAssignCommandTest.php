@@ -18,7 +18,7 @@ use webignition\ObjectReflector\ObjectReflector;
 
 class IpAssignCommandTest extends KernelTestCase
 {
-    private const COLLECTION_TAG = 'service-id';
+    private const COLLECTION_TAG = 'service_id';
     private const IMAGE_ID = '123456';
 
     private IpAssignCommand $command;
@@ -60,7 +60,7 @@ class IpAssignCommandTest extends KernelTestCase
     public function runEmptyRequiredValueDataProvider(): array
     {
         return [
-            'empty collection tag' => [
+            'empty service id' => [
                 'input' => [
                     '--' . Option::OPTION_IMAGE_ID => self::IMAGE_ID,
                 ],
@@ -68,7 +68,7 @@ class IpAssignCommandTest extends KernelTestCase
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+                    '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
                 ],
                 'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -98,7 +98,7 @@ class IpAssignCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
             '--' . Option::OPTION_IMAGE_ID => self::IMAGE_ID,
         ]);
 

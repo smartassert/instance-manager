@@ -57,7 +57,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                '--' . Option::OPTION_SERVICE_ID => 'service_id',
             ]),
             new NullOutput()
         );
@@ -98,7 +98,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
     public function runEmptyRequiredValueDataProvider(): array
     {
         return [
-            'empty collection tag' => [
+            'empty service id' => [
                 'input' => [],
                 'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
@@ -285,7 +285,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         ];
 
         $input = [
-            '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+            '--' . Option::OPTION_SERVICE_ID => 'service_id',
             '--excluded-ip' => $excludedIp,
         ];
 

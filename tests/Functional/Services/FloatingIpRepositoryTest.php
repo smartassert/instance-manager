@@ -11,7 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class FloatingIpRepositoryTest extends KernelTestCase
 {
-    private const COLLECTION_TAG = 'service-id';
+    private const COLLECTION_TAG = 'service_id';
 
     private FloatingIpRepository $floatingIpRepository;
     private MockHandler $mockHandler;

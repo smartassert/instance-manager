@@ -71,9 +71,9 @@ class InstanceCreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $collectionTag = $this->inputReader->getTrimmedStringOption(Option::OPTION_COLLECTION_TAG, $input);
-        if ('' === $collectionTag) {
-            $output->writeln('"' . Option::OPTION_COLLECTION_TAG . '" option empty');
+        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
+        if ('' === $serviceId) {
+            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
         }
@@ -85,14 +85,14 @@ class InstanceCreateCommand extends Command
             return self::EXIT_CODE_EMPTY_TAG;
         }
 
-        $instance = $this->instanceRepository->findCurrent($collectionTag, $imageId);
+        $instance = $this->instanceRepository->findCurrent($serviceId, $imageId);
         if (null === $instance) {
-            $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($collectionTag);
+            $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
             $secretsOption = $input->getOption(self::OPTION_SECRETS_JSON);
 
             if (is_string($secretsOption) && '' !== $secretsOption) {
                 $secrets = $this->keyValueCollectionFactory->createFromJsonForKeysMatchingPrefix(
-                    strtoupper($collectionTag),
+                    strtoupper($serviceId),
                     $secretsOption
                 );
 
@@ -119,7 +119,7 @@ class InstanceCreateCommand extends Command
                 $this->inputReader->getTrimmedStringOption(self::OPTION_FIRST_BOOT_SCRIPT, $input)
             );
 
-            $instance = $this->instanceRepository->create($collectionTag, $imageId, $firstBootScript);
+            $instance = $this->instanceRepository->create($serviceId, $imageId, $firstBootScript);
         }
 
         $output->write($this->outputFactory->createSuccessOutput(['id' => $instance->getId()]));

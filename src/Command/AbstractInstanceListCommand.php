@@ -41,15 +41,15 @@ abstract class AbstractInstanceListCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $collectionTag = $this->inputReader->getTrimmedStringOption(Option::OPTION_COLLECTION_TAG, $input);
-        if ('' === $collectionTag) {
-            $output->writeln('"' . Option::OPTION_COLLECTION_TAG . '" option empty');
+        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
+        if ('' === $serviceId) {
+            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
         }
 
         $output->write((string) json_encode($this->findInstances(
-            $collectionTag,
+            $serviceId,
             $this->createFilterCollection($input)
         )));
 
@@ -61,9 +61,9 @@ abstract class AbstractInstanceListCommand extends Command
      *
      * @throws ExceptionInterface
      */
-    private function findInstances(string $collectionTag, array $filters): InstanceCollection
+    private function findInstances(string $serviceId, array $filters): InstanceCollection
     {
-        $instances = $this->instanceRepository->findAll($collectionTag);
+        $instances = $this->instanceRepository->findAll($serviceId);
         $instances = $this->instanceCollectionHydrator->hydrate($instances);
 
         foreach ($filters as $filter) {

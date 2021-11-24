@@ -52,7 +52,7 @@ jobs:
         run: |
           echo "::set-output name=value::$(
             php bin/console app:ip:get \
-            --collection-tag="${{ github.event.inputs.service_id }}"
+            --service-id="${{ github.event.inputs.service_id }}"
           )"
 
       - name: Checkout bash-ga-ci-tools
@@ -71,7 +71,7 @@ jobs:
           INSTANCES=$(
             php bin/console app:instance:list-destroyable \
             --excluded-ip="${{ steps.ip.outputs.value }}" \
-            --collection-tag="${{ github.event.inputs.service_id }}"
+            --service-id="${{ github.event.inputs.service_id }}"
           )
 
           echo "::set-output name=value::$INSTANCES"

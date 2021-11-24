@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class IpCreateCommandTest extends KernelTestCase
 {
-    private const COLLECTION_TAG = 'service-id';
+    private const COLLECTION_TAG = 'service_id';
 
     private IpCreateCommand $command;
     private MockHandler $mockHandler;
@@ -56,7 +56,7 @@ class IpCreateCommandTest extends KernelTestCase
     public function runEmptyRequiredValueDataProvider(): array
     {
         return [
-            'empty collection tag' => [
+            'empty service id' => [
                 'input' => [
                     '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],
@@ -64,7 +64,7 @@ class IpCreateCommandTest extends KernelTestCase
             ],
             'empty tag' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_TAG,
             ],
@@ -89,7 +89,7 @@ class IpCreateCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
             '--' . Option::OPTION_IMAGE_ID => '123456',
         ]);
 

@@ -21,11 +21,11 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function create(string $collectionTag, string $imageId, string $firstBootScript): Instance
+    public function create(string $serviceId, string $imageId, string $firstBootScript): Instance
     {
-        $tag = $this->instanceTagFactory->create($collectionTag, $imageId);
+        $tag = $this->instanceTagFactory->create($serviceId, $imageId);
 
-        $configuration = $this->instanceConfigurationFactory->create($firstBootScript, [$collectionTag, $tag]);
+        $configuration = $this->instanceConfigurationFactory->create($firstBootScript, [$serviceId, $tag]);
 
         $dropletEntity = $this->dropletApi->create(
             $tag,
@@ -48,17 +48,17 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function findAll(string $collectionTag): InstanceCollection
+    public function findAll(string $serviceId): InstanceCollection
     {
-        return $this->findWithTag($collectionTag);
+        return $this->findWithTag($serviceId);
     }
 
     /**
      * @throws ExceptionInterface
      */
-    public function findCurrent(string $collectionTag, string $imageId): ?Instance
+    public function findCurrent(string $serviceId, string $imageId): ?Instance
     {
-        $tag = $this->instanceTagFactory->create($collectionTag, $imageId);
+        $tag = $this->instanceTagFactory->create($serviceId, $imageId);
 
         return $this->findWithTag($tag)->getNewest();
     }

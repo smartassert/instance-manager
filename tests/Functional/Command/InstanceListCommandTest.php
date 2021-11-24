@@ -57,7 +57,7 @@ class InstanceListCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                '--' . Option::OPTION_SERVICE_ID => 'service_id',
             ]),
             new NullOutput()
         );
@@ -98,7 +98,7 @@ class InstanceListCommandTest extends KernelTestCase
     public function runEmptyRequiredValueDataProvider(): array
     {
         return [
-            'empty collection tag' => [
+            'empty service id' => [
                 'input' => [],
                 'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
@@ -287,7 +287,7 @@ class InstanceListCommandTest extends KernelTestCase
         return [
             'no instances' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'httpResponseDataCollection' => [
                     'droplets' => [
@@ -305,7 +305,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'single instance' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'httpResponseDataCollection' => [
                     'droplets' => [
@@ -328,7 +328,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, no filter' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
@@ -341,7 +341,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, filter to idle=true' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--' . InstanceListCommand::OPTION_INCLUDE => (string) json_encode([
                         [
                             'idle' => true,
@@ -356,7 +356,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, filter to not contains IP matching IP' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--' . InstanceListCommand::OPTION_EXCLUDE => (string) json_encode([
                         [
                             'ips' => $matchingIp,
@@ -373,7 +373,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'many instances, filter to idle=true, not contains IP matching IP' => [
                 'input' => [
-                    '--' . Option::OPTION_COLLECTION_TAG => 'service-id',
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--' . InstanceListCommand::OPTION_INCLUDE => (string) json_encode([
                         [
                             'idle' => true,

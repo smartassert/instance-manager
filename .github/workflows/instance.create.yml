@@ -78,7 +78,7 @@ jobs:
           CREATE_OUTPUT=$(
             php bin/console app:instance:create \
               --first-boot-script='[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh' \
-              --collection-tag='${{ github.event.inputs.service_id }}' \
+              --service-id='${{ github.event.inputs.service_id }}' \
               --secrets-json='${{ toJson(secrets) }}' \
               --image-id='${{ steps.image_id.outputs.image_id }}'
           )
@@ -87,7 +87,7 @@ jobs:
       - name: Health check
         run: |
           php bin/console app:instance:is-healthy \
-          --collection-tag='${{ github.event.inputs.service_id }}' \
+          --service-id='${{ github.event.inputs.service_id }}' \
           --id=${{ steps.instance.outputs.id }}
 
       - name: Readiness check

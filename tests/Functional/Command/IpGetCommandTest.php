@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\NullOutput;
 
 class IpGetCommandTest extends KernelTestCase
 {
-    private const COLLECTION_TAG = 'service-id';
+    private const COLLECTION_TAG = 'service_id';
 
     private IpGetCommand $command;
     private MockHandler $mockHandler;
@@ -55,7 +55,7 @@ class IpGetCommandTest extends KernelTestCase
     public function runEmptyRequiredValueDataProvider(): array
     {
         return [
-            'empty collection tag' => [
+            'empty service id' => [
                 'input' => [],
                 'expectedReturnCode' => IpGetCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],
@@ -85,7 +85,7 @@ class IpGetCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . Option::OPTION_COLLECTION_TAG => self::COLLECTION_TAG,
+            '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
         ]);
 
         $exitCode = $this->command->run($input, $output);
