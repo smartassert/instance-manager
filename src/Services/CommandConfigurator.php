@@ -8,7 +8,6 @@ use Symfony\Component\Console\Input\InputOption;
 
 class CommandConfigurator
 {
-    public const OPTION_RETRY_DELAY = 'retry-delay';
     public const OPTION_ID = 'id';
 
     public function addCollectionTagOption(Command $command): self
@@ -51,7 +50,7 @@ class CommandConfigurator
     public function addRetryDelayOption(Command $command, int $default): self
     {
         $command->addOption(
-            self::OPTION_RETRY_DELAY,
+            Option::OPTION_RETRY_DELAY,
             null,
             InputOption::VALUE_REQUIRED,
             'How long to wait, in seconds, if command is not successful',
