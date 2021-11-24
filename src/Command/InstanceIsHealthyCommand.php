@@ -25,7 +25,7 @@ class InstanceIsHealthyCommand extends Command
     public const NAME = 'app:instance:is-healthy';
     public const EXIT_CODE_ID_INVALID = 3;
     public const EXIT_CODE_NOT_FOUND = 4;
-    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 5;
+    public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
 
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
@@ -64,7 +64,7 @@ class InstanceIsHealthyCommand extends Command
         if ('' === $serviceId) {
             $output->write('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
-            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
+            return self::EXIT_CODE_EMPTY_SERVICE_ID;
         }
 
         $instance = $this->commandInstanceRepository->get($input);

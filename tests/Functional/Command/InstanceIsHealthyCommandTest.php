@@ -120,7 +120,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [],
-                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_EMPTY_SERVICE_ID,
                 'expectedOutput' => '"service-id" option empty',
             ],
             'id invalid, missing' => [

@@ -4,8 +4,10 @@ namespace App\Command;
 
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
+use App\Services\CommandInputReader;
 use App\Services\CommandInstanceRepository;
 use App\Services\InstanceClient;
+use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -23,6 +25,7 @@ class InstanceIsReadyCommand extends Command
     public const NAME = 'app:instance:is-ready';
     public const EXIT_CODE_ID_INVALID = 3;
     public const EXIT_CODE_NOT_FOUND = 4;
+    public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
 
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
@@ -34,6 +37,8 @@ class InstanceIsReadyCommand extends Command
         private CommandActionRunner $commandActionRunner,
         private CommandConfigurator $configurator,
         private CommandInstanceRepository $commandInstanceRepository,
+        private ServiceConfiguration $serviceConfiguration,
+        private CommandInputReader $inputReader,
     ) {
         parent::__construct();
     }
@@ -44,6 +49,7 @@ class InstanceIsReadyCommand extends Command
 
         $this->configurator
             ->addId($this)
+            ->addServiceIdOption($this)
             ->addRetryLimitOption($this, self::DEFAULT_RETRY_LIMIT)
             ->addRetryDelayOption($this, self::DEFAULT_RETRY_DELAY)
         ;
@@ -54,6 +60,13 @@ class InstanceIsReadyCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
+        if ('' === $serviceId) {
+            $output->write('"' . Option::OPTION_SERVICE_ID . '" option empty');
+
+            return self::EXIT_CODE_EMPTY_SERVICE_ID;
+        }
+
         $instance = $this->commandInstanceRepository->get($input);
         if (null === $instance) {
             $output->write($this->commandInstanceRepository->getErrorMessage());
@@ -61,12 +74,14 @@ class InstanceIsReadyCommand extends Command
             return $this->commandInstanceRepository->getErrorCode();
         }
 
+        $stateUrl = $this->serviceConfiguration->getStateUrl($serviceId);
+
         $result = $this->commandActionRunner->run(
             $this->getRetryLimit($input),
             $this->getRetryDelay($input),
             $output,
-            function (bool $isLastAttempt) use ($output, $instance): bool {
-                $state = $this->instanceClient->getState($instance);
+            function (bool $isLastAttempt) use ($stateUrl, $output, $instance): bool {
+                $state = $this->instanceClient->getState($instance, $stateUrl);
 
                 $isReady = $state['ready'] ?? null;
                 $isReady = is_bool($isReady) ? $isReady : true;

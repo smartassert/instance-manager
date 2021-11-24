@@ -4,6 +4,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsHealthyCommand;
 use App\Command\InstanceIsReadyCommand;
+use App\Command\Option;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -57,6 +58,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
+                '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 '--id' => '123',
             ]),
             new BufferedOutput()
@@ -103,7 +105,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
 
         self::assertSame($expectedReturnCode, $commandReturnCode);
-        self::assertJsonStringEqualsJsonString($expectedOutput, $output->fetch());
+        self::assertSame($expectedOutput, $output->fetch());
     }
 
     /**
@@ -112,8 +114,16 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     public function runInvalidInputDataProvider(): array
     {
         return [
-            'id invalid, missing' => [
+            'service id invalid, missing' => [
                 'input' => [],
+                'httpResponseDataCollection' => [],
+                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_EMPTY_SERVICE_ID,
+                'expectedOutput' => '"service-id" option empty',
+            ],
+            'id invalid, missing' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                ],
                 'httpResponseDataCollection' => [],
                 'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_ID_INVALID,
                 'expectedOutput' => (string) json_encode([
@@ -123,6 +133,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
             'id invalid, not numeric' => [
                 'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--id' => 'not-numeric',
                 ],
                 'httpResponseDataCollection' => [],
@@ -134,6 +145,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
             'not found' => [
                 'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [
@@ -187,6 +199,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         return [
             'no explicit readiness state' => [
                 'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [
@@ -214,6 +227,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
             'ready=false, retry-limit=1' => [
                 'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 1,
                     '--retry-delay' => 0,
@@ -245,6 +259,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
             'ready=false, ready=false, retry-limit=2' => [
                 'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
@@ -285,6 +300,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
             'ready=false, exception, retry-limit=2' => [
                 'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
@@ -317,6 +333,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
             'ready=true' => [
                 'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [
@@ -346,6 +363,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
             'ready=false, ready=true, retry-limit=2' => [
                 'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--id' => '123',
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
@@ -386,6 +404,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
             'ready=<non-boolean>' => [
                 'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [

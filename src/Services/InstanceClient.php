@@ -22,9 +22,11 @@ class InstanceClient
      *
      * @return array<int|string, mixed>
      */
-    public function getState(Instance $instance): array
+    public function getState(Instance $instance, ?string $stateUrl = null): array
     {
-        $url = $instance->getUrl() . $this->stateUrl;
+        $stateUrl = is_string($stateUrl) ? $stateUrl : $this->stateUrl;
+
+        $url = $instance->getUrl() . $stateUrl;
         $request = $this->requestFactory->createRequest('GET', $url);
 
         $response = $this->httpClient->sendRequest($request);

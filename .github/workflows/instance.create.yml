@@ -25,18 +25,6 @@ jobs:
           path: ./vendor/smartassert/bash-ga-ci-tools
           ref: main
 
-      - name: Read service configuration
-        id: build-config
-        env:
-          CONFIGURATION_PATH: ./services/${{ github.event.inputs.service_id }}/configuration.json
-        run: |
-          if [ ! -f "$CONFIGURATION_PATH" ]; then
-            echo "Configuration for service ${{ github.event.inputs.service_id }} not found: $CONFIGURATION_PATH"
-            exit 1
-          fi
-
-          ./vendor/smartassert/bash-ga-ci-tools/src/create-ga-outputs-from-json-scalar-object.sh < "$CONFIGURATION_PATH"
-
       - name: Read image id
         id: image_id
         env:
@@ -91,9 +79,10 @@ jobs:
           --id=${{ steps.instance.outputs.id }}
 
       - name: Readiness check
-        env:
-          INSTANCE_STATE_URL: ${{ steps.build-config.outputs.state_url }}
-        run: php bin/console app:instance:is-ready --id=${{ steps.instance.outputs.id }}
+        run: |
+          php bin/console app:instance:is-ready \
+          --service-id='${{ github.event.inputs.service_id }}' \
+          --id=${{ steps.instance.outputs.id }}
 
       - name: Remove instance on failure
         if: ${{ failure() }}
