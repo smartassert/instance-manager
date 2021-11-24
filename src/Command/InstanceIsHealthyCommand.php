@@ -83,8 +83,8 @@ class InstanceIsHealthyCommand extends Command
             $this->getRetryLimit($input),
             $this->getRetryDelay($input),
             $output,
-            function (bool $isLastAttempt) use ($collectionTag, $output, $instance): bool {
-                $response = $this->instanceClient->getHealth($collectionTag, $instance);
+            function (bool $isLastAttempt) use ($healthCheckUrl, $output, $instance): bool {
+                $response = $this->instanceClient->getHealth($instance, $healthCheckUrl);
                 $isHealthy = 200 === $response->getStatusCode();
 
                 $output->write($response->getBody()->getContents());
