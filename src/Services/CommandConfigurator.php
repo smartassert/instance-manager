@@ -8,7 +8,6 @@ use Symfony\Component\Console\Input\InputOption;
 
 class CommandConfigurator
 {
-    public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
     public const OPTION_ID = 'id';
 
@@ -39,7 +38,7 @@ class CommandConfigurator
     public function addRetryLimitOption(Command $command, int $default): self
     {
         $command->addOption(
-            self::OPTION_RETRY_LIMIT,
+            Option::OPTION_RETRY_LIMIT,
             null,
             InputOption::VALUE_REQUIRED,
             'How many times to retry command is not successful',
