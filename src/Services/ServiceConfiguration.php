@@ -7,6 +7,7 @@ use App\Model\EnvironmentVariableList;
 class ServiceConfiguration
 {
     public const ENV_VAR_FILENAME = 'env.json';
+    public const CONFIGURATION_FILENAME = 'configuration.json';
 
     public function __construct(
         private string $configurationDirectory,
@@ -15,7 +16,7 @@ class ServiceConfiguration
 
     public function getEnvironmentVariables(string $serviceId): EnvironmentVariableList
     {
-        $filePath = $this->configurationDirectory . '/' . $serviceId . '/env.json';
+        $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . self::ENV_VAR_FILENAME;
         if (!file_exists($filePath) || !is_readable($filePath)) {
             return new EnvironmentVariableList([]);
         }
@@ -35,5 +36,24 @@ class ServiceConfiguration
         }
 
         return new EnvironmentVariableList($environmentVariables);
+    }
+
+    public function getHealthCheckUrl(string $serviceId): ?string
+    {
+        $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . self::CONFIGURATION_FILENAME;
+        if (!file_exists($filePath) || !is_readable($filePath)) {
+            return null;
+        }
+
+        $content = (string) file_get_contents($filePath);
+        $data = json_decode($content, true);
+
+        if (false === is_array($data)) {
+            return null;
+        }
+
+        $healthCheckUrl = $data['health_check_url'] ?? null;
+
+        return is_string($healthCheckUrl) ? $healthCheckUrl : null;
     }
 }
