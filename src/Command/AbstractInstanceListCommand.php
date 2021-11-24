@@ -28,7 +28,7 @@ abstract class AbstractInstanceListCommand extends Command
 
     protected function configure(): void
     {
-        $this->configurator->addCollectionTagOption($this);
+        $this->configurator->addServiceIdOption($this);
     }
 
     /**
