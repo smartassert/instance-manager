@@ -63,24 +63,11 @@ class ServiceConfigurationTest extends TestCase
         string $fileContent,
         EnvironmentVariableList $expectedEnvironmentVariables
     ): void {
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::ENV_VAR_FILENAME);
-
-        $mockNamespace = 'App\Services';
-
-        PHPMockery::mock($mockNamespace, 'file_exists')
-            ->with($expectedFilePath)
-            ->andReturn(true)
-        ;
-
-        PHPMockery::mock($mockNamespace, 'is_readable')
-            ->with($expectedFilePath)
-            ->andReturn(true)
-        ;
-
-        PHPMockery::mock($mockNamespace, 'file_get_contents')
-            ->with($expectedFilePath)
-            ->andReturn($fileContent)
-        ;
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::ENV_VAR_FILENAME),
+            $fileContent
+        );
 
         $environmentVariableList = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
 
@@ -171,24 +158,11 @@ class ServiceConfigurationTest extends TestCase
         string $fileContent,
         ?string $expectedHealthCheckUrl
     ): void {
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
-
-        $mockNamespace = 'App\Services';
-
-        PHPMockery::mock($mockNamespace, 'file_exists')
-            ->with($expectedFilePath)
-            ->andReturn(true)
-        ;
-
-        PHPMockery::mock($mockNamespace, 'is_readable')
-            ->with($expectedFilePath)
-            ->andReturn(true)
-        ;
-
-        PHPMockery::mock($mockNamespace, 'file_get_contents')
-            ->with($expectedFilePath)
-            ->andReturn($fileContent)
-        ;
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            $fileContent
+        );
 
         $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($serviceId);
 
@@ -232,6 +206,24 @@ class ServiceConfigurationTest extends TestCase
                 'expectedHealthCheckUrl' => 'http://example.com/health-check',
             ],
         ];
+    }
+
+    private function createFileReadSuccessMocks(string $namespace, string $filePath, string $content): void
+    {
+        PHPMockery::mock($namespace, 'file_exists')
+            ->with($filePath)
+            ->andReturn(true)
+        ;
+
+        PHPMockery::mock($namespace, 'is_readable')
+            ->with($filePath)
+            ->andReturn(true)
+        ;
+
+        PHPMockery::mock($namespace, 'file_get_contents')
+            ->with($filePath)
+            ->andReturn($content)
+        ;
     }
 
     private function doTestFileIsNotReadable(
