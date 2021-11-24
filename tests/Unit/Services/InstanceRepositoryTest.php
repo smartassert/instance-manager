@@ -87,7 +87,7 @@ class InstanceRepositoryTest extends TestCase
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
-                'collectionTag' => $serviceId,
+                'serviceId' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => '',
                 'expectedCreatedUserData' => '# First-boot script' . "\n" .
@@ -99,7 +99,7 @@ class InstanceRepositoryTest extends TestCase
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                     ])
                 ),
-                'collectionTag' => $serviceId,
+                'serviceId' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => '',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
@@ -111,7 +111,7 @@ class InstanceRepositoryTest extends TestCase
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
-                'collectionTag' => $serviceId,
+                'serviceId' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => './scripts/first-boot.sh',
                 'expectedCreatedUserData' => '# First-boot script' . "\n" .
@@ -123,7 +123,7 @@ class InstanceRepositoryTest extends TestCase
                         DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
                     ])
                 ),
-                'collectionTag' => $serviceId,
+                'serviceId' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => './scripts/first-boot.sh',
                 'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .

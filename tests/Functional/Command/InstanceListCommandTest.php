@@ -98,7 +98,7 @@ class InstanceListCommandTest extends KernelTestCase
     public function runEmptyRequiredValueDataProvider(): array
     {
         return [
-            'empty collection tag' => [
+            'empty service id' => [
                 'input' => [],
                 'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
             ],

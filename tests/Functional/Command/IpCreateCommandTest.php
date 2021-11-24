@@ -56,7 +56,7 @@ class IpCreateCommandTest extends KernelTestCase
     public function runEmptyRequiredValueDataProvider(): array
     {
         return [
-            'empty collection tag' => [
+            'empty service id' => [
                 'input' => [
                     '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],

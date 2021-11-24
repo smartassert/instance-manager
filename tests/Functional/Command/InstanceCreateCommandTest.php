@@ -101,7 +101,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     public function runEmptyRequiredValueDataProvider(): array
     {
         return [
-            'empty collection tag' => [
+            'empty service id' => [
                 'input' => [
                     '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],
@@ -382,7 +382,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     {
         return [
             'no secrets, env var references missing secret' => [
-                'collectionTagOption' => 'service_id',
+                'serviceIdOption' => 'service_id',
                 'secretsJsonOption' => '',
                 'environmentVariableList' => new EnvironmentVariableList([
                     'key1={{ secrets.SERVICE_ID_SECRET_001 }}',
@@ -390,7 +390,7 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'expectedExceptionMessage' => 'Secret "SERVICE_ID_SECRET_001" not found',
             ],
             'has secrets, env var references missing secret not having service id as prefix' => [
-                'collectionTagOption' => 'service_id',
+                'serviceIdOption' => 'service_id',
                 'secretsJsonOption' => '',
                 'environmentVariableList' => new EnvironmentVariableList([
                     'key1={{ secrets.DIFFERENT_SERVICE_ID_SECRET_001 }}',
