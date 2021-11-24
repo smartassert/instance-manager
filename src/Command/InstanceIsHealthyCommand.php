@@ -7,6 +7,7 @@ use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\CommandInstanceRepository;
 use App\Services\InstanceClient;
+use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -37,6 +38,7 @@ class InstanceIsHealthyCommand extends Command
         private CommandConfigurator $configurator,
         private CommandInstanceRepository $commandInstanceRepository,
         private CommandInputReader $inputReader,
+        private ServiceConfiguration $serviceConfiguration,
     ) {
         parent::__construct();
     }
@@ -70,6 +72,11 @@ class InstanceIsHealthyCommand extends Command
             $output->write($this->commandInstanceRepository->getErrorMessage());
 
             return $this->commandInstanceRepository->getErrorCode();
+        }
+
+        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($collectionTag);
+        if (null === $healthCheckUrl) {
+            return Command::SUCCESS;
         }
 
         $result = $this->commandActionRunner->run(

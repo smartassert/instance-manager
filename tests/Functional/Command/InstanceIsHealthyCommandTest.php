@@ -3,6 +3,7 @@
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsHealthyCommand;
+use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -10,6 +11,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceIsHealthyCommandTest extends KernelTestCase
 {
@@ -171,10 +173,27 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
      */
     public function testRunSuccess(
         array $input,
+        ?string $healthCheckUrl,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
         string $expectedOutput
     ): void {
+        if (is_string($healthCheckUrl)) {
+            $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+            $serviceConfiguration
+                ->shouldReceive('getHealthCheckUrl')
+                ->with($input['--collection-tag'])
+                ->andReturn($healthCheckUrl)
+            ;
+
+            ObjectReflector::setProperty(
+                $this->command,
+                InstanceIsHealthyCommand::class,
+                'serviceConfiguration',
+                $serviceConfiguration
+            );
+        }
+
         foreach ($httpResponseDataCollection as $httpResponseData) {
             $this->mockHandler->append(
                 $this->httpResponseFactory->createFromArray($httpResponseData)
@@ -195,11 +214,34 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     public function runDataProvider(): array
     {
         return [
+            'no health check url' => [
+                'input' => [
+                    '--collection-tag' => 'service_id',
+                    '--id' => '123',
+                ],
+                'healthCheckUrl' => null,
+                'httpResponseDataCollection' => [
+                    [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplet' => [
+                                'code' => 123,
+                            ],
+                        ]),
+                    ],
+                ],
+                'expectedReturnCode' => Command::SUCCESS,
+                'expectedOutput' => '',
+            ],
             'no health data' => [
                 'input' => [
                     '--collection-tag' => 'service_id',
                     '--id' => '123',
                 ],
+                'healthCheckUrl' => '/health-check',
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -230,6 +272,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--retry-limit' => 1,
                     '--retry-delay' => 0,
                 ],
+                'healthCheckUrl' => '/health-check',
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -268,6 +311,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
+                'healthCheckUrl' => '/health-check',
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -312,6 +356,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
+                'healthCheckUrl' => '/health-check',
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -354,6 +399,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--collection-tag' => 'service_id',
                     '--id' => '123',
                 ],
+                'healthCheckUrl' => '/health-check',
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
