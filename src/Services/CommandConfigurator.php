@@ -8,7 +8,7 @@ use Symfony\Component\Console\Input\InputOption;
 
 class CommandConfigurator
 {
-    public function addCollectionTagOption(Command $command): self
+    public function addServiceIdOption(Command $command): self
     {
         $command->addOption(
             Option::OPTION_SERVICE_ID,

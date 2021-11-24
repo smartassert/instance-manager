@@ -49,7 +49,7 @@ class InstanceIsHealthyCommand extends Command
 
         $this->configurator
             ->addId($this)
-            ->addCollectionTagOption($this)
+            ->addServiceIdOption($this)
             ->addRetryLimitOption($this, self::DEFAULT_RETRY_LIMIT)
             ->addRetryDelayOption($this, self::DEFAULT_RETRY_DELAY)
         ;

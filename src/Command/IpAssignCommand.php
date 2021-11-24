@@ -53,7 +53,7 @@ class IpAssignCommand extends Command
     protected function configure(): void
     {
         $this->configurator
-            ->addCollectionTagOption($this)
+            ->addServiceIdOption($this)
             ->addImageIdOption($this)
         ;
     }
