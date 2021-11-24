@@ -74,7 +74,7 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
             'no first-boot script, has tags' => [
                 'firstBootScript' => '',
                 'tags' => [
-                    'instance-collection-tag-value',
+                    'service-id-value',
                     'instance-tag-value',
                 ],
                 'expected' => new Configuration(
@@ -90,7 +90,7 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
                     true,
                     [],
                     [
-                        'instance-collection-tag-value',
+                        'service-id-value',
                         'instance-tag-value',
                     ],
                 ),
@@ -98,7 +98,7 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
             'has first-boot script, has tags' => [
                 'firstBootScript' => './scripts/first-boot.sh',
                 'tags' => [
-                    'instance-collection-tag-value',
+                    'service-id-value',
                     'instance-tag-value',
                 ],
                 'expected' => new Configuration(
@@ -114,7 +114,7 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
                     true,
                     [],
                     [
-                        'instance-collection-tag-value',
+                        'service-id-value',
                         'instance-tag-value',
                     ],
                 ),

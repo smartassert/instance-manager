@@ -115,7 +115,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     public function runInvalidInputDataProvider(): array
     {
         return [
-            'collection-tag invalid, missing' => [
+            'service-id invalid, missing' => [
                 'input' => [
                     '--id' => '123',
                 ],

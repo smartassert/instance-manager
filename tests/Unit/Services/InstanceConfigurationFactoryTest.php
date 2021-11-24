@@ -33,7 +33,7 @@ class InstanceConfigurationFactoryTest extends TestCase
      */
     public function createDataProvider(): array
     {
-        $instanceCollectionTag = 'instance-collection-tag-value';
+        $instanceCollectionTag = 'service-id-value';
         $instanceTag = 'instance-tag-value';
 
         $tags = [$instanceCollectionTag, $instanceTag];
