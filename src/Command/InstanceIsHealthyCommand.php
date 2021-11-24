@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Services\CommandActionRunner;
+use App\Services\CommandConfigurator;
 use App\Services\InstanceClient;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
@@ -34,28 +35,19 @@ class InstanceIsHealthyCommand extends AbstractInstanceObjectCommand
         OutputFactory $outputFactory,
         private InstanceClient $instanceClient,
         private CommandActionRunner $commandActionRunner,
+        private CommandConfigurator $configurator,
     ) {
         parent::__construct($instanceRepository, $outputFactory);
     }
 
-    protected function getDefaultRetryLimit(): int
+    protected function configure(): void
     {
-        return self::DEFAULT_RETRY_LIMIT;
-    }
+        parent::configure();
 
-    protected function getDefaultRetryDelay(): int
-    {
-        return self::DEFAULT_RETRY_DELAY;
-    }
-
-    protected function getRetryLimitOptionName(): string
-    {
-        return self::OPTION_RETRY_LIMIT;
-    }
-
-    protected function getRetryDelayOptionName(): string
-    {
-        return self::OPTION_RETRY_DELAY;
+        $this->configurator
+            ->addRetryLimitOption($this, self::DEFAULT_RETRY_LIMIT)
+            ->addRetryDelayOption($this, self::DEFAULT_RETRY_DELAY)
+        ;
     }
 
     /**

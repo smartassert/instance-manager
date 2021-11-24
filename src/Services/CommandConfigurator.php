@@ -9,6 +9,8 @@ class CommandConfigurator
 {
     public const OPTION_COLLECTION_TAG = 'collection-tag';
     public const OPTION_IMAGE_ID = 'image-id';
+    public const OPTION_RETRY_LIMIT = 'retry-limit';
+    public const OPTION_RETRY_DELAY = 'retry-delay';
 
     public function addCollectionTagOption(Command $command): self
     {
@@ -29,6 +31,32 @@ class CommandConfigurator
             null,
             InputOption::VALUE_REQUIRED,
             'ID of image (snapshot)'
+        );
+
+        return $this;
+    }
+
+    public function addRetryLimitOption(Command $command, int $default): self
+    {
+        $command->addOption(
+            self::OPTION_RETRY_LIMIT,
+            null,
+            InputOption::VALUE_REQUIRED,
+            'How many times to retry command is not successful',
+            $default
+        );
+
+        return $this;
+    }
+
+    public function addRetryDelayOption(Command $command, int $default): self
+    {
+        $command->addOption(
+            self::OPTION_RETRY_DELAY,
+            null,
+            InputOption::VALUE_REQUIRED,
+            'How long to wait, in seconds, if command is not successful',
+            $default
         );
 
         return $this;
