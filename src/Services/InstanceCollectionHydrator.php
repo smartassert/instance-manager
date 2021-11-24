@@ -12,14 +12,14 @@ class InstanceCollectionHydrator
     ) {
     }
 
-    public function hydrate(InstanceCollection $collection): InstanceCollection
+    public function hydrate(InstanceCollection $collection, string $stateUrl): InstanceCollection
     {
         $hydratedInstances = [];
 
         foreach ($collection as $instance) {
             try {
                 $hydratedInstances[] = $instance->withAdditionalState(
-                    $this->instanceClient->getState($instance)
+                    $this->instanceClient->getState($instance, $stateUrl)
                 );
             } catch (ClientExceptionInterface) {
                 // Intentionally ignore HTTP exceptions

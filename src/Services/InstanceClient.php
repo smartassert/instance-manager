@@ -13,7 +13,6 @@ class InstanceClient
     public function __construct(
         private ClientInterface $httpClient,
         private RequestFactoryInterface $requestFactory,
-        private string $stateUrl,
     ) {
     }
 
@@ -22,10 +21,8 @@ class InstanceClient
      *
      * @return array<int|string, mixed>
      */
-    public function getState(Instance $instance, ?string $stateUrl = null): array
+    public function getState(Instance $instance, string $stateUrl): array
     {
-        $stateUrl = is_string($stateUrl) ? $stateUrl : $this->stateUrl;
-
         $url = $instance->getUrl() . $stateUrl;
         $request = $this->requestFactory->createRequest('GET', $url);
 

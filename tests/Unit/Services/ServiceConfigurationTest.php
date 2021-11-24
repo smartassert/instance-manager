@@ -219,7 +219,7 @@ class ServiceConfigurationTest extends TestCase
                 return $this->serviceConfiguration->getStateUrl($serviceId);
             },
             function ($result) {
-                self::assertNull($result);
+                self::assertSame('', $result);
             }
         );
     }
@@ -235,7 +235,7 @@ class ServiceConfigurationTest extends TestCase
                 return $this->serviceConfiguration->getStateUrl($serviceId);
             },
             function ($result) {
-                self::assertNull($result);
+                self::assertSame('', $result);
             }
         );
     }
@@ -254,9 +254,9 @@ class ServiceConfigurationTest extends TestCase
             $fileContent
         );
 
-        $healthCheckUrl = $this->serviceConfiguration->getStateUrl($serviceId);
+        $stateUrl = $this->serviceConfiguration->getStateUrl($serviceId);
 
-        self::assertEquals($expectedStateUrl, $healthCheckUrl);
+        self::assertSame($expectedStateUrl, $stateUrl);
     }
 
     /**
@@ -268,27 +268,27 @@ class ServiceConfigurationTest extends TestCase
             'empty' => [
                 'serviceId' => 'service1',
                 'fileContent' => '{}',
-                'expectedStateUrl' => null,
+                'expectedStateUrl' => '',
             ],
             'content not a json array' => [
                 'serviceId' => 'service1',
                 'fileContent' => 'true',
-                'expectedStateUrl' => null,
+                'expectedStateUrl' => '',
             ],
             'single invalid item, key not a string' => [
                 'serviceId' => 'service2',
                 'fileContent' => '{0:"value1"}',
-                'expectedStateUrl' => null,
+                'expectedStateUrl' => '',
             ],
             'single invalid item, value not a string' => [
                 'serviceId' => 'service2',
                 'fileContent' => '{"key1":true}',
-                'expectedStateUrl' => null,
+                'expectedStateUrl' => '',
             ],
             'invalid, not a string' => [
                 'serviceId' => 'service2',
                 'fileContent' => '{"state_url":true}',
-                'expectedStateUrl' => null,
+                'expectedStateUrl' => '',
             ],
             'valid' => [
                 'serviceId' => 'service2',

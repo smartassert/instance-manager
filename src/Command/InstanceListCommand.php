@@ -9,6 +9,7 @@ use App\Services\CommandInputReader;
 use App\Services\FilterFactory;
 use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
+use App\Services\ServiceConfiguration;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -28,9 +29,16 @@ class InstanceListCommand extends AbstractInstanceListCommand
         InstanceCollectionHydrator $instanceCollectionHydrator,
         CommandConfigurator $configurator,
         CommandInputReader $inputReader,
+        ServiceConfiguration $serviceConfiguration,
         private FilterFactory $filterFactory,
     ) {
-        parent::__construct($instanceRepository, $instanceCollectionHydrator, $configurator, $inputReader);
+        parent::__construct(
+            $instanceRepository,
+            $instanceCollectionHydrator,
+            $configurator,
+            $inputReader,
+            $serviceConfiguration
+        );
     }
 
     protected function configure(): void

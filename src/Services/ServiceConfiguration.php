@@ -36,12 +36,12 @@ class ServiceConfiguration
         return is_string($healthCheckUrl) ? $healthCheckUrl : null;
     }
 
-    public function getStateUrl(string $serviceId): ?string
+    public function getStateUrl(string $serviceId): string
     {
         $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);
-        $healthCheckUrl = $data['state_url'] ?? null;
+        $stateUrl = $data['state_url'] ?? null;
 
-        return is_string($healthCheckUrl) ? $healthCheckUrl : null;
+        return is_string($stateUrl) ? $stateUrl : '';
     }
 
     /**
