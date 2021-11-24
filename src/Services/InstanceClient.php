@@ -14,7 +14,6 @@ class InstanceClient
         private ClientInterface $httpClient,
         private RequestFactoryInterface $requestFactory,
         private string $stateUrl,
-        private ServiceConfiguration $serviceConfiguration,
     ) {
     }
 
@@ -42,9 +41,9 @@ class InstanceClient
     /**
      * @throws ClientExceptionInterface
      */
-    public function getHealth(string $serviceId, Instance $instance): ResponseInterface
+    public function getHealth(Instance $instance, string $healthCheckUrl): ResponseInterface
     {
-        $url = $instance->getUrl() . $this->serviceConfiguration->getHealthCheckUrl($serviceId);
+        $url = $instance->getUrl() . $healthCheckUrl;
         $request = $this->requestFactory->createRequest('GET', $url);
 
         return $this->httpClient->sendRequest($request);

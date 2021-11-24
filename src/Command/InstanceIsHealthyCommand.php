@@ -7,6 +7,7 @@ use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\CommandInstanceRepository;
 use App\Services\InstanceClient;
+use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -37,6 +38,7 @@ class InstanceIsHealthyCommand extends Command
         private CommandConfigurator $configurator,
         private CommandInstanceRepository $commandInstanceRepository,
         private CommandInputReader $inputReader,
+        private ServiceConfiguration $serviceConfiguration,
     ) {
         parent::__construct();
     }
@@ -72,12 +74,17 @@ class InstanceIsHealthyCommand extends Command
             return $this->commandInstanceRepository->getErrorCode();
         }
 
+        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($collectionTag);
+        if (null === $healthCheckUrl) {
+            return Command::SUCCESS;
+        }
+
         $result = $this->commandActionRunner->run(
             $this->getRetryLimit($input),
             $this->getRetryDelay($input),
             $output,
-            function (bool $isLastAttempt) use ($collectionTag, $output, $instance): bool {
-                $response = $this->instanceClient->getHealth($collectionTag, $instance);
+            function (bool $isLastAttempt) use ($healthCheckUrl, $output, $instance): bool {
+                $response = $this->instanceClient->getHealth($instance, $healthCheckUrl);
                 $isHealthy = 200 === $response->getStatusCode();
 
                 $output->write($response->getBody()->getContents());
