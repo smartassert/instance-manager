@@ -11,6 +11,7 @@ class CommandConfigurator
     public const OPTION_IMAGE_ID = 'image-id';
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
+    public const OPTION_ID = 'id';
 
     public function addCollectionTagOption(Command $command): self
     {
@@ -57,6 +58,18 @@ class CommandConfigurator
             InputOption::VALUE_REQUIRED,
             'How long to wait, in seconds, if command is not successful',
             $default
+        );
+
+        return $this;
+    }
+
+    public function addId(Command $command): self
+    {
+        $command->addOption(
+            self::OPTION_ID,
+            null,
+            InputOption::VALUE_REQUIRED,
+            'ID of the instance'
         );
 
         return $this;

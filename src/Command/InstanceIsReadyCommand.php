@@ -4,9 +4,8 @@ namespace App\Command;
 
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
+use App\Services\CommandInstanceRepository;
 use App\Services\InstanceClient;
-use App\Services\InstanceRepository;
-use App\Services\OutputFactory;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -17,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: InstanceIsReadyCommand::NAME,
     description: 'Check if an instance is ready to be used',
 )]
-class InstanceIsReadyCommand extends AbstractInstanceObjectCommand
+class InstanceIsReadyCommand extends Command
 {
     use RetryableCommandTrait;
 
@@ -31,13 +30,12 @@ class InstanceIsReadyCommand extends AbstractInstanceObjectCommand
     public const DEFAULT_RETRY_DELAY = 30;
 
     public function __construct(
-        InstanceRepository $instanceRepository,
-        OutputFactory $outputFactory,
         private InstanceClient $instanceClient,
         private CommandActionRunner $commandActionRunner,
         private CommandConfigurator $configurator,
+        private CommandInstanceRepository $commandInstanceRepository,
     ) {
-        parent::__construct($instanceRepository, $outputFactory);
+        parent::__construct();
     }
 
     protected function configure(): void
@@ -45,6 +43,7 @@ class InstanceIsReadyCommand extends AbstractInstanceObjectCommand
         parent::configure();
 
         $this->configurator
+            ->addId($this)
             ->addRetryLimitOption($this, self::DEFAULT_RETRY_LIMIT)
             ->addRetryDelayOption($this, self::DEFAULT_RETRY_DELAY)
         ;
@@ -55,12 +54,12 @@ class InstanceIsReadyCommand extends AbstractInstanceObjectCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $parentExitCode = parent::execute($input, $output);
-        if (Command::SUCCESS !== $parentExitCode) {
-            return $parentExitCode;
-        }
+        $instance = $this->commandInstanceRepository->get($input);
+        if (null === $instance) {
+            $output->write($this->commandInstanceRepository->getErrorMessage());
 
-        $instance = $this->getInstance();
+            return $this->commandInstanceRepository->getErrorCode();
+        }
 
         $result = $this->commandActionRunner->run(
             $this->getRetryLimit($input),

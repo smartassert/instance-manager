@@ -15,4 +15,11 @@ class CommandInputReader
 
         return trim($value);
     }
+
+    public function getIntegerOption(string $name, InputInterface $input): ?int
+    {
+        $value = $input->getOption($name);
+
+        return is_int($value) || is_string($value) && ctype_digit($value) ? (int) $value : null;
+    }
 }
