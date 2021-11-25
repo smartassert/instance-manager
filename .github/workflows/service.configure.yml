@@ -86,6 +86,12 @@ jobs:
           --health-check-url='${{ steps.health_check_url.outputs.value }}' \
           --state-url='${{ steps.state_url.outputs.value }}'
 
+      - name: Remove cruft
+        run: |
+          rm -Rf DOCKER_ENV
+          rm -Rf docker_tag
+          rm -Rf output.log
+
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
