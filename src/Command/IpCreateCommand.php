@@ -13,6 +13,7 @@ use App\Services\FloatingIpManager;
 use App\Services\FloatingIpRepository;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
+use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -29,8 +30,8 @@ class IpCreateCommand extends Command
 
     public const EXIT_CODE_NO_CURRENT_INSTANCE = 3;
     public const EXIT_CODE_HAS_IP = 4;
-    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 5;
-    public const EXIT_CODE_EMPTY_TAG = 6;
+    public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
+    public const EXIT_CODE_MISSING_IMAGE_ID = 6;
 
     private const MICROSECONDS_PER_SECOND = 1000000;
 
@@ -42,6 +43,7 @@ class IpCreateCommand extends Command
         private OutputFactory $outputFactory,
         private CommandConfigurator $configurator,
         private CommandInputReader $inputReader,
+        private ServiceConfiguration $serviceConfiguration,
         private int $assigmentTimeoutInSeconds,
         private int $assignmentRetryInSeconds,
     ) {
@@ -50,10 +52,7 @@ class IpCreateCommand extends Command
 
     protected function configure(): void
     {
-        $this->configurator
-            ->addServiceIdOption($this)
-            ->addImageIdOption($this)
-        ;
+        $this->configurator->addServiceIdOption($this);
     }
 
     /**
@@ -66,14 +65,14 @@ class IpCreateCommand extends Command
         if ('' === $serviceId) {
             $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
-            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
+            return self::EXIT_CODE_EMPTY_SERVICE_ID;
         }
 
-        $imageId = $this->inputReader->getTrimmedStringOption(Option::OPTION_IMAGE_ID, $input);
-        if ('' === $imageId) {
-            $output->writeln('"' . Option::OPTION_IMAGE_ID . '" option empty');
+        $imageId = $this->serviceConfiguration->getImageId($serviceId);
+        if (null === $imageId) {
+            $output->writeln('image_id missing');
 
-            return self::EXIT_CODE_EMPTY_TAG;
+            return self::EXIT_CODE_MISSING_IMAGE_ID;
         }
 
         $instance = $this->instanceRepository->findCurrent($serviceId, $imageId);
