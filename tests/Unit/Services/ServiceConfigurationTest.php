@@ -345,6 +345,58 @@ class ServiceConfigurationTest extends TestCase
         ];
     }
 
+    public function testSetConfigurationWriteFailureUnableToCreateDirectory(): void
+    {
+        $serviceId = 'service_id';
+        $serviceConfiguration = new ServiceConfigurationModel($serviceId, '', '');
+        $dataDirectoryPath = $this->createExpectedDataDirectoryPath($serviceId);
+
+        $this->mockFileExistsDoesNotExist($dataDirectoryPath);
+        $this->mockMkdir($dataDirectoryPath, false);
+
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
+
+        self::assertFalse($result);
+    }
+
+    public function testSetConfigurationWriteFailureUnableToWriteToFile(): void
+    {
+        $serviceId = 'service_id';
+        $healthCheckUrl = '/health-check';
+        $stateUrl = '/state';
+
+        $serviceConfiguration = new ServiceConfigurationModel($serviceId, $healthCheckUrl, $stateUrl);
+        $dataDirectoryPath = $this->createExpectedDataDirectoryPath($serviceId);
+        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
+
+        $this->mockFileExistsDoesNotExist($dataDirectoryPath);
+        $this->mockMkdir($dataDirectoryPath, true);
+        $this->mockFilePutContents($expectedFilePath, $healthCheckUrl, $stateUrl, false);
+
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
+
+        self::assertFalse($result);
+    }
+
+    public function testSetConfigurationSuccess(): void
+    {
+        $serviceId = 'service_id';
+        $healthCheckUrl = '/health-check';
+        $stateUrl = '/state';
+
+        $serviceConfiguration = new ServiceConfigurationModel($serviceId, $healthCheckUrl, $stateUrl);
+        $dataDirectoryPath = $this->createExpectedDataDirectoryPath($serviceId);
+        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
+
+        $this->mockFileExistsDoesNotExist($dataDirectoryPath);
+        $this->mockMkdir($dataDirectoryPath, true);
+        $this->mockFilePutContents($expectedFilePath, $healthCheckUrl, $stateUrl, 123);
+
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
+
+        self::assertTrue($result);
+    }
+
     private function createFileReadSuccessMocks(string $namespace, string $filePath, string $content): void
     {
         PHPMockery::mock($namespace, 'file_exists')
@@ -415,13 +467,65 @@ class ServiceConfigurationTest extends TestCase
         $assertions($result);
     }
 
+    private function createExpectedDataDirectoryPath(string $serviceId): string
+    {
+        return sprintf(
+            '%s/%s',
+            self::SERVICE_CONFIGURATION_DIRECTORY,
+            $serviceId
+        );
+    }
+
     private function createExpectedDataFilePath(string $serviceId, string $filename): string
     {
         return sprintf(
-            '%s/%s/%s',
-            self::SERVICE_CONFIGURATION_DIRECTORY,
-            $serviceId,
+            '%s/%s',
+            $this->createExpectedDataDirectoryPath($serviceId),
             $filename
         );
+    }
+
+    private function mockFileExistsDoesNotExist(string $path): void
+    {
+        PHPMockery::mock('App\Services', 'file_exists')
+            ->with($path)
+            ->andReturn(false)
+        ;
+    }
+
+    private function mockMkdir(string $path, bool $return): void
+    {
+        PHPMockery::mock('App\Services', 'mkdir')
+            ->withArgs(function ($directory, $recursive) use ($path) {
+                self::assertSame($path, $directory);
+                self::assertTrue($recursive);
+
+                return true;
+            })
+            ->andReturn($return)
+        ;
+    }
+
+    private function mockFilePutContents(
+        string $expectedFilePath,
+        string $healthCheckUrl,
+        string $stateUrl,
+        bool|int $return
+    ): void {
+        PHPMockery::mock('App\Services', 'file_put_contents')
+            ->withArgs(function ($filePath, $content) use ($expectedFilePath, $healthCheckUrl, $stateUrl) {
+                self::assertSame($expectedFilePath, $filePath);
+
+                $expectedContentData = [
+                    'health_check_url' => $healthCheckUrl,
+                    'state_url' => $stateUrl,
+                ];
+
+                self::assertSame((string) json_encode($expectedContentData, JSON_PRETTY_PRINT), $content);
+
+                return true;
+            })
+            ->andReturn($return)
+        ;
     }
 }
