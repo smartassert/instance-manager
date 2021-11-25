@@ -45,15 +45,6 @@ class ServiceConfiguration
         return is_string($imageId) ? $imageId : null;
     }
 
-    public function getStateUrl(string $serviceId): ?string
-    {
-        $configuration = $this->getServiceConfiguration($serviceId);
-
-        return $configuration instanceof ServiceConfigurationModel
-            ? $configuration->getStateUrl()
-            : null;
-    }
-
     public function getServiceConfiguration(string $serviceId): ?ServiceConfigurationModel
     {
         $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);

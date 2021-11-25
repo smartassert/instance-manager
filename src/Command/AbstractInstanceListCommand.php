@@ -65,7 +65,7 @@ abstract class AbstractInstanceListCommand extends Command
      */
     private function findInstances(string $serviceId, array $filters): InstanceCollection
     {
-        $stateUrl = (string) $this->serviceConfiguration->getStateUrl($serviceId);
+        $stateUrl = (string) $this->serviceConfiguration->getServiceConfiguration($serviceId)?->getStateUrl();
         $instances = $this->instanceRepository->findAll($serviceId);
         $instances = $this->instanceCollectionHydrator->hydrate($instances, $stateUrl);
 
