@@ -4,18 +4,24 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\IpCreateCommand;
 use App\Command\Option;
+use App\Services\ServiceConfiguration;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
+use webignition\ObjectReflector\ObjectReflector;
 
 class IpCreateCommandTest extends KernelTestCase
 {
-    private const COLLECTION_TAG = 'service_id';
+    use MockeryPHPUnitIntegration;
+
+    private const SERVICE_ID = 'service_id';
+    private const IMAGE_ID = '12345';
 
     private IpCreateCommand $command;
     private MockHandler $mockHandler;
@@ -57,18 +63,25 @@ class IpCreateCommandTest extends KernelTestCase
     {
         return [
             'empty service id' => [
-                'input' => [
-                    '--' . Option::OPTION_IMAGE_ID => '123456',
-                ],
-                'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
-            ],
-            'empty tag' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                ],
-                'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_TAG,
+                'input' => [],
+                'expectedReturnCode' => IpCreateCommand::EXIT_CODE_EMPTY_SERVICE_ID,
             ],
         ];
+    }
+
+    public function testRunImageIdMissing(): void
+    {
+        $input = new ArrayInput([
+            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
+        ]);
+
+        $output = new BufferedOutput();
+
+        $this->mockServiceConfigurationGetImageId(null);
+
+        $commandReturnCode = $this->command->run($input, $output);
+
+        self::assertSame(IpCreateCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
     }
 
     /**
@@ -89,9 +102,10 @@ class IpCreateCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
-            '--' . Option::OPTION_IMAGE_ID => '123456',
+            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
         ]);
+
+        $this->mockServiceConfigurationGetImageId(self::IMAGE_ID);
 
         $exitCode = $this->command->run($input, $output);
 
@@ -150,7 +164,7 @@ class IpCreateCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::COLLECTION_TAG,
+                                            self::SERVICE_ID,
                                         ],
                                     ],
                                 ],
@@ -218,5 +232,22 @@ class IpCreateCommandTest extends KernelTestCase
                 ]),
             ],
         ];
+    }
+
+    private function mockServiceConfigurationGetImageId(?string $imageId): void
+    {
+        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+        $serviceConfiguration
+            ->shouldReceive('getImageId')
+            ->with(self::SERVICE_ID)
+            ->andReturn($imageId)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            $serviceConfiguration
+        );
     }
 }
