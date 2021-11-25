@@ -15,6 +15,11 @@ class ServiceConfiguration
     ) {
     }
 
+    public function exists(string $serviceId): bool
+    {
+        return $this->jsonFileExists($serviceId, self::CONFIGURATION_FILENAME);
+    }
+
     public function getEnvironmentVariables(string $serviceId): EnvironmentVariableList
     {
         $data = $this->readJsonFileToArray($serviceId, self::ENV_VAR_FILENAME);
@@ -46,15 +51,23 @@ class ServiceConfiguration
         );
     }
 
+    private function jsonFileExists(string $serviceId, string $filename): bool
+    {
+        $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . $filename;
+
+        return file_exists($filePath) && is_readable($filePath);
+    }
+
     /**
      * @return array<mixed>
      */
     private function readJsonFileToArray(string $serviceId, string $filename): array
     {
-        $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . $filename;
-        if (!file_exists($filePath) || !is_readable($filePath)) {
+        if (false === $this->jsonFileExists($serviceId, $filename)) {
             return [];
         }
+
+        $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . $filename;
 
         $content = (string) file_get_contents($filePath);
         $data = json_decode($content, true);

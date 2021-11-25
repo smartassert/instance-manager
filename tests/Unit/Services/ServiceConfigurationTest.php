@@ -237,6 +237,51 @@ class ServiceConfigurationTest extends TestCase
         return $this->createConfigurationPropertyAccessDataProvider(ServiceConfigurationModel::KEY_STATE_URL);
     }
 
+    public function testExistsDoesNotExist(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileDoesNotExist(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->exists($serviceId);
+            },
+            function ($result) {
+                self::assertFalse($result);
+            }
+        );
+    }
+
+    public function testExistsIsNotReadable(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileIsNotReadable(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->exists($serviceId);
+            },
+            function ($result) {
+                self::assertFalse($result);
+            }
+        );
+    }
+
+    public function testExistsDoesExist(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            ''
+        );
+
+        self::assertTrue($this->serviceConfiguration->exists($serviceId));
+    }
+
     /**
      * @return array<mixed>
      */
