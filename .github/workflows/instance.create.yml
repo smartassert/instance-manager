@@ -18,38 +18,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Checkout bash-ga-ci-tools
-        uses: actions/checkout@v2
-        with:
-          repository: smartassert/bash-ga-ci-tools
-          path: ./vendor/smartassert/bash-ga-ci-tools
-          ref: main
-
-      - name: Read image id
-        id: image_id
-        env:
-          CONFIGURATION_PATH: ./services/${{ github.event.inputs.service_id }}/image.json
-        run: |
-          if [ ! -f "$CONFIGURATION_PATH" ]; then
-            echo "Image configuration for service ${{ github.event.inputs.service_id }} not found: $CONFIGURATION_PATH"
-            exit 1
-          fi
-
-          ./vendor/smartassert/bash-ga-ci-tools/src/create-ga-outputs-from-json-scalar-object.sh < "$CONFIGURATION_PATH"
-
-      - name: Checkout bash-ga-deploy-tools
-        uses: actions/checkout@v2
-        with:
-          repository: smartassert/bash-ga-deploy-tools
-          path: ./vendor/smartassert/bash-ga-deploy-tools
-          ref: main
-
-      - name: Check snapshot exists
-        env:
-          IMAGE_ID: ${{ steps.image_id.outputs.image_id }}
-          EXPECTED_EXISTS: "true"
-        run: ./vendor/smartassert/bash-ga-deploy-tools/src/digitalocean-snapshot/verify-existence.sh
-
       - name: Setup php
         uses: shivammathur/setup-php@v2
         with:
@@ -59,6 +27,11 @@ jobs:
         uses: php-actions/composer@v6
         with:
           args: --ignore-platform-reqs --quiet
+
+      - name: Check service image exists
+        run: |
+          php bin/console app:image:exists \
+          --service-id='${{ github.event.inputs.service_id }}'
 
       - name: Create
         id: instance

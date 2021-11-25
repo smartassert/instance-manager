@@ -71,6 +71,9 @@ services:
     DigitalOceanV2\Api\FloatingIp:
         class: DigitalOceanV2\Api\FloatingIp
 
+    DigitalOceanV2\Api\Image:
+        class: DigitalOceanV2\Api\Image
+
     SmartAssert\DigitalOceanDropletConfiguration\Factory:
         arguments:
             $defaults:
