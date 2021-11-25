@@ -84,7 +84,7 @@ jobs:
           php bin/console app:service-configuration:set \
           --service-id='${{ github.event.inputs.service_id }}' \
           --health-check-url='${{ steps.health_check_url.outputs.value }}' \
-          --state-urls='${{ steps.state_url.outputs.value }}'
+          --state-url='${{ steps.state_url.outputs.value }}'
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
