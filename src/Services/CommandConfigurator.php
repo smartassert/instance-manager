@@ -20,18 +20,6 @@ class CommandConfigurator
         return $this;
     }
 
-    public function addImageIdOption(Command $command): self
-    {
-        $command->addOption(
-            Option::OPTION_IMAGE_ID,
-            null,
-            InputOption::VALUE_REQUIRED,
-            'ID of image (snapshot)'
-        );
-
-        return $this;
-    }
-
     public function addRetryLimitOption(Command $command, int $default): self
     {
         $command->addOption(

@@ -9,6 +9,7 @@ class ServiceConfiguration
 {
     public const ENV_VAR_FILENAME = 'env.json';
     public const CONFIGURATION_FILENAME = 'configuration.json';
+    public const IMAGE_FILENAME = 'image.json';
 
     public function __construct(
         private string $configurationDirectory,
@@ -32,6 +33,14 @@ class ServiceConfiguration
         }
 
         return new EnvironmentVariableList($environmentVariables);
+    }
+
+    public function getImageId(string $serviceId): ?string
+    {
+        $data = $this->readJsonFileToArray($serviceId, self::IMAGE_FILENAME);
+        $imageId = $data['image_id'] ?? null;
+
+        return is_string($imageId) ? $imageId : null;
     }
 
     public function getHealthCheckUrl(string $serviceId): ?string
