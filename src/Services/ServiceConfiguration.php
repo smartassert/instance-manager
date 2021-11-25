@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Model\EnvironmentVariableList;
+use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 
 class ServiceConfiguration
 {
@@ -30,18 +31,19 @@ class ServiceConfiguration
 
     public function getHealthCheckUrl(string $serviceId): ?string
     {
-        $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);
-        $healthCheckUrl = $data['health_check_url'] ?? null;
-
-        return is_string($healthCheckUrl) ? $healthCheckUrl : null;
+        return $this->createServiceConfiguration($serviceId)->getHealthCheckUrl();
     }
 
-    public function getStateUrl(string $serviceId): string
+    public function getStateUrl(string $serviceId): ?string
     {
-        $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);
-        $stateUrl = $data['state_url'] ?? null;
+        return $this->createServiceConfiguration($serviceId)->getStateUrl();
+    }
 
-        return is_string($stateUrl) ? $stateUrl : '';
+    private function createServiceConfiguration(string $serviceId): ServiceConfigurationModel
+    {
+        return ServiceConfigurationModel::create(
+            $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME)
+        );
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace App\Tests\Unit\Services;
 
 use App\Model\EnvironmentVariableList;
+use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\ServiceConfiguration;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use phpmock\mockery\PHPMockery;
@@ -174,38 +175,7 @@ class ServiceConfigurationTest extends TestCase
      */
     public function getHealthCheckUrlSuccessDataProvider(): array
     {
-        return [
-            'empty' => [
-                'serviceId' => 'service1',
-                'fileContent' => '{}',
-                'expectedHealthCheckUrl' => null,
-            ],
-            'content not a json array' => [
-                'serviceId' => 'service1',
-                'fileContent' => 'true',
-                'expectedHealthCheckUrl' => null,
-            ],
-            'single invalid item, key not a string' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{0:"value1"}',
-                'expectedHealthCheckUrl' => null,
-            ],
-            'single invalid item, value not a string' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{"key1":true}',
-                'expectedHealthCheckUrl' => null,
-            ],
-            'invalid, not a string' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{"health_check_url":true}',
-                'expectedHealthCheckUrl' => null,
-            ],
-            'valid' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{"health_check_url":"http://example.com/health-check"}',
-                'expectedHealthCheckUrl' => 'http://example.com/health-check',
-            ],
-        ];
+        return $this->createConfigurationPropertyAccessDataProvider(ServiceConfigurationModel::KEY_HEALTH_CHECK_URL);
     }
 
     public function testGetStateUrlFileDoesNotExist(): void
@@ -219,7 +189,7 @@ class ServiceConfigurationTest extends TestCase
                 return $this->serviceConfiguration->getStateUrl($serviceId);
             },
             function ($result) {
-                self::assertSame('', $result);
+                self::assertNull($result);
             }
         );
     }
@@ -235,7 +205,7 @@ class ServiceConfigurationTest extends TestCase
                 return $this->serviceConfiguration->getStateUrl($serviceId);
             },
             function ($result) {
-                self::assertSame('', $result);
+                self::assertNull($result);
             }
         );
     }
@@ -264,35 +234,43 @@ class ServiceConfigurationTest extends TestCase
      */
     public function getStateUrlSuccessDataProvider(): array
     {
+        return $this->createConfigurationPropertyAccessDataProvider(ServiceConfigurationModel::KEY_STATE_URL);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    private function createConfigurationPropertyAccessDataProvider(string $key): array
+    {
         return [
             'empty' => [
                 'serviceId' => 'service1',
                 'fileContent' => '{}',
-                'expectedStateUrl' => '',
+                'expectedStateUrl' => null,
             ],
             'content not a json array' => [
                 'serviceId' => 'service1',
                 'fileContent' => 'true',
-                'expectedStateUrl' => '',
+                'expectedStateUrl' => null,
             ],
             'single invalid item, key not a string' => [
                 'serviceId' => 'service2',
                 'fileContent' => '{0:"value1"}',
-                'expectedStateUrl' => '',
+                'expectedStateUrl' => null,
             ],
             'single invalid item, value not a string' => [
                 'serviceId' => 'service2',
                 'fileContent' => '{"key1":true}',
-                'expectedStateUrl' => '',
+                'expectedStateUrl' => null,
             ],
             'invalid, not a string' => [
                 'serviceId' => 'service2',
-                'fileContent' => '{"state_url":true}',
-                'expectedStateUrl' => '',
+                'fileContent' => '{"' . $key . '":true}',
+                'expectedStateUrl' => null,
             ],
             'valid' => [
                 'serviceId' => 'service2',
-                'fileContent' => '{"state_url":"http://example.com/health-check"}',
+                'fileContent' => '{"' . $key . '":"http://example.com/health-check"}',
                 'expectedStateUrl' => 'http://example.com/health-check',
             ],
         ];
