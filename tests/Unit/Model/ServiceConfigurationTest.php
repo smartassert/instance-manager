@@ -12,9 +12,9 @@ class ServiceConfigurationTest extends TestCase
      *
      * @param array<mixed> $data
      */
-    public function testCreate(array $data, ServiceConfiguration $expectedConfiguration): void
+    public function testCreate(string $serviceId, array $data, ServiceConfiguration $expectedConfiguration): void
     {
-        self::assertEquals($expectedConfiguration, ServiceConfiguration::create($data));
+        self::assertEquals($expectedConfiguration, ServiceConfiguration::create($serviceId, $data));
     }
 
     /**
@@ -22,43 +22,51 @@ class ServiceConfigurationTest extends TestCase
      */
     public function createDataProvider(): array
     {
+        $serviceId = 'service_id';
+
         return [
             'empty' => [
+                'serviceId' => $serviceId,
                 'data' => [],
-                'expectedConfiguration' => new ServiceConfiguration(null, null)
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, null, null)
             ],
             'invalid health check url, not a string' => [
+                'serviceId' => $serviceId,
                 'data' => [
                     ServiceConfiguration::KEY_HEALTH_CHECK_URL => true,
                 ],
-                'expectedConfiguration' => new ServiceConfiguration(null, null)
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, null, null)
             ],
             'invalid state url, not a string' => [
+                'serviceId' => $serviceId,
                 'data' => [
                     ServiceConfiguration::KEY_STATE_URL => true,
                 ],
-                'expectedConfiguration' => new ServiceConfiguration(null, null)
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, null, null)
             ],
             'health check url valid, state url invalid' => [
+                'serviceId' => $serviceId,
                 'data' => [
                     ServiceConfiguration::KEY_HEALTH_CHECK_URL => '/health-check',
                     ServiceConfiguration::KEY_STATE_URL => true,
                 ],
-                'expectedConfiguration' => new ServiceConfiguration('/health-check', null)
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, '/health-check', null)
             ],
             'health check url invalid, state url valid' => [
+                'serviceId' => $serviceId,
                 'data' => [
                     ServiceConfiguration::KEY_HEALTH_CHECK_URL => true,
                     ServiceConfiguration::KEY_STATE_URL => '/',
                 ],
-                'expectedConfiguration' => new ServiceConfiguration(null, '/')
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, null, '/')
             ],
             'valid' => [
+                'serviceId' => $serviceId,
                 'data' => [
                     ServiceConfiguration::KEY_HEALTH_CHECK_URL => '/health-check',
                     ServiceConfiguration::KEY_STATE_URL => '/',
                 ],
-                'expectedConfiguration' => new ServiceConfiguration('/health-check', '/')
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, '/health-check', '/')
             ],
         ];
     }

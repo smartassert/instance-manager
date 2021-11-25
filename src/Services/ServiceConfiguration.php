@@ -56,6 +56,7 @@ class ServiceConfiguration
     private function createServiceConfiguration(string $serviceId): ServiceConfigurationModel
     {
         return ServiceConfigurationModel::create(
+            $serviceId,
             $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME)
         );
     }
