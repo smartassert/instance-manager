@@ -37,14 +37,7 @@ jobs:
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
-        run: |
-          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
-          if [ "" = "$VALUE" ]; then
-            echo "service_id not set"
-            exit 1
-          fi
-
-          echo "::set-output name=value::$VALUE"
+        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
 
       - name: Set state_url
         id: state_url
