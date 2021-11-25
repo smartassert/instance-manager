@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: InstanceCreateCommand::NAME,
+    name: ServiceConfigurationExistsCommand::NAME,
     description: 'Check if configuration exists for a given service_id',
 )]
 class ServiceConfigurationExistsCommand extends Command
