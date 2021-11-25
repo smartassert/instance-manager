@@ -6,9 +6,11 @@ use App\Command\IpAssignCommand;
 use App\Command\Option;
 use App\Exception\ActionTimeoutException;
 use App\Services\ActionRunner;
+use App\Services\ServiceConfiguration;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -18,7 +20,9 @@ use webignition\ObjectReflector\ObjectReflector;
 
 class IpAssignCommandTest extends KernelTestCase
 {
-    private const COLLECTION_TAG = 'service_id';
+    use MockeryPHPUnitIntegration;
+
+    private const SERVICE_ID = 'service_id';
     private const IMAGE_ID = '123456';
 
     private IpAssignCommand $command;
@@ -61,18 +65,25 @@ class IpAssignCommandTest extends KernelTestCase
     {
         return [
             'empty service id' => [
-                'input' => [
-                    '--' . Option::OPTION_IMAGE_ID => self::IMAGE_ID,
-                ],
+                'input' => [],
                 'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_SERVICE_ID,
             ],
-            'empty tag' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
-                ],
-                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_TAG,
-            ],
         ];
+    }
+
+    public function testRunImageIdMissing(): void
+    {
+        $input = new ArrayInput([
+            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
+        ]);
+
+        $output = new BufferedOutput();
+
+        $this->mockServiceConfigurationGetImageId(null);
+
+        $commandReturnCode = $this->command->run($input, $output);
+
+        self::assertSame(IpAssignCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
     }
 
     /**
@@ -98,9 +109,10 @@ class IpAssignCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
         $input = new ArrayInput([
-            '--' . Option::OPTION_SERVICE_ID => self::COLLECTION_TAG,
-            '--' . Option::OPTION_IMAGE_ID => self::IMAGE_ID,
+            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
         ]);
+
+        $this->mockServiceConfigurationGetImageId(self::IMAGE_ID);
 
         $exitCode = $this->command->run($input, $output);
 
@@ -191,7 +203,7 @@ class IpAssignCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::COLLECTION_TAG,
+                                            self::SERVICE_ID,
                                         ],
                                     ],
                                 ],
@@ -236,7 +248,7 @@ class IpAssignCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::COLLECTION_TAG,
+                                            self::SERVICE_ID,
                                         ],
                                     ],
                                 ],
@@ -320,7 +332,7 @@ class IpAssignCommandTest extends KernelTestCase
                                     'droplet' => [
                                         'id' => 123,
                                         'tags' => [
-                                            self::COLLECTION_TAG,
+                                            self::SERVICE_ID,
                                         ],
                                     ],
                                 ],
@@ -365,5 +377,22 @@ class IpAssignCommandTest extends KernelTestCase
                 ]),
             ],
         ];
+    }
+
+    private function mockServiceConfigurationGetImageId(?string $imageId): void
+    {
+        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+        $serviceConfiguration
+            ->shouldReceive('getImageId')
+            ->with(self::SERVICE_ID)
+            ->andReturn($imageId)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            $serviceConfiguration
+        );
     }
 }
