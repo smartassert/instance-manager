@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Model\EnvironmentVariableList;
+use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 
 class ServiceConfiguration
 {
@@ -12,6 +13,11 @@ class ServiceConfiguration
     public function __construct(
         private string $configurationDirectory,
     ) {
+    }
+
+    public function exists(string $serviceId): bool
+    {
+        return $this->jsonFileExists($serviceId, self::CONFIGURATION_FILENAME);
     }
 
     public function getEnvironmentVariables(string $serviceId): EnvironmentVariableList
@@ -30,18 +36,26 @@ class ServiceConfiguration
 
     public function getHealthCheckUrl(string $serviceId): ?string
     {
-        $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);
-        $healthCheckUrl = $data['health_check_url'] ?? null;
-
-        return is_string($healthCheckUrl) ? $healthCheckUrl : null;
+        return $this->createServiceConfiguration($serviceId)->getHealthCheckUrl();
     }
 
-    public function getStateUrl(string $serviceId): string
+    public function getStateUrl(string $serviceId): ?string
     {
-        $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);
-        $stateUrl = $data['state_url'] ?? null;
+        return $this->createServiceConfiguration($serviceId)->getStateUrl();
+    }
 
-        return is_string($stateUrl) ? $stateUrl : '';
+    private function createServiceConfiguration(string $serviceId): ServiceConfigurationModel
+    {
+        return ServiceConfigurationModel::create(
+            $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME)
+        );
+    }
+
+    private function jsonFileExists(string $serviceId, string $filename): bool
+    {
+        $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . $filename;
+
+        return file_exists($filePath) && is_readable($filePath);
     }
 
     /**
@@ -49,10 +63,11 @@ class ServiceConfiguration
      */
     private function readJsonFileToArray(string $serviceId, string $filename): array
     {
-        $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . $filename;
-        if (!file_exists($filePath) || !is_readable($filePath)) {
+        if (false === $this->jsonFileExists($serviceId, $filename)) {
             return [];
         }
+
+        $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . $filename;
 
         $content = (string) file_get_contents($filePath);
         $data = json_decode($content, true);
