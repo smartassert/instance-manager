@@ -37,14 +37,7 @@ jobs:
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
-        run: |
-          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
-          if [ "" = "$VALUE" ]; then
-            echo "service_id not set"
-            exit 1
-          fi
-
-          echo "::set-output name=value::$VALUE"
+        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
 
       - name: Set state_url
         id: state_url
@@ -69,19 +62,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Store
-        env:
-          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/configuration.json
-          STATE_URL: ${{ steps.state_url.outputs.value }}
-          HEALTH_CHECK_URL: ${{ steps.health_check_url.outputs.value }}
-        run: |
-          JSON="{
-            \"state_url\":\"$STATE_URL\",
-            \"health_check_url\":\"$HEALTH_CHECK_URL\"
-          }"
+      - name: Setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8
 
-          mkdir -p "$(dirname "$CONFIGURATION_PATH")"
-          jq "." <<< "$JSON" > "$CONFIGURATION_PATH"
+      - name: Download dependencies
+        uses: php-actions/composer@v6
+        with:
+          args: --ignore-platform-reqs --quiet
+
+      - name: Store
+        run: |
+          php bin/console app:service-configuration:set \
+          --service-id='${{ github.event.inputs.service_id }}' \
+          --health-check-url='${{ steps.health_check_url.outputs.value }}' \
+          --state-url='${{ steps.state_url.outputs.value }}'
+
+      - name: Remove cruft
+        run: |
+          rm -Rf DOCKER_ENV
+          rm -Rf docker_tag
+          rm -Rf output.log
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4

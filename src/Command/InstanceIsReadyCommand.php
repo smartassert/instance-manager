@@ -74,7 +74,7 @@ class InstanceIsReadyCommand extends Command
             return $this->commandInstanceRepository->getErrorCode();
         }
 
-        $stateUrl = (string) $this->serviceConfiguration->getStateUrl($serviceId);
+        $stateUrl = (string) $this->serviceConfiguration->getServiceConfiguration($serviceId)?->getStateUrl();
 
         $result = $this->commandActionRunner->run(
             $this->getRetryLimit($input),
