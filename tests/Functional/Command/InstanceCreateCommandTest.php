@@ -12,6 +12,7 @@ use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -22,6 +23,11 @@ use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceCreateCommandTest extends KernelTestCase
 {
+    use MockeryPHPUnitIntegration;
+
+    private const SERVICE_ID = 'service_id';
+    private const IMAGE_ID = '12345';
+
     private InstanceCreateCommand $command;
     private HttpResponseFactory $httpResponseFactory;
 
@@ -57,10 +63,11 @@ class InstanceCreateCommandTest extends KernelTestCase
         self::expectExceptionMessage($expectedExceptionMessage);
         self::expectExceptionCode($expectedExceptionCode);
 
+        $this->mockServiceConfiguration(self::IMAGE_ID);
+
         $this->command->run(
             new ArrayInput([
                 '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                '--' . Option::OPTION_IMAGE_ID => '123456',
             ]),
             new BufferedOutput()
         );
@@ -102,18 +109,25 @@ class InstanceCreateCommandTest extends KernelTestCase
     {
         return [
             'empty service id' => [
-                'input' => [
-                    '--' . Option::OPTION_IMAGE_ID => '123456',
-                ],
-                'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
-            ],
-            'empty tag' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                ],
-                'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_TAG,
+                'input' => [],
+                'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_SERVICE_ID,
             ],
         ];
+    }
+
+    public function testRunImageIdMissing(): void
+    {
+        $input = new ArrayInput([
+            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
+        ]);
+
+        $output = new BufferedOutput();
+
+        $this->mockServiceConfiguration(null);
+
+        $commandReturnCode = $this->command->run($input, $output);
+
+        self::assertSame(InstanceCreateCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
     }
 
     /**
@@ -136,6 +150,8 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
 
+        $this->mockServiceConfiguration(self::IMAGE_ID, new EnvironmentVariableList([]));
+
         $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
 
         self::assertSame($expectedReturnCode, $commandReturnCode);
@@ -151,7 +167,6 @@ class InstanceCreateCommandTest extends KernelTestCase
             'already exists' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
                     [
@@ -177,7 +192,6 @@ class InstanceCreateCommandTest extends KernelTestCase
             'created' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--' . Option::OPTION_IMAGE_ID => '123456',
                 ],
                 'httpResponseDataCollection' => [
                     [
@@ -219,12 +233,8 @@ class InstanceCreateCommandTest extends KernelTestCase
         EnvironmentVariableList $environmentVariableList,
         string $expectedFirstBootScript,
     ): void {
-        $serviceId = 'service_id';
-        $imageId = 'image-id';
-
         $input = new ArrayInput([
-            '--' . Option::OPTION_SERVICE_ID => $serviceId,
-            '--' . Option::OPTION_IMAGE_ID => $imageId,
+            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
             '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScriptOption,
             '--' . InstanceCreateCommand::OPTION_SECRETS_JSON => $secretsJsonOption,
         ]);
@@ -232,7 +242,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $instanceRepository = \Mockery::mock(InstanceRepository::class);
         $instanceRepository
             ->shouldReceive('findCurrent')
-            ->with($serviceId, $imageId)
+            ->with(self::SERVICE_ID, self::IMAGE_ID)
             ->andReturnNull()
         ;
 
@@ -242,7 +252,7 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $instanceRepository
             ->shouldReceive('create')
-            ->with($serviceId, $imageId, $expectedFirstBootScript)
+            ->with(self::SERVICE_ID, self::IMAGE_ID, $expectedFirstBootScript)
             ->andReturn($instance)
         ;
 
@@ -253,19 +263,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             $instanceRepository
         );
 
-        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
-        $serviceConfiguration
-            ->shouldReceive('getEnvironmentVariables')
-            ->with($serviceId)
-            ->andReturn($environmentVariableList)
-        ;
-
-        ObjectReflector::setProperty(
-            $this->command,
-            InstanceCreateCommand::class,
-            'serviceConfiguration',
-            $serviceConfiguration
-        );
+        $this->mockServiceConfiguration(self::IMAGE_ID, $environmentVariableList);
 
         $commandReturnCode = $this->command->run($input, new NullOutput());
 
@@ -328,23 +326,19 @@ class InstanceCreateCommandTest extends KernelTestCase
      * @dataProvider throwsMissingSecretExceptionDataProvider
      */
     public function testThrowsMissingSecretException(
-        string $serviceId,
         string $secretsJsonOption,
         EnvironmentVariableList $environmentVariableList,
         string $expectedExceptionMessage
     ): void {
-        $imageId = 'image-id';
-
         $input = new ArrayInput([
-            '--' . Option::OPTION_SERVICE_ID => $serviceId,
-            '--' . Option::OPTION_IMAGE_ID => $imageId,
+            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
             '--' . InstanceCreateCommand::OPTION_SECRETS_JSON => $secretsJsonOption,
         ]);
 
         $instanceRepository = \Mockery::mock(InstanceRepository::class);
         $instanceRepository
             ->shouldReceive('findCurrent')
-            ->with($serviceId, $imageId)
+            ->with(self::SERVICE_ID, self::IMAGE_ID)
             ->andReturnNull()
         ;
 
@@ -355,19 +349,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             $instanceRepository
         );
 
-        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
-        $serviceConfiguration
-            ->shouldReceive('getEnvironmentVariables')
-            ->with($serviceId)
-            ->andReturn($environmentVariableList)
-        ;
-
-        ObjectReflector::setProperty(
-            $this->command,
-            InstanceCreateCommand::class,
-            'serviceConfiguration',
-            $serviceConfiguration
-        );
+        $this->mockServiceConfiguration(self::IMAGE_ID, $environmentVariableList);
 
         self::expectException(MissingSecretException::class);
         self::expectExceptionMessage($expectedExceptionMessage);
@@ -382,7 +364,6 @@ class InstanceCreateCommandTest extends KernelTestCase
     {
         return [
             'no secrets, env var references missing secret' => [
-                'serviceIdOption' => 'service_id',
                 'secretsJsonOption' => '',
                 'environmentVariableList' => new EnvironmentVariableList([
                     'key1={{ secrets.SERVICE_ID_SECRET_001 }}',
@@ -390,7 +371,6 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'expectedExceptionMessage' => 'Secret "SERVICE_ID_SECRET_001" not found',
             ],
             'has secrets, env var references missing secret not having service id as prefix' => [
-                'serviceIdOption' => 'service_id',
                 'secretsJsonOption' => '',
                 'environmentVariableList' => new EnvironmentVariableList([
                     'key1={{ secrets.DIFFERENT_SERVICE_ID_SECRET_001 }}',
@@ -407,5 +387,32 @@ class InstanceCreateCommandTest extends KernelTestCase
         if ($mockHandler instanceof MockHandler) {
             $mockHandler->append($response);
         }
+    }
+
+    private function mockServiceConfiguration(
+        ?string $imageId,
+        ?EnvironmentVariableList $environmentVariables = null
+    ): void {
+        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+        $serviceConfiguration
+            ->shouldReceive('getImageId')
+            ->with(self::SERVICE_ID)
+            ->andReturn($imageId)
+        ;
+
+        if ($environmentVariables instanceof EnvironmentVariableList) {
+            $serviceConfiguration
+                ->shouldReceive('getEnvironmentVariables')
+                ->with(self::SERVICE_ID)
+                ->andReturn($environmentVariables)
+            ;
+        }
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            $serviceConfiguration
+        );
     }
 }

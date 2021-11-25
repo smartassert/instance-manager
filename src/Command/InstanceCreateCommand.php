@@ -28,8 +28,8 @@ class InstanceCreateCommand extends Command
     public const OPTION_FIRST_BOOT_SCRIPT = 'first-boot-script';
     public const OPTION_SECRETS_JSON = 'secrets-json';
 
-    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
-    public const EXIT_CODE_EMPTY_TAG = 4;
+    public const EXIT_CODE_EMPTY_SERVICE_ID = 3;
+    public const EXIT_CODE_MISSING_IMAGE_ID = 4;
 
     public function __construct(
         private InstanceRepository $instanceRepository,
@@ -45,10 +45,7 @@ class InstanceCreateCommand extends Command
 
     protected function configure(): void
     {
-        $this->configurator
-            ->addServiceIdOption($this)
-            ->addImageIdOption($this)
-        ;
+        $this->configurator->addServiceIdOption($this);
 
         $this
             ->addOption(
@@ -75,14 +72,14 @@ class InstanceCreateCommand extends Command
         if ('' === $serviceId) {
             $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
-            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
+            return self::EXIT_CODE_EMPTY_SERVICE_ID;
         }
 
-        $imageId = $this->inputReader->getTrimmedStringOption(Option::OPTION_IMAGE_ID, $input);
-        if ('' === $imageId) {
-            $output->writeln('"' . Option::OPTION_IMAGE_ID . '" option empty');
+        $imageId = $this->serviceConfiguration->getImageId($serviceId);
+        if (null === $imageId) {
+            $output->writeln('image_id missing');
 
-            return self::EXIT_CODE_EMPTY_TAG;
+            return self::EXIT_CODE_MISSING_IMAGE_ID;
         }
 
         $instance = $this->instanceRepository->findCurrent($serviceId, $imageId);
