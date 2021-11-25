@@ -365,6 +365,104 @@ class ServiceConfigurationTest extends TestCase
         ];
     }
 
+    public function testGetServiceConfigurationFileDoesNotExist(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileDoesNotExist(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getServiceConfiguration($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
+    }
+
+    public function testGetServiceConfigurationFileIsNotReadable(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileIsNotReadable(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getServiceConfiguration($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
+    }
+
+    /**
+     * @dataProvider getServiceConfigurationSuccessDataProvider
+     */
+    public function testGetServiceConfigurationSuccess(
+        string $serviceId,
+        string $fileContent,
+        ServiceConfigurationModel $expectedServiceConfiguration
+    ): void {
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            $fileContent
+        );
+
+        self::assertEquals(
+            $expectedServiceConfiguration,
+            $this->serviceConfiguration->getServiceConfiguration($serviceId)
+        );
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getServiceConfigurationSuccessDataProvider(): array
+    {
+        $serviceId = 'service_id';
+
+        return [
+            'empty' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{}',
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, null),
+            ],
+            'content not a json array' => [
+                'serviceId' => $serviceId,
+                'fileContent' => 'true',
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, null),
+            ],
+            'single invalid item, key not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{0:"value1"}',
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, null),
+            ],
+            'single invalid item, value not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"key1":true}',
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, null),
+            ],
+            'state_url invalid, not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"state_url":true,"health_check_url":"/health-check"}',
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '/health-check', null),
+            ],
+            'health_check_url invalid, not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"state_url":"/state","health_check_url":true}',
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, '/state'),
+            ],
+            'valid' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"state_url":"/state","health_check_url":"/health-check"}',
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '/health-check', '/state'),
+            ],
+        ];
+    }
+
     /**
      * @return array<mixed>
      */

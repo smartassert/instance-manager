@@ -23,12 +23,14 @@ class ServiceConfiguration
 
     public function getEnvironmentVariables(string $serviceId): EnvironmentVariableList
     {
-        $data = $this->readJsonFileToArray($serviceId, self::ENV_VAR_FILENAME);
-
         $environmentVariables = [];
-        foreach ($data as $key => $value) {
-            if (is_string($key) && is_string($value)) {
-                $environmentVariables[] = $key . '=' . $value;
+
+        $data = $this->readJsonFileToArray($serviceId, self::ENV_VAR_FILENAME);
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                if (is_string($key) && is_string($value)) {
+                    $environmentVariables[] = $key . '=' . $value;
+                }
             }
         }
 
@@ -45,20 +47,30 @@ class ServiceConfiguration
 
     public function getHealthCheckUrl(string $serviceId): ?string
     {
-        return $this->createServiceConfiguration($serviceId)->getHealthCheckUrl();
+        $configuration = $this->getServiceConfiguration($serviceId);
+
+        return $configuration instanceof ServiceConfigurationModel
+            ? $configuration->getHealthCheckUrl()
+            : null;
     }
 
     public function getStateUrl(string $serviceId): ?string
     {
-        return $this->createServiceConfiguration($serviceId)->getStateUrl();
+        $configuration = $this->getServiceConfiguration($serviceId);
+
+        return $configuration instanceof ServiceConfigurationModel
+            ? $configuration->getStateUrl()
+            : null;
     }
 
-    private function createServiceConfiguration(string $serviceId): ServiceConfigurationModel
+    public function getServiceConfiguration(string $serviceId): ?ServiceConfigurationModel
     {
-        return ServiceConfigurationModel::create(
-            $serviceId,
-            $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME)
-        );
+        $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);
+        if (null === $data) {
+            return null;
+        }
+
+        return ServiceConfigurationModel::create($serviceId, $data);
     }
 
     private function jsonFileExists(string $serviceId, string $filename): bool
@@ -71,10 +83,10 @@ class ServiceConfiguration
     /**
      * @return array<mixed>
      */
-    private function readJsonFileToArray(string $serviceId, string $filename): array
+    private function readJsonFileToArray(string $serviceId, string $filename): ?array
     {
         if (false === $this->jsonFileExists($serviceId, $filename)) {
-            return [];
+            return null;
         }
 
         $filePath = $this->configurationDirectory . '/' . $serviceId . '/' . $filename;
