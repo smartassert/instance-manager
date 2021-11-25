@@ -67,8 +67,7 @@ jobs:
             php bin/console app:instance:create \
               --first-boot-script='[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh' \
               --service-id='${{ github.event.inputs.service_id }}' \
-              --secrets-json='${{ toJson(secrets) }}' \
-              --image-id='${{ steps.image_id.outputs.image_id }}'
+              --secrets-json='${{ toJson(secrets) }}'
           )
           echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq -r ".id")"
 
