@@ -119,65 +119,6 @@ class ServiceConfigurationTest extends TestCase
         ];
     }
 
-    public function testGetHealthCheckUrlFileDoesNotExist(): void
-    {
-        $serviceId = 'service_id';
-
-        $this->doTestFileDoesNotExist(
-            $serviceId,
-            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
-            function (string $serviceId) {
-                return $this->serviceConfiguration->getHealthCheckUrl($serviceId);
-            },
-            function ($result) {
-                self::assertNull($result);
-            }
-        );
-    }
-
-    public function testGetHealthCheckUrlFileIsNotReadable(): void
-    {
-        $serviceId = 'service_id';
-
-        $this->doTestFileIsNotReadable(
-            $serviceId,
-            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
-            function (string $serviceId) {
-                return $this->serviceConfiguration->getHealthCheckUrl($serviceId);
-            },
-            function ($result) {
-                self::assertNull($result);
-            }
-        );
-    }
-
-    /**
-     * @dataProvider getHealthCheckUrlSuccessDataProvider
-     */
-    public function testGetHealthCheckUrlSuccess(
-        string $serviceId,
-        string $fileContent,
-        ?string $expectedHealthCheckUrl
-    ): void {
-        $this->createFileReadSuccessMocks(
-            'App\Services',
-            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
-            $fileContent
-        );
-
-        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($serviceId);
-
-        self::assertEquals($expectedHealthCheckUrl, $healthCheckUrl);
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getHealthCheckUrlSuccessDataProvider(): array
-    {
-        return $this->createConfigurationPropertyAccessDataProvider(ServiceConfigurationModel::KEY_HEALTH_CHECK_URL);
-    }
-
     public function testGetStateUrlFileDoesNotExist(): void
     {
         $serviceId = 'service_id';

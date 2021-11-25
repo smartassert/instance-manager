@@ -4,6 +4,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsHealthyCommand;
 use App\Command\Option;
+use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -180,11 +181,20 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         string $expectedOutput
     ): void {
         if (is_string($healthCheckUrl)) {
+            $serviceId = $input['--' . Option::OPTION_SERVICE_ID];
+            $serviceId = is_string($serviceId) ? $serviceId : '';
+
+            $serviceConfigurationModel = new ServiceConfigurationModel(
+                $serviceId,
+                $healthCheckUrl,
+                null
+            );
+
             $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
             $serviceConfiguration
-                ->shouldReceive('getHealthCheckUrl')
+                ->shouldReceive('getServiceConfiguration')
                 ->with($input['--' . Option::OPTION_SERVICE_ID])
-                ->andReturn($healthCheckUrl)
+                ->andReturn($serviceConfigurationModel)
             ;
 
             ObjectReflector::setProperty(

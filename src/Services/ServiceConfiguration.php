@@ -45,15 +45,6 @@ class ServiceConfiguration
         return is_string($imageId) ? $imageId : null;
     }
 
-    public function getHealthCheckUrl(string $serviceId): ?string
-    {
-        $configuration = $this->getServiceConfiguration($serviceId);
-
-        return $configuration instanceof ServiceConfigurationModel
-            ? $configuration->getHealthCheckUrl()
-            : null;
-    }
-
     public function getStateUrl(string $serviceId): ?string
     {
         $configuration = $this->getServiceConfiguration($serviceId);
