@@ -515,13 +515,15 @@ class ServiceConfigurationTest extends TestCase
         PHPMockery::mock('App\Services', 'file_put_contents')
             ->withArgs(function ($filePath, $content) use ($expectedFilePath, $healthCheckUrl, $stateUrl) {
                 self::assertSame($expectedFilePath, $filePath);
-
-                $expectedContentData = [
-                    'health_check_url' => $healthCheckUrl,
-                    'state_url' => $stateUrl,
-                ];
-
-                self::assertSame((string) json_encode($expectedContentData, JSON_PRETTY_PRINT), $content);
+                self::assertSame(
+                    <<<END
+                    {
+                        "health_check_url": "{$healthCheckUrl}",
+                        "state_url": "{$stateUrl}"
+                    }
+                    END,
+                    $content
+                );
 
                 return true;
             })

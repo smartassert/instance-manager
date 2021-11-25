@@ -78,7 +78,10 @@ class ServiceConfiguration
         }
 
         $filePath = $this->getFilePath($serviceConfiguration->getServiceId(), self::CONFIGURATION_FILENAME);
-        $writeResult = file_put_contents($filePath, (string) json_encode($data, JSON_PRETTY_PRINT));
+        $writeResult = file_put_contents(
+            $filePath,
+            (string) json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
 
         return is_int($writeResult);
     }
