@@ -282,6 +282,89 @@ class ServiceConfigurationTest extends TestCase
         self::assertTrue($this->serviceConfiguration->exists($serviceId));
     }
 
+    public function testGetImageIdFileDoesNotExist(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileDoesNotExist(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getImageId($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
+    }
+
+    public function testGetImageIdFileIsNotReadable(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileIsNotReadable(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getImageId($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
+    }
+
+    /**
+     * @dataProvider getImageIdSuccessDataProvider
+     */
+    public function testGetImageIdSuccess(
+        string $serviceId,
+        string $fileContent,
+        ?string $expectedImageId
+    ): void {
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME),
+            $fileContent
+        );
+
+        self::assertEquals($expectedImageId, $this->serviceConfiguration->getImageId($serviceId));
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getImageIdSuccessDataProvider(): array
+    {
+        return [
+            'empty' => [
+                'serviceId' => 'service1',
+                'fileContent' => '{}',
+                'expectedImageId' => null,
+            ],
+            'content not a json array' => [
+                'serviceId' => 'service1',
+                'fileContent' => 'true',
+                'expectedImageId' => null,
+            ],
+            'single invalid item, key not a string' => [
+                'serviceId' => 'service2',
+                'fileContent' => '{0:"value1"}',
+                'expectedImageId' => null,
+            ],
+            'single invalid item, value not a string' => [
+                'serviceId' => 'service2',
+                'fileContent' => '{"key1":true}',
+                'expectedImageId' => null,
+            ],
+            'valid' => [
+                'serviceId' => 'service2',
+                'fileContent' => '{"image_id":"image_id_value"}',
+                'expectedImageId' => 'image_id_value',
+            ],
+        ];
+    }
+
     /**
      * @return array<mixed>
      */
