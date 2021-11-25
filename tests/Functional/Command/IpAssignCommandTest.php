@@ -64,7 +64,7 @@ class IpAssignCommandTest extends KernelTestCase
                 'input' => [
                     '--' . Option::OPTION_IMAGE_ID => self::IMAGE_ID,
                 ],
-                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_SERVICE_ID,
             ],
             'empty tag' => [
                 'input' => [
