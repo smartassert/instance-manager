@@ -24,7 +24,7 @@ class EnvironmentVariable extends KeyValue implements SecretPlaceholderContainer
     public function replace(
         SecretPlaceholderInterface $placeholder,
         string $secret
-    ): SecretPlaceholderContainerInterface {
+    ): EnvironmentVariable {
         return new EnvironmentVariable($this->getKey(), $secret);
     }
 

@@ -5,12 +5,14 @@ namespace App\Tests\Functional\Command;
 use App\Command\InstanceCreateCommand;
 use App\Command\Option;
 use App\Exception\MissingSecretException;
-use App\Model\EnvironmentVariableList;
+use App\Model\EnvironmentVariable;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
 use DigitalOceanV2\Exception\RuntimeException;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use GuzzleHttp\Handler\MockHandler;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Psr\Http\Message\ResponseInterface;
@@ -150,7 +152,7 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
 
-        $this->mockServiceConfiguration(self::IMAGE_ID, new EnvironmentVariableList([]));
+        $this->mockServiceConfiguration(self::IMAGE_ID, new ArrayCollection());
 
         $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
 
@@ -226,11 +228,13 @@ class InstanceCreateCommandTest extends KernelTestCase
 
     /**
      * @dataProvider passesFirstBootScriptDataProvider
+     *
+     * @param Collection<int, EnvironmentVariable> $environmentVariableList
      */
     public function testPassesFirstBootScript(
         string $firstBootScriptOption,
         string $secretsJsonOption,
-        EnvironmentVariableList $environmentVariableList,
+        Collection $environmentVariableList,
         string $expectedFirstBootScript,
     ): void {
         $input = new ArrayInput([
@@ -279,16 +283,16 @@ class InstanceCreateCommandTest extends KernelTestCase
             'first boot script option only' => [
                 'firstBootScriptOption' => './first-boot.sh',
                 'secretsJsonOption' => '',
-                'environmentVariableList' => new EnvironmentVariableList([]),
+                'environmentVariableList' => new ArrayCollection(),
                 'expectedFirstBootScript' => './first-boot.sh',
             ],
             'env var options only, no secrets' => [
                 'firstBootScriptOption' => '',
                 'secretsJsonOption' => '',
-                'environmentVariableList' => new EnvironmentVariableList([
-                    'key1=value1',
-                    'key2=one "two" three',
-                    'key3=value3',
+                'environmentVariableList' => new ArrayCollection([
+                    new EnvironmentVariable('key1', 'value1'),
+                    new EnvironmentVariable('key2', 'one "two" three'),
+                    new EnvironmentVariable('key3', 'value3'),
                 ]),
                 'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
                     'export key2="one \"two\" three"' . "\n" .
@@ -297,10 +301,10 @@ class InstanceCreateCommandTest extends KernelTestCase
             'env var options only, has secrets' => [
                 'firstBootScriptOption' => '',
                 'secretsJsonOption' => '{"SERVICE_ID_SECRET_001":"secret 001 value"}',
-                'environmentVariableList' => new EnvironmentVariableList([
-                    'key1={{ secrets.SERVICE_ID_SECRET_001 }}',
-                    'key2=one "two" three',
-                    'key3=value3',
+                'environmentVariableList' => new ArrayCollection([
+                    new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}'),
+                    new EnvironmentVariable('key2', 'one "two" three'),
+                    new EnvironmentVariable('key3', 'value3'),
                 ]),
                 'expectedFirstBootScript' => 'export key1="secret 001 value"' . "\n" .
                     'export key2="one \"two\" three"' . "\n" .
@@ -309,10 +313,10 @@ class InstanceCreateCommandTest extends KernelTestCase
             'first boot script option and env var options, no secrets' => [
                 'firstBootScriptOption' => './first-boot.sh',
                 'secretsJsonOption' => '',
-                'environmentVariableList' => new EnvironmentVariableList([
-                    'key1=value1',
-                    'key2=one "two" three',
-                    'key3=value3',
+                'environmentVariableList' => new ArrayCollection([
+                    new EnvironmentVariable('key1', 'value1'),
+                    new EnvironmentVariable('key2', 'one "two" three'),
+                    new EnvironmentVariable('key3', 'value3'),
                 ]),
                 'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
                     'export key2="one \"two\" three"' . "\n" .
@@ -324,10 +328,12 @@ class InstanceCreateCommandTest extends KernelTestCase
 
     /**
      * @dataProvider throwsMissingSecretExceptionDataProvider
+     *
+     * @param Collection<int, EnvironmentVariable> $environmentVariables
      */
     public function testThrowsMissingSecretException(
         string $secretsJsonOption,
-        EnvironmentVariableList $environmentVariableList,
+        Collection $environmentVariables,
         string $expectedExceptionMessage
     ): void {
         $input = new ArrayInput([
@@ -349,7 +355,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             $instanceRepository
         );
 
-        $this->mockServiceConfiguration(self::IMAGE_ID, $environmentVariableList);
+        $this->mockServiceConfiguration(self::IMAGE_ID, $environmentVariables);
 
         self::expectException(MissingSecretException::class);
         self::expectExceptionMessage($expectedExceptionMessage);
@@ -365,15 +371,16 @@ class InstanceCreateCommandTest extends KernelTestCase
         return [
             'no secrets, env var references missing secret' => [
                 'secretsJsonOption' => '',
-                'environmentVariableList' => new EnvironmentVariableList([
-                    'key1={{ secrets.SERVICE_ID_SECRET_001 }}',
+                'environmentVariableList' => new ArrayCollection([
+                    new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}')
                 ]),
                 'expectedExceptionMessage' => 'Secret "SERVICE_ID_SECRET_001" not found',
             ],
             'has secrets, env var references missing secret not having service id as prefix' => [
                 'secretsJsonOption' => '',
-                'environmentVariableList' => new EnvironmentVariableList([
-                    'key1={{ secrets.DIFFERENT_SERVICE_ID_SECRET_001 }}',
+
+                'environmentVariableList' => new ArrayCollection([
+                    new EnvironmentVariable('key1', '{{ secrets.DIFFERENT_SERVICE_ID_SECRET_001 }}')
                 ]),
                 'expectedExceptionMessage' => 'Secret "DIFFERENT_SERVICE_ID_SECRET_001" not found',
             ],
@@ -389,9 +396,12 @@ class InstanceCreateCommandTest extends KernelTestCase
         }
     }
 
+    /**
+     * @param null|Collection<int, EnvironmentVariable> $environmentVariables
+     */
     private function mockServiceConfiguration(
         ?string $imageId,
-        ?EnvironmentVariableList $environmentVariables = null
+        ?Collection $environmentVariables = null
     ): void {
         $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
         $serviceConfiguration
@@ -400,7 +410,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             ->andReturn($imageId)
         ;
 
-        if ($environmentVariables instanceof EnvironmentVariableList) {
+        if ($environmentVariables instanceof Collection) {
             $serviceConfiguration
                 ->shouldReceive('getEnvironmentVariables')
                 ->with(self::SERVICE_ID)
