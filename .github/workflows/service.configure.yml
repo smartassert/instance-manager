@@ -21,43 +21,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Output repository_dispatch inputs
-        if: ${{ github.event_name == 'repository_dispatch' }}
+      - name: Setup
+        id: setup
         env:
-          INPUTS: ${{ toJson(github.event.client_payload) }}
-        run: echo "$INPUTS"
-
-      - name: Output workflow_dispatch inputs
-        env:
-          INPUTS: ${{ toJson(github.event.inputs) }}
-        run: echo "$INPUTS"
-
-      - name: Set service_id
-        id: service_id
-        env:
-          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
-          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
-        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
-
-      - name: Set state_url
-        id: state_url
-        env:
-          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.state_url }}
-          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.state_url }}
-        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
-
-      - name: Set health_check_url
-        id: health_check_url
-        env:
-          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.health_check_url }}
-          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.health_check_url }}
-        run: echo "::set-output name=value::${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
+          IS_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          if [ "true" = "$IS_WORKFLOW_DISPATCH_EVENT" ]; then
+            echo "::set-output name=service_id::${{ github.event.inputs.service_id }}"
+            echo "::set-output name=health_check_url::${{ github.event.inputs.health_check_url }}"
+            echo "::set-output name=state_url::${{ github.event.inputs.state_url }}"
+          else
+            echo "::set-output name=service_id::${{ github.event.client_payload.service_id }}"
+            echo "::set-output name=health_check_url::${{ github.event.client_payload.health_check_url }}"
+            echo "::set-output name=state_url::${{ github.event.client_payload.state_url }}"
+          fi
 
       - name: Output setup
-        run: |
-          echo "service_id: ${{ steps.service_id.outputs.value }}"
-          echo "state_url: ${{ steps.state_url.outputs.value }}"
-          echo "health_check_url: ${{ steps.health_check_url.outputs.value }}"
+        env:
+          VALUES: ${{ toJson(steps.setup.outputs) }}
+        run: echo "$VALUES"
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -75,12 +57,12 @@ jobs:
       - name: Store
         run: |
           php bin/console app:service-configuration:set \
-          --service-id='${{ github.event.inputs.service_id }}' \
-          --health-check-url='${{ steps.health_check_url.outputs.value }}' \
-          --state-url='${{ steps.state_url.outputs.value }}'
+          --service-id='${{ steps.setup.outputs.service_id }}' \
+          --health-check-url='${{ steps.setup.outputs.health_check_url }}' \
+          --state-url='${{ steps.setup.outputs.state_url }}'
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          file_pattern: services/${{ steps.service_id.outputs.value }}/*
-          commit_message: "Automatic configuration update for ${{ steps.service_id.outputs.value }}"
+          file_pattern: services/${{ steps.setup.outputs.service_id }}/*
+          commit_message: "Automatic configuration update for ${{ steps.setup.outputs.service_id }}"
