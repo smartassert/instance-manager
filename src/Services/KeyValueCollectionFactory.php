@@ -3,25 +3,30 @@
 namespace App\Services;
 
 use App\Model\KeyValue;
-use App\Model\KeyValueCollection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 class KeyValueCollectionFactory
 {
-    public function createFromJsonForKeysMatchingPrefix(string $prefix, string $json): KeyValueCollection
+    /**
+     * @return Collection<int, KeyValue>
+     */
+    public function createFromJsonForKeysMatchingPrefix(string $prefix, string $json): Collection
     {
         $collection = $this->create($json);
-        $filteredCollection = $collection->filter(function (KeyValue $element) use ($prefix) {
+
+        return $collection->filter(function (KeyValue $element) use ($prefix) {
             return str_starts_with($element->getKey(), $prefix);
         });
-
-        return new KeyValueCollection($filteredCollection->toArray());
     }
 
-    private function create(string $json): KeyValueCollection
+    /**
+     * @return Collection<int, KeyValue>
+     */
+    private function create(string $json): Collection
     {
         $itemsData = json_decode($json, true);
-
-        $collection = new KeyValueCollection([]);
+        $collection = new ArrayCollection();
 
         if (is_array($itemsData)) {
             foreach ($itemsData as $key => $value) {
