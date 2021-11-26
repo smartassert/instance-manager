@@ -2,9 +2,11 @@
 
 namespace App\Tests\Unit\Services;
 
-use App\Model\EnvironmentVariableList;
+use App\Model\EnvironmentVariable;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\ServiceConfiguration;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use phpmock\mockery\PHPMockery;
 use PHPUnit\Framework\TestCase;
@@ -35,7 +37,7 @@ class ServiceConfigurationTest extends TestCase
                 return $this->serviceConfiguration->getEnvironmentVariables($serviceId);
             },
             function ($result) {
-                self::assertEquals(new EnvironmentVariableList([]), $result);
+                self::assertEquals(new ArrayCollection(), $result);
             }
         );
     }
@@ -51,18 +53,20 @@ class ServiceConfigurationTest extends TestCase
                 return $this->serviceConfiguration->getEnvironmentVariables($serviceId);
             },
             function ($result) {
-                self::assertEquals(new EnvironmentVariableList([]), $result);
+                self::assertEquals(new ArrayCollection(), $result);
             }
         );
     }
 
     /**
      * @dataProvider getEnvironmentVariablesSuccessDataProvider
+     *
+     * @param Collection<int, EnvironmentVariable> $expectedEnvironmentVariables
      */
     public function testGetEnvironmentVariablesSuccess(
         string $serviceId,
         string $fileContent,
-        EnvironmentVariableList $expectedEnvironmentVariables
+        Collection $expectedEnvironmentVariables
     ): void {
         $this->createFileReadSuccessMocks(
             'App\Services',
@@ -84,36 +88,36 @@ class ServiceConfigurationTest extends TestCase
             'empty' => [
                 'serviceId' => 'service1',
                 'fileContent' => '{}',
-                'expectedEnvironmentVariables' => new EnvironmentVariableList([]),
+                'expectedEnvironmentVariables' => new ArrayCollection(),
             ],
             'content not a json array' => [
                 'serviceId' => 'service1',
                 'fileContent' => 'true',
-                'expectedEnvironmentVariables' => new EnvironmentVariableList([]),
+                'expectedEnvironmentVariables' => new ArrayCollection(),
             ],
             'single invalid item, key not a string' => [
                 'serviceId' => 'service2',
                 'fileContent' => '{0:"value1"}',
-                'expectedEnvironmentVariables' => new EnvironmentVariableList([]),
+                'expectedEnvironmentVariables' => new ArrayCollection(),
             ],
             'single invalid item, value not a string' => [
                 'serviceId' => 'service2',
                 'fileContent' => '{"key1":true}',
-                'expectedEnvironmentVariables' => new EnvironmentVariableList([]),
+                'expectedEnvironmentVariables' => new ArrayCollection(),
             ],
             'single' => [
                 'serviceId' => 'service2',
                 'fileContent' => '{"key1":"value1"}',
-                'expectedEnvironmentVariables' => new EnvironmentVariableList([
-                    'key1=value1',
+                'expectedEnvironmentVariables' => new ArrayCollection([
+                    new EnvironmentVariable('key1', 'value1'),
                 ]),
             ],
             'multiple' => [
                 'serviceId' => 'service3',
                 'fileContent' => '{"key1":"value1", "key2":"value2"}',
-                'expectedEnvironmentVariables' => new EnvironmentVariableList([
-                    'key1=value1',
-                    'key2=value2',
+                'expectedEnvironmentVariables' => new ArrayCollection([
+                    new EnvironmentVariable('key1', 'value1'),
+                    new EnvironmentVariable('key2', 'value2'),
                 ]),
             ],
         ];

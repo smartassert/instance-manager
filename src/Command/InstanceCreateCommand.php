@@ -3,15 +3,16 @@
 namespace App\Command;
 
 use App\Exception\MissingSecretException;
-use App\Model\EnvironmentVariableList;
+use App\Model\EnvironmentVariable;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\InstanceRepository;
 use App\Services\KeyValueCollectionFactory;
 use App\Services\OutputFactory;
-use App\Services\SecretCollectionHydrator;
+use App\Services\SecretHydrator;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -38,7 +39,7 @@ class InstanceCreateCommand extends Command
         private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
         private KeyValueCollectionFactory $keyValueCollectionFactory,
-        private SecretCollectionHydrator $secretCollectionHydrator,
+        private SecretHydrator $secretHydrator,
     ) {
         parent::__construct();
     }
@@ -93,10 +94,16 @@ class InstanceCreateCommand extends Command
                     $secretsOption
                 );
 
-                $environmentVariables = $this->secretCollectionHydrator->hydrate(
-                    $environmentVariables,
-                    $secrets
-                );
+                foreach ($environmentVariables as $index => $environmentVariable) {
+                    $mutatedEnvironmentVariable = $this->secretHydrator->hydrate($environmentVariable, $secrets);
+
+                    if (
+                        $mutatedEnvironmentVariable instanceof EnvironmentVariable
+                        && false === $mutatedEnvironmentVariable->equals($environmentVariable)
+                    ) {
+                        $environmentVariables->set($index, $mutatedEnvironmentVariable);
+                    }
+                }
             }
 
             foreach ($environmentVariables as $environmentVariable) {
@@ -105,10 +112,6 @@ class InstanceCreateCommand extends Command
                 if (null !== $secretPlaceholder) {
                     throw new MissingSecretException($secretPlaceholder);
                 }
-            }
-
-            if (false === $environmentVariables instanceof EnvironmentVariableList) {
-                $environmentVariables = new EnvironmentVariableList([]);
             }
 
             $firstBootScript = $this->createFirstBootScript(
@@ -124,10 +127,11 @@ class InstanceCreateCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function createFirstBootScript(
-        EnvironmentVariableList $environmentVariables,
-        string $serviceFirstBootScript
-    ): string {
+    /**
+     * @param Collection<int, EnvironmentVariable> $environmentVariables
+     */
+    private function createFirstBootScript(Collection $environmentVariables, string $serviceFirstBootScript): string
+    {
         $script = '';
 
         foreach ($environmentVariables as $environmentVariable) {

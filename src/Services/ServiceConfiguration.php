@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
-use App\Model\EnvironmentVariableList;
+use App\Model\EnvironmentVariable;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 class ServiceConfiguration
 {
@@ -21,20 +23,23 @@ class ServiceConfiguration
         return $this->jsonFileExists($serviceId, self::CONFIGURATION_FILENAME);
     }
 
-    public function getEnvironmentVariables(string $serviceId): EnvironmentVariableList
+    /**
+     * @return Collection<int, EnvironmentVariable>
+     */
+    public function getEnvironmentVariables(string $serviceId): Collection
     {
-        $environmentVariables = [];
+        $collection = new ArrayCollection();
 
         $data = $this->readJsonFileToArray($serviceId, self::ENV_VAR_FILENAME);
         if (is_array($data)) {
             foreach ($data as $key => $value) {
                 if (is_string($key) && is_string($value)) {
-                    $environmentVariables[] = $key . '=' . $value;
+                    $collection[] = new EnvironmentVariable($key, $value);
                 }
             }
         }
 
-        return new EnvironmentVariableList($environmentVariables);
+        return $collection;
     }
 
     public function getImageId(string $serviceId): ?string

@@ -3,37 +3,39 @@
 namespace App\Services;
 
 use App\Model\KeyValue;
-use App\Model\KeyValueCollection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 class KeyValueCollectionFactory
 {
-    public function createFromJsonForKeysMatchingPrefix(string $prefix, string $json): KeyValueCollection
+    /**
+     * @return Collection<int, KeyValue>
+     */
+    public function createFromJsonForKeysMatchingPrefix(string $prefix, string $json): Collection
     {
-        return $this->doCreate($json, function (KeyValue $keyValue) use ($prefix): bool {
-            return str_starts_with($keyValue->getKey(), $prefix);
+        $collection = $this->create($json);
+
+        return $collection->filter(function (KeyValue $element) use ($prefix) {
+            return str_starts_with($element->getKey(), $prefix);
         });
     }
 
     /**
-     * @param null|callable(KeyValue): bool $validityChecker
+     * @return Collection<int, KeyValue>
      */
-    private function doCreate(string $json, ?callable $validityChecker = null): KeyValueCollection
+    private function create(string $json): Collection
     {
-        $keyValues = [];
         $itemsData = json_decode($json, true);
+        $collection = new ArrayCollection();
 
         if (is_array($itemsData)) {
             foreach ($itemsData as $key => $value) {
                 if (is_string($key) && is_string($value)) {
-                    $keyValue = new KeyValue($key, $value);
-
-                    if ((is_callable($validityChecker) && $validityChecker($keyValue)) || null === $validityChecker) {
-                        $keyValues[] = $keyValue;
-                    }
+                    $collection->add(new KeyValue($key, $value));
                 }
             }
         }
 
-        return new KeyValueCollection($keyValues);
+        return $collection;
     }
 }
