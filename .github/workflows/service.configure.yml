@@ -64,5 +64,5 @@ jobs:
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          file_pattern: services/${{ steps.service_id.outputs.value }}/*
-          commit_message: "Automatic configuration update for ${{ steps.service_id.outputs.value }}"
+          file_pattern: services/${{ steps.setup.outputs.service_id }}/*
+          commit_message: "Automatic configuration update for ${{ steps.setup.outputs.service_id }}"
