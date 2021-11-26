@@ -70,7 +70,7 @@ abstract class AbstractInstanceListCommand extends Command
         $instances = $this->instanceCollectionHydrator->hydrate($instances, $stateUrl);
 
         foreach ($filters as $filter) {
-            $instances = $instances->filter($filter);
+            $instances = $instances->filterByFilter($filter);
         }
 
         return $instances;

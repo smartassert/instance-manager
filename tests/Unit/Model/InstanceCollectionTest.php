@@ -27,7 +27,7 @@ class InstanceCollectionTest extends TestCase
     {
         $sortedCollection = $this->createSortedCollection();
         $reverseSortedCollection = $this->createReverseSortedCollection();
-        $expectedNewest = $sortedCollection->getFirst();
+        $expectedNewest = $sortedCollection->first();
 
         return [
             'empty' => [
@@ -46,23 +46,23 @@ class InstanceCollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider filterDataProvider
+     * @dataProvider filterByFilterDataProvider
      */
-    public function testFilter(
+    public function testFilterByFilter(
         InstanceCollection $collection,
         Filter $filter,
         InstanceCollection $expectedCollection
     ): void {
         self::assertEquals(
             $expectedCollection,
-            $collection->filter($filter)
+            $collection->filterByFilter($filter)
         );
     }
 
     /**
      * @return array<mixed>
      */
-    public function filterDataProvider(): array
+    public function filterByFilterDataProvider(): array
     {
         $ip = '127.0.0.1';
         $instanceWithIp = InstanceFactory::create(DropletDataFactory::createWithIps(123, [$ip]));
