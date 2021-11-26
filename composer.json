@@ -7,6 +7,7 @@
         "php": ">=8",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "doctrine/collections": "^1.6",
         "guzzlehttp/guzzle": "^7.3",
         "smartassert/digitalocean-droplet-configuration": "~0.1",
         "symfony/console": "5.3.*",
