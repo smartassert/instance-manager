@@ -2,32 +2,21 @@
 
 namespace App\Model;
 
-class KeyValueCollection
+use Doctrine\Common\Collections\ArrayCollection;
+
+/**
+ * @extends ArrayCollection<int, KeyValue>
+ */
+class KeyValueCollection extends ArrayCollection
 {
-    /**
-     * @var KeyValue[]
-     */
-    private array $items;
-
-    /**
-     * @param array<mixed> $items
-     */
-    public function __construct(
-        array $items
-    ) {
-        $this->items = array_filter($items, function (mixed $item) {
-            return $item instanceof KeyValue;
-        });
-    }
-
-    public function get(string $key): ?string
+    public function getByKey(string $key): ?KeyValue
     {
-        foreach ($this->items as $item) {
-            if ($item->getKey() === $key) {
-                return $item->getValue();
-            }
-        }
+        $filteredCollection = $this->filter(function (KeyValue $element) use ($key) {
+            return $key === $element->getKey();
+        });
 
-        return null;
+        $element = $filteredCollection->first();
+
+        return $element instanceof KeyValue ? $element : null;
     }
 }

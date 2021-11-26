@@ -16,10 +16,11 @@ class SecretHydrator
 
         if ($secretPlaceholder instanceof SecretPlaceholderInterface) {
             $secretName = $secretPlaceholder->getSecretName();
+            $secret = $secrets->getByKey($secretName);
+            $secretValue = $secret?->getValue();
 
-            $secret = $secrets->get($secretName);
-            if (is_string($secret)) {
-                $placeholderContainer = $placeholderContainer->replace($secretPlaceholder, $secret);
+            if (is_string($secretValue)) {
+                $placeholderContainer = $placeholderContainer->replace($secretPlaceholder, $secretValue);
             }
         }
 
