@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Command;
 use App\Command\InstanceIsHealthyCommand;
 use App\Command\Option;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
+use App\Services\CommandInstanceRepository;
 use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -131,7 +132,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'httpResponseDataCollection' => [],
-                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_ID_INVALID,
+                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'id-invalid',
@@ -143,7 +144,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--id' => 'not-numeric',
                 ],
                 'httpResponseDataCollection' => [],
-                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_ID_INVALID,
+                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'id-invalid',
@@ -159,7 +160,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                         HttpResponseFactory::KEY_STATUS_CODE => 404,
                     ],
                 ],
-                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_NOT_FOUND,
+                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_NOT_FOUND,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'not-found',
