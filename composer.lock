@@ -3825,19 +3825,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/DigitalOceanPHP/Client.git",
-                "reference": "5e8e5494b6ca5c19d86a84e513abead58e2b07a9"
+                "reference": "7daf50d13372795f5ddeeb4510836662a9c71ce2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/DigitalOceanPHP/Client/zipball/5e8e5494b6ca5c19d86a84e513abead58e2b07a9",
-                "reference": "5e8e5494b6ca5c19d86a84e513abead58e2b07a9",
+                "url": "https://api.github.com/repos/DigitalOceanPHP/Client/zipball/7daf50d13372795f5ddeeb4510836662a9c71ce2",
+                "reference": "7daf50d13372795f5ddeeb4510836662a9c71ce2",
                 "shasum": ""
             },
             "require": {
                 "ext-json": "*",
                 "php": "^7.2.5 || ^8.0",
-                "php-http/client-common": "^2.3",
-                "php-http/discovery": "^1.12",
+                "php-http/client-common": "^2.4",
+                "php-http/discovery": "^1.14",
                 "php-http/httplug": "^2.2",
                 "psr/http-client-implementation": "^1.0",
                 "psr/http-factory-implementation": "^1.0",
@@ -3846,9 +3846,10 @@
             },
             "require-dev": {
                 "bamarni/composer-bin-plugin": "^1.4.1",
-                "guzzlehttp/guzzle": "^7.2",
-                "http-interop/http-factory-guzzle": "^1.0"
+                "guzzlehttp/guzzle": "^7.4",
+                "http-interop/http-factory-guzzle": "^1.1"
             },
+            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -3861,24 +3862,19 @@
             ],
             "authors": [
                 {
-                    "name": "Antoine Corcy",
-                    "email": "contact@sbin.dk"
-                },
-                {
                     "name": "Graham Campbell",
-                    "email": "graham@alt-three.com"
+                    "email": "hello@gjcampbell.co.uk",
+                    "homepage": "https://github.com/GrahamCampbell"
                 },
                 {
                     "name": "Yassir Hannoun",
-                    "email": "yassir.hannoun@gmail.com"
+                    "email": "yassir.hannoun@gmail.com",
+                    "homepage": "https://github.com/yassirh"
                 },
                 {
-                    "name": "Glenn Jacobs",
-                    "email": "glenn@neondigital.co.uk"
-                },
-                {
-                    "name": "Cameron Van Orman",
-                    "email": "cameron@efelle.com"
+                    "name": "Antoine Kirk",
+                    "email": "contact@sbin.dk",
+                    "homepage": "https://github.com/toin0u"
                 }
             ],
             "description": "DigitalOcean API v2 client for PHP",
@@ -3899,7 +3895,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-06-07T17:57:52+00:00"
+            "time": "2021-11-23T12:12:22+00:00"
         }
     ],
     "packages-dev": [
