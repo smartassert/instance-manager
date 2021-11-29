@@ -446,4 +446,56 @@ class InstanceTest extends TestCase
             ],
         ];
     }
+
+    /**
+     * @dataProvider getDropletStatusDataProvider
+     */
+    public function testGetDropletStatus(Instance $instance, string $expectedDropletStatus): void
+    {
+        self::assertSame($expectedDropletStatus, $instance->getDropletStatus());
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getDropletStatusDataProvider(): array
+    {
+        return [
+            'status: new' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => 'new',
+                ]),
+                'expectedDropletStatus' => 'new',
+            ],
+            'status: active' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => 'active',
+                ]),
+                'expectedDropletStatus' => 'active',
+            ],
+            'status: off' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => 'off',
+                ]),
+                'expectedDropletStatus' => 'off',
+            ],
+            'status: archive' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => 'archive',
+                ]),
+                'expectedDropletStatus' => 'archive',
+            ],
+            'status: unknown' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => 'foo',
+                ]),
+                'expectedDropletStatus' => 'unknown',
+            ],
+        ];
+    }
 }
