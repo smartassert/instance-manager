@@ -21,7 +21,7 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function create(string $serviceId, string $imageId, string $firstBootScript): Instance
+    public function create(string $serviceId, int $imageId, string $firstBootScript): Instance
     {
         $tag = $this->instanceTagFactory->create($serviceId, $imageId);
 
@@ -56,7 +56,7 @@ class InstanceRepository
     /**
      * @throws ExceptionInterface
      */
-    public function findCurrent(string $serviceId, string $imageId): ?Instance
+    public function findCurrent(string $serviceId, int $imageId): ?Instance
     {
         $tag = $this->instanceTagFactory->create($serviceId, $imageId);
 

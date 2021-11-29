@@ -35,7 +35,7 @@ class ImageRepositoryTest extends KernelTestCase
      *
      * @param array<mixed> $httpResponseData
      */
-    public function testExists(array $httpResponseData, int|string $imageId, bool $expectedExists): void
+    public function testExists(array $httpResponseData, int $imageId, bool $expectedExists): void
     {
         $this->mockHandler->append(
             $this->httpResponseFactory->createFromArray($httpResponseData)
