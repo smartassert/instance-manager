@@ -16,6 +16,7 @@ class CommandInstanceRepository
 
     private int $errorCode = 0;
     private string $errorMessage = '';
+    private ?int $id = null;
 
     public function __construct(
         private InstanceRepository $instanceRepository,
@@ -31,6 +32,7 @@ class CommandInstanceRepository
     {
         $this->errorCode = 0;
         $this->errorMessage = '';
+        $this->id = null;
 
         $id = $this->commandInputReader->getIntegerOption(Option::OPTION_ID, $input);
         if (null === $id) {
@@ -40,7 +42,9 @@ class CommandInstanceRepository
             return null;
         }
 
-        $instance = $this->instanceRepository->find($id);
+        $this->id = $id;
+
+        $instance = $this->instanceRepository->find((int) $this->id);
         if (null === $instance) {
             $this->errorMessage = $this->outputFactory->createErrorOutput('not-found', ['id' => $id]);
             $this->errorCode = self::EXIT_CODE_NOT_FOUND;
@@ -49,6 +53,11 @@ class CommandInstanceRepository
         }
 
         return $instance;
+    }
+
+    public function getId(): ?int
+    {
+        return $this->id;
     }
 
     public function getErrorCode(): int
