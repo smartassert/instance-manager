@@ -464,16 +464,16 @@ class InstanceTest extends TestCase
             'status: new' => [
                 'instance' => InstanceFactory::create([
                     'id' => 123,
-                    'status' => 'new',
+                    'status' => Instance::DROPLET_STATUS_NEW,
                 ]),
-                'expectedDropletStatus' => 'new',
+                'expectedDropletStatus' => Instance::DROPLET_STATUS_NEW,
             ],
             'status: active' => [
                 'instance' => InstanceFactory::create([
                     'id' => 123,
-                    'status' => 'active',
+                    'status' => Instance::DROPLET_STATUS_ACTIVE,
                 ]),
-                'expectedDropletStatus' => 'active',
+                'expectedDropletStatus' => Instance::DROPLET_STATUS_ACTIVE,
             ],
             'status: off' => [
                 'instance' => InstanceFactory::create([
@@ -485,16 +485,16 @@ class InstanceTest extends TestCase
             'status: archive' => [
                 'instance' => InstanceFactory::create([
                     'id' => 123,
-                    'status' => 'archive',
+                    'status' => Instance::DROPLET_STATUS_ARCHIVE,
                 ]),
-                'expectedDropletStatus' => 'archive',
+                'expectedDropletStatus' => Instance::DROPLET_STATUS_ARCHIVE,
             ],
             'status: unknown' => [
                 'instance' => InstanceFactory::create([
                     'id' => 123,
                     'status' => 'foo',
                 ]),
-                'expectedDropletStatus' => 'unknown',
+                'expectedDropletStatus' => Instance::DROPLET_STATUS_UNKNOWN,
             ],
         ];
     }

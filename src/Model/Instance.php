@@ -8,11 +8,11 @@ use DigitalOceanV2\Entity\Droplet;
 
 class Instance implements \JsonSerializable
 {
-    private const DROPLET_STATUS_NEW = 'new';
-    private const DROPLET_STATUS_ACTIVE = 'active';
-    private const DROPLET_STATUS_OFF = 'off';
-    private const DROPLET_STATUS_ARCHIVE = 'archive';
-    private const DROPLET_STATUS_UNKNOWN = 'unknown';
+    public const DROPLET_STATUS_NEW = 'new';
+    public const DROPLET_STATUS_ACTIVE = 'active';
+    public const DROPLET_STATUS_OFF = 'off';
+    public const DROPLET_STATUS_ARCHIVE = 'archive';
+    public const DROPLET_STATUS_UNKNOWN = 'unknown';
 
     /**
      * @var array<int|string, mixed>
