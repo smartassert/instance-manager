@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Services;
 
 use DigitalOceanV2\Api\Action as ActionApi;
