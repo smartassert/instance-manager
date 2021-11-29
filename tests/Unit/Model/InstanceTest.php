@@ -446,4 +446,56 @@ class InstanceTest extends TestCase
             ],
         ];
     }
+
+    /**
+     * @dataProvider getDropletStatusDataProvider
+     */
+    public function testGetDropletStatus(Instance $instance, string $expectedDropletStatus): void
+    {
+        self::assertSame($expectedDropletStatus, $instance->getDropletStatus());
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getDropletStatusDataProvider(): array
+    {
+        return [
+            'status: new' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => Instance::DROPLET_STATUS_NEW,
+                ]),
+                'expectedDropletStatus' => Instance::DROPLET_STATUS_NEW,
+            ],
+            'status: active' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => Instance::DROPLET_STATUS_ACTIVE,
+                ]),
+                'expectedDropletStatus' => Instance::DROPLET_STATUS_ACTIVE,
+            ],
+            'status: off' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => 'off',
+                ]),
+                'expectedDropletStatus' => 'off',
+            ],
+            'status: archive' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => Instance::DROPLET_STATUS_ARCHIVE,
+                ]),
+                'expectedDropletStatus' => Instance::DROPLET_STATUS_ARCHIVE,
+            ],
+            'status: unknown' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'status' => 'foo',
+                ]),
+                'expectedDropletStatus' => Instance::DROPLET_STATUS_UNKNOWN,
+            ],
+        ];
+    }
 }
