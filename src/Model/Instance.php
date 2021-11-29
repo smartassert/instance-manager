@@ -8,6 +8,12 @@ use DigitalOceanV2\Entity\Droplet;
 
 class Instance implements \JsonSerializable
 {
+    private const DROPLET_STATUS_NEW = 'new';
+    private const DROPLET_STATUS_ACTIVE = 'active';
+    private const DROPLET_STATUS_OFF = 'off';
+    private const DROPLET_STATUS_ARCHIVE = 'archive';
+    private const DROPLET_STATUS_UNKNOWN = 'unknown';
+
     /**
      * @var array<int|string, mixed>
      */
@@ -25,6 +31,25 @@ class Instance implements \JsonSerializable
     public function getDroplet(): Droplet
     {
         return $this->droplet;
+    }
+
+    /**
+     * @return self::DROPLET_STATUS_*
+     */
+    public function getDropletStatus(): string
+    {
+        $dropletStatus = $this->droplet->status;
+
+        if (
+            self::DROPLET_STATUS_NEW === $dropletStatus
+            || self::DROPLET_STATUS_ACTIVE === $dropletStatus
+            || self::DROPLET_STATUS_OFF === $dropletStatus
+            || self::DROPLET_STATUS_ARCHIVE === $dropletStatus
+        ) {
+            return $dropletStatus;
+        }
+
+        return self::DROPLET_STATUS_UNKNOWN;
     }
 
     /**
