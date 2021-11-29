@@ -1,4 +1,4 @@
 {
-    "health_check_url": "/health-check-4",
-    "state_url": "/state-4"
+    "health_check_url": "/health-check",
+    "state_url": "/"
 }
