@@ -51,7 +51,7 @@ class InstanceRepositoryTest extends KernelTestCase
         $this->mockHandler->append(
             $this->httpResponseFactory->createFromArray($successResponseData)
         );
-        $instance = $this->instanceRepository->create('service_id', 'image-id', '');
+        $instance = $this->instanceRepository->create('service_id', 123465, '');
 
         self::assertInstanceOf(Instance::class, $instance);
         self::assertEquals(
@@ -149,7 +149,7 @@ class InstanceRepositoryTest extends KernelTestCase
             ])
         );
 
-        $instance = $this->instanceRepository->findCurrent('service_id', '123456');
+        $instance = $this->instanceRepository->findCurrent('service_id', 123456);
         self::assertEquals($expectedInstance, $instance);
     }
 

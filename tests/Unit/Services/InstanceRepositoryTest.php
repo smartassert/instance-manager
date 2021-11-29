@@ -22,7 +22,7 @@ class InstanceRepositoryTest extends TestCase
     public function testCreate(
         InstanceConfigurationFactory $instanceConfigurationFactory,
         string $serviceId,
-        string $imageId,
+        int $imageId,
         string $firstBootScript,
         string $expectedUserData,
     ): void {
@@ -80,7 +80,7 @@ class InstanceRepositoryTest extends TestCase
     public function createDataProvider(): array
     {
         $serviceId = 'service_id';
-        $imageId = '123456';
+        $imageId = 123456;
 
         return [
             'no default user data, no first-boot script' => [

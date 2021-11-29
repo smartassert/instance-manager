@@ -206,7 +206,7 @@ class ServiceConfigurationTest extends TestCase
     public function testGetImageIdSuccess(
         string $serviceId,
         string $fileContent,
-        ?string $expectedImageId
+        ?int $expectedImageId
     ): void {
         $this->createFileReadSuccessMocks(
             'App\Services',
@@ -245,8 +245,8 @@ class ServiceConfigurationTest extends TestCase
             ],
             'valid' => [
                 'serviceId' => 'service2',
-                'fileContent' => '{"image_id":"image_id_value"}',
-                'expectedImageId' => 'image_id_value',
+                'fileContent' => '{"image_id":"123456"}',
+                'expectedImageId' => 123456,
             ],
         ];
     }

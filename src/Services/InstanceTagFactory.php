@@ -4,7 +4,7 @@ namespace App\Services;
 
 class InstanceTagFactory
 {
-    public function create(string $serviceId, string $imageId): string
+    public function create(string $serviceId, int $imageId): string
     {
         return $serviceId . '-' . $imageId;
     }

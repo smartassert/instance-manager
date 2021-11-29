@@ -16,11 +16,8 @@ class ImageRepository
     /**
      * @throws ExceptionInterface
      */
-    public function exists(int|string $imageId): bool
+    public function exists(int $imageId): bool
     {
-        // @todo: Remove (int) casting once https://github.com/DigitalOceanPHP/Client/issues/297 is resolved.
-        $imageId = (int) $imageId;
-
         try {
             $this->imageApi->getById($imageId);
 

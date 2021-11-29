@@ -42,12 +42,12 @@ class ServiceConfiguration
         return $collection;
     }
 
-    public function getImageId(string $serviceId): ?string
+    public function getImageId(string $serviceId): ?int
     {
         $data = $this->readJsonFileToArray($serviceId, self::IMAGE_FILENAME);
         $imageId = $data['image_id'] ?? null;
 
-        return is_string($imageId) ? $imageId : null;
+        return is_int($imageId) || is_numeric($imageId) ? (int) $imageId : null;
     }
 
     public function getServiceConfiguration(string $serviceId): ?ServiceConfigurationModel
