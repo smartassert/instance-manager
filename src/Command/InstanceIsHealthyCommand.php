@@ -75,7 +75,7 @@ class InstanceIsHealthyCommand extends Command
         }
 
         $healthCheckUrl = $this->serviceConfiguration->getServiceConfiguration($serviceId)?->getHealthCheckUrl();
-        if (null === $healthCheckUrl) {
+        if (null === $healthCheckUrl || '' === $healthCheckUrl) {
             return Command::SUCCESS;
         }
 

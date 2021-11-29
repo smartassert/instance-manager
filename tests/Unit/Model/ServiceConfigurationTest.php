@@ -30,21 +30,21 @@ class ServiceConfigurationTest extends TestCase
             'empty' => [
                 'serviceId' => $serviceId,
                 'data' => [],
-                'expectedConfiguration' => new ServiceConfiguration($serviceId, null, null)
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, '', '')
             ],
             'invalid health check url, not a string' => [
                 'serviceId' => $serviceId,
                 'data' => [
                     ServiceConfiguration::KEY_HEALTH_CHECK_URL => true,
                 ],
-                'expectedConfiguration' => new ServiceConfiguration($serviceId, null, null)
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, '', '')
             ],
             'invalid state url, not a string' => [
                 'serviceId' => $serviceId,
                 'data' => [
                     ServiceConfiguration::KEY_STATE_URL => true,
                 ],
-                'expectedConfiguration' => new ServiceConfiguration($serviceId, null, null)
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, '', '')
             ],
             'health check url valid, state url invalid' => [
                 'serviceId' => $serviceId,
@@ -52,7 +52,7 @@ class ServiceConfigurationTest extends TestCase
                     ServiceConfiguration::KEY_HEALTH_CHECK_URL => '/health-check',
                     ServiceConfiguration::KEY_STATE_URL => true,
                 ],
-                'expectedConfiguration' => new ServiceConfiguration($serviceId, '/health-check', null)
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, '/health-check', '')
             ],
             'health check url invalid, state url valid' => [
                 'serviceId' => $serviceId,
@@ -60,7 +60,7 @@ class ServiceConfigurationTest extends TestCase
                     ServiceConfiguration::KEY_HEALTH_CHECK_URL => true,
                     ServiceConfiguration::KEY_STATE_URL => '/',
                 ],
-                'expectedConfiguration' => new ServiceConfiguration($serviceId, null, '/')
+                'expectedConfiguration' => new ServiceConfiguration($serviceId, '', '/')
             ],
             'valid' => [
                 'serviceId' => $serviceId,

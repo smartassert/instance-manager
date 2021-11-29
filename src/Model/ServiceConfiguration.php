@@ -11,8 +11,8 @@ class ServiceConfiguration
 
     public function __construct(
         private string $serviceId,
-        private ?string $healthCheckUrl,
-        private ?string $stateUrl,
+        private string $healthCheckUrl,
+        private string $stateUrl,
     ) {
     }
 
@@ -22,10 +22,10 @@ class ServiceConfiguration
     public static function create(string $serviceId, array $data): self
     {
         $healthCheckUrl = $data[self::KEY_HEALTH_CHECK_URL] ?? null;
-        $healthCheckUrl = is_string($healthCheckUrl) ? $healthCheckUrl : null;
+        $healthCheckUrl = is_string($healthCheckUrl) ? $healthCheckUrl : '';
 
         $stateUrl = $data[self::KEY_STATE_URL] ?? null;
-        $stateUrl = is_string($stateUrl) ? $stateUrl : null;
+        $stateUrl = is_string($stateUrl) ? $stateUrl : '';
 
         return new ServiceConfiguration($serviceId, $healthCheckUrl, $stateUrl);
     }
@@ -35,12 +35,12 @@ class ServiceConfiguration
         return $this->serviceId;
     }
 
-    public function getHealthCheckUrl(): ?string
+    public function getHealthCheckUrl(): string
     {
         return $this->healthCheckUrl;
     }
 
-    public function getStateUrl(): ?string
+    public function getStateUrl(): string
     {
         return $this->stateUrl;
     }

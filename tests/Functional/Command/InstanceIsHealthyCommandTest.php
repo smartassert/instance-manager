@@ -190,7 +190,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             $serviceConfigurationModel = new ServiceConfigurationModel(
                 $serviceId,
                 $healthCheckUrl,
-                null
+                ''
             );
 
             $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);

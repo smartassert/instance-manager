@@ -316,32 +316,32 @@ class ServiceConfigurationTest extends TestCase
             'empty' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, null),
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', ''),
             ],
             'content not a json array' => [
                 'serviceId' => $serviceId,
                 'fileContent' => 'true',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, null),
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', ''),
             ],
             'single invalid item, key not a string' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{0:"value1"}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, null),
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', ''),
             ],
             'single invalid item, value not a string' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{"key1":true}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, null),
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', ''),
             ],
             'state_url invalid, not a string' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{"state_url":true,"health_check_url":"/health-check"}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '/health-check', null),
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '/health-check', ''),
             ],
             'health_check_url invalid, not a string' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{"state_url":"/state","health_check_url":true}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, null, '/state'),
+                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', '/state'),
             ],
             'valid' => [
                 'serviceId' => $serviceId,
