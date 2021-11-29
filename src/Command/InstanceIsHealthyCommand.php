@@ -25,8 +25,6 @@ class InstanceIsHealthyCommand extends Command
     use RetryableCommandTrait;
 
     public const NAME = 'app:instance:is-healthy';
-    public const EXIT_CODE_ID_INVALID = 3;
-    public const EXIT_CODE_NOT_FOUND = 4;
     public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
 
     public const OPTION_RETRY_LIMIT = 'retry-limit';
