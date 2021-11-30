@@ -4,20 +4,25 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Command;
 
-use App\Command\InstanceIsHealthyCommand;
 use App\Command\InstanceIsReadyCommand;
 use App\Command\Option;
+use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandInstanceRepository;
+use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceIsReadyCommandTest extends KernelTestCase
 {
+    use MockeryPHPUnitIntegration;
+
     private InstanceIsReadyCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
@@ -51,6 +56,17 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         string $expectedExceptionMessage,
         int $expectedExceptionCode
     ): void {
+        $serviceId = 'service_id';
+
+        $this->mockServiceConfiguration(
+            $serviceId,
+            new ServiceConfigurationModel(
+                $serviceId,
+                'https://{{ host }}/health-check',
+                'https://{{ host }}/state'
+            )
+        );
+
         $this->mockHandler->append(
             $this->httpResponseFactory->createFromArray($httpResponseData)
         );
@@ -61,7 +77,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                '--' . Option::OPTION_SERVICE_ID => $serviceId,
                 '--id' => '123',
             ]),
             new BufferedOutput()
@@ -86,98 +102,23 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runInvalidInputDataProvider
+     * @dataProvider runDataProvider
      *
      * @param array<mixed>             $input
      * @param array<int, array<mixed>> $httpResponseDataCollection
      */
-    public function testRunInvalidInput(
+    public function testRun(
         array $input,
+        ?ServiceConfigurationModel $serviceConfiguration,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
         string $expectedOutput
     ): void {
-        foreach ($httpResponseDataCollection as $httpResponseData) {
-            $this->mockHandler->append(
-                $this->httpResponseFactory->createFromArray($httpResponseData)
-            );
-        }
+        $serviceId = $input['--service-id'] ?? '';
+        $serviceId = is_string($serviceId) ? $serviceId : '';
 
-        $output = new BufferedOutput();
+        $this->mockServiceConfiguration($serviceId, $serviceConfiguration);
 
-        $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
-
-        self::assertSame($expectedReturnCode, $commandReturnCode);
-        self::assertSame($expectedOutput, $output->fetch());
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function runInvalidInputDataProvider(): array
-    {
-        return [
-            'service id invalid, missing' => [
-                'input' => [],
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_EMPTY_SERVICE_ID,
-                'expectedOutput' => '"service-id" option empty',
-            ],
-            'id invalid, missing' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                ],
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'id-invalid',
-                ]),
-            ],
-            'id invalid, not numeric' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--id' => 'not-numeric',
-                ],
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'id-invalid',
-                ]),
-            ],
-            'not found' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--id' => '123',
-                ],
-                'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 404,
-                    ],
-                ],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_NOT_FOUND,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'not-found',
-                    'id' => 123,
-                ]),
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider runDataProvider
-     *
-     * @param array<mixed> $input
-     * @param array<mixed> $httpResponseDataCollection
-     */
-    public function testRunSuccess(
-        array $input,
-        array $httpResponseDataCollection,
-        int $expectedReturnCode,
-        string $expectedOutput
-    ): void {
         foreach ($httpResponseDataCollection as $fixture) {
             if (is_array($fixture)) {
                 $fixture = $this->httpResponseFactory->createFromArray($fixture);
@@ -191,7 +132,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
 
         self::assertSame($expectedReturnCode, $commandReturnCode);
-        self::assertEquals($expectedOutput, $output->fetch());
+        self::assertSame($expectedOutput, $output->fetch());
     }
 
     /**
@@ -199,136 +140,170 @@ class InstanceIsReadyCommandTest extends KernelTestCase
      */
     public function runDataProvider(): array
     {
-        return [
-            'no explicit readiness state' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--id' => '123',
+        $serviceId = 'service_id';
+
+        $serviceConfiguration = new ServiceConfigurationModel(
+            $serviceId,
+            'https://{{ host }}/health-check',
+            'https://{{ host }}/state'
+        );
+
+        $instanceId = 123;
+
+        $dropletHttpResponseData = [
+            HttpResponseFactory::KEY_STATUS_CODE => 200,
+            HttpResponseFactory::KEY_HEADERS => [
+                'content-type' => 'application/json; charset=utf-8',
+            ],
+            HttpResponseFactory::KEY_BODY => (string) json_encode([
+                'droplet' => [
+                    'id' => $instanceId,
                 ],
+            ]),
+        ];
+
+        return [
+            'service id invalid, missing' => [
+                'input' => [],
+                'serviceConfiguration' => null,
+                'httpResponseDataCollection' => [],
+                'expectedReturnCode' => InstanceIsReadyCommand::EXIT_CODE_EMPTY_SERVICE_ID,
+                'expectedOutput' => '"service-id" option empty',
+            ],
+            'service configuration missing' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
+                ],
+                'serviceConfiguration' => null,
+                'httpResponseDataCollection' => [
+                    $dropletHttpResponseData,
+                ],
+                'expectedReturnCode' => InstanceIsReadyCommand::EXIT_CODE_SERVICE_CONFIGURATION_MISSING,
+                'expectedOutput' => 'No configuration for service "service_id"',
+            ],
+            'service configuration state_url missing' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
+                ],
+                'serviceConfiguration' => new ServiceConfigurationModel(
+                    $serviceId,
+                    'https://{{ host }}/health-check',
+                    ''
+                ),
+                'httpResponseDataCollection' => [
+                    $dropletHttpResponseData,
+                ],
+                'expectedReturnCode' => InstanceIsReadyCommand::EXIT_CODE_SERVICE_STATE_URL_MISSING,
+                'expectedOutput' => 'No state_url for service "service_id"',
+            ],
+            'instance id invalid, missing' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                ],
+                'serviceConfiguration' => $serviceConfiguration,
+                'httpResponseDataCollection' => [],
+                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
+                'expectedOutput' => (string) json_encode([
+                    'status' => 'error',
+                    'error-code' => 'id-invalid',
+                ]),
+            ],
+            'instance id invalid, not numeric' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => 'not-numeric',
+                ],
+                'serviceConfiguration' => $serviceConfiguration,
+                'httpResponseDataCollection' => [],
+                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
+                'expectedOutput' => (string) json_encode([
+                    'status' => 'error',
+                    'error-code' => 'id-invalid',
+                ]),
+            ],
+            'instance not found' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
+                ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'code' => 123,
-                            ],
-                        ]),
+                        HttpResponseFactory::KEY_STATUS_CODE => 404,
                     ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([]),
-                    ],
+                ],
+                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_NOT_FOUND,
+                'expectedOutput' => (string) json_encode([
+                    'status' => 'error',
+                    'error-code' => 'not-found',
+                    'id' => 123,
+                ]),
+            ],
+            'no explicit readiness state' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
+                ],
+                'serviceConfiguration' => $serviceConfiguration,
+                'httpResponseDataCollection' => [
+                    $dropletHttpResponseData,
+                    $this->createStateResponseData([]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => 'ready',
             ],
             'ready=false, retry-limit=1' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--id' => '123',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
                     '--retry-limit' => 1,
                     '--retry-delay' => 0,
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'code' => 123,
-                            ],
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'ready' => false,
-                        ]),
-                    ],
+                    $dropletHttpResponseData,
+                    $this->createStateResponseData([
+                        'ready' => false,
+                    ]),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
                 'expectedOutput' => 'not-ready',
             ],
             'ready=false, ready=false, retry-limit=2' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--id' => '123',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'code' => 123,
-                            ],
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'ready' => false,
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'ready' => false,
-                        ]),
-                    ],
+                    $dropletHttpResponseData,
+                    $this->createStateResponseData([
+                        'ready' => false,
+                    ]),
+                    $this->createStateResponseData([
+                        'ready' => false,
+                    ]),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
                 'expectedOutput' => 'not-ready' . "\n" . 'not-ready',
             ],
             'ready=false, exception, retry-limit=2' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--id' => '123',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'code' => 123,
-                            ],
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'ready' => false,
-                        ]),
-                    ],
+                    $dropletHttpResponseData,
+                    $this->createStateResponseData([
+                        'ready' => false,
+                    ]),
                     new \RuntimeException('exception message content'),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
@@ -336,105 +311,89 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
             'ready=true' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--id' => '123',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'code' => 123,
-                            ],
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'ready' => true,
-                        ]),
-                    ],
+                    $dropletHttpResponseData,
+                    $this->createStateResponseData([
+                        'ready' => true,
+                    ]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => 'ready',
             ],
             'ready=false, ready=true, retry-limit=2' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--id' => '123',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'code' => 123,
-                            ],
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'ready' => false,
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'ready' => true,
-                        ]),
-                    ],
+                    $dropletHttpResponseData,
+                    $this->createStateResponseData([
+                        'ready' => false,
+                    ]),
+                    $this->createStateResponseData([
+                        'ready' => true,
+                    ]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => 'not-ready' . "\n" . 'ready',
             ],
             'ready=<non-boolean>' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--id' => '123',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--id' => (string) $instanceId,
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'code' => 123,
-                            ],
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'ready' => 'non-boolean value',
-                        ]),
-                    ],
+                    $dropletHttpResponseData,
+                    $this->createStateResponseData([
+                        'ready' => 'non-boolean value',
+                    ]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => 'ready',
             ],
+        ];
+    }
+
+    private function mockServiceConfiguration(
+        string $serviceId,
+        ?ServiceConfigurationModel $serviceConfigurationModel
+    ): void {
+        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+        $serviceConfiguration
+            ->shouldReceive('getServiceConfiguration')
+            ->with($serviceId)
+            ->andReturn($serviceConfigurationModel)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            $serviceConfiguration
+        );
+    }
+
+    /**
+     * @param array<mixed> $data
+     *
+     * @return array<mixed>
+     */
+    private function createStateResponseData(array $data): array
+    {
+        return [
+            HttpResponseFactory::KEY_STATUS_CODE => 200,
+            HttpResponseFactory::KEY_HEADERS => [
+                'content-type' => 'application/json; charset=utf-8',
+            ],
+            HttpResponseFactory::KEY_BODY => (string) json_encode($data),
         ];
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Services;
 
+use App\Model\ServiceConfiguration;
 use App\Services\InstanceClient;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
@@ -45,11 +46,12 @@ class InstanceClientTest extends KernelTestCase
 
         $this->mockHandler->append($response);
 
+        $serviceConfiguration = new ServiceConfiguration('service_id', 'https://{{ host }}/health-check', '');
         $instance = InstanceFactory::create(['id' => 123]);
 
         self::assertSame(
             $response,
-            $this->instanceClient->getHealth($instance, '/health-check')
+            $this->instanceClient->getHealth($serviceConfiguration, $instance)
         );
     }
 
@@ -63,11 +65,12 @@ class InstanceClientTest extends KernelTestCase
     {
         $this->mockHandler->append($this->httpResponseFactory->createFromArray($responseData));
 
+        $serviceConfiguration = new ServiceConfiguration('service_id', '', 'https://{{ host }}/state');
         $instance = InstanceFactory::create(['id' => 123]);
 
         self::assertSame(
             $expectedState,
-            $this->instanceClient->getState($instance, $stateUrl)
+            $this->instanceClient->getState($serviceConfiguration, $instance)
         );
     }
 

@@ -28,6 +28,7 @@ class DropletDataFactory
         foreach ($ips as $ip) {
             $v4NetworksData[] = [
                 'ip_address' => $ip,
+                'type' => 'public',
             ];
         }
 

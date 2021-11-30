@@ -165,7 +165,7 @@ class Instance implements \JsonSerializable
         ];
     }
 
-    private function getFirstPublicV4IpAddress(): ?string
+    public function getFirstPublicV4IpAddress(): ?string
     {
         foreach ($this->droplet->networks as $network) {
             if (4 === $network->version && 'public' === $network->type) {

@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\Model\Filter;
 use App\Model\InstanceCollection;
+use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\InstanceCollectionHydrator;
@@ -18,7 +19,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class AbstractInstanceListCommand extends Command
 {
-    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
+    public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
+    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
+    public const EXIT_CODE_SERVICE_STATE_URL_MISSING = 7;
 
     public function __construct(
         private InstanceRepository $instanceRepository,
@@ -47,13 +50,26 @@ abstract class AbstractInstanceListCommand extends Command
     {
         $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
         if ('' === $serviceId) {
-            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
+            $output->write('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
-            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
+            return self::EXIT_CODE_EMPTY_SERVICE_ID;
+        }
+
+        $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
+        if (null === $serviceConfiguration) {
+            $output->write('No configuration for service "' . $serviceId . '"');
+
+            return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
+        }
+
+        if ('' === $serviceConfiguration->getStateUrl()) {
+            $output->write('No state_url for service "' . $serviceId . '"');
+
+            return self::EXIT_CODE_SERVICE_STATE_URL_MISSING;
         }
 
         $output->write((string) json_encode($this->findInstances(
-            $serviceId,
+            $serviceConfiguration,
             $this->createFilterCollection($input)
         )));
 
@@ -65,11 +81,10 @@ abstract class AbstractInstanceListCommand extends Command
      *
      * @throws ExceptionInterface
      */
-    private function findInstances(string $serviceId, array $filters): InstanceCollection
+    private function findInstances(ServiceConfigurationModel $serviceConfiguration, array $filters): InstanceCollection
     {
-        $stateUrl = (string) $this->serviceConfiguration->getServiceConfiguration($serviceId)?->getStateUrl();
-        $instances = $this->instanceRepository->findAll($serviceId);
-        $instances = $this->instanceCollectionHydrator->hydrate($instances, $stateUrl);
+        $instances = $this->instanceRepository->findAll($serviceConfiguration->getServiceId());
+        $instances = $this->instanceCollectionHydrator->hydrate($serviceConfiguration, $instances);
 
         foreach ($filters as $filter) {
             $instances = $instances->filterByFilter($filter);

@@ -26,6 +26,7 @@ class InstanceIsHealthyCommand extends Command
 
     public const NAME = 'app:instance:is-healthy';
     public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
+    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
 
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
@@ -67,6 +68,13 @@ class InstanceIsHealthyCommand extends Command
             return self::EXIT_CODE_EMPTY_SERVICE_ID;
         }
 
+        $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
+        if (null === $serviceConfiguration) {
+            $output->write('No configuration for service "' . $serviceId . '"');
+
+            return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
+        }
+
         $instance = $this->commandInstanceRepository->get($input);
         if (null === $instance) {
             $output->write($this->commandInstanceRepository->getErrorMessage());
@@ -74,8 +82,7 @@ class InstanceIsHealthyCommand extends Command
             return $this->commandInstanceRepository->getErrorCode();
         }
 
-        $healthCheckUrl = $this->serviceConfiguration->getServiceConfiguration($serviceId)?->getHealthCheckUrl();
-        if (null === $healthCheckUrl) {
+        if ('' === $serviceConfiguration->getHealthCheckUrl()) {
             return Command::SUCCESS;
         }
 
@@ -83,8 +90,8 @@ class InstanceIsHealthyCommand extends Command
             $this->getRetryLimit($input),
             $this->getRetryDelay($input),
             $output,
-            function (bool $isLastAttempt) use ($healthCheckUrl, $output, $instance): bool {
-                $response = $this->instanceClient->getHealth($instance, $healthCheckUrl);
+            function (bool $isLastAttempt) use ($serviceConfiguration, $output, $instance): bool {
+                $response = $this->instanceClient->getHealth($serviceConfiguration, $instance);
                 $isHealthy = 200 === $response->getStatusCode();
 
                 $output->write($response->getBody()->getContents());
