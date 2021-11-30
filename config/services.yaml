@@ -45,6 +45,13 @@ services:
             $config:
                 handler: '@GuzzleHttp\HandlerStack'
 
+    app.http.client.instance:
+        class: GuzzleHttp\Client
+        arguments:
+            $config:
+                handler: '@GuzzleHttp\HandlerStack'
+                verify: false
+
     Psr\Http\Message\RequestFactoryInterface:
         class: GuzzleHttp\Psr7\HttpFactory
 
@@ -83,3 +90,7 @@ services:
     App\Services\ServiceConfiguration:
         arguments:
             $configurationDirectory: '%kernel.project_dir%/services'
+
+    App\Services\InstanceClient:
+        arguments:
+            $httpClient: '@app.http.client.instance'
