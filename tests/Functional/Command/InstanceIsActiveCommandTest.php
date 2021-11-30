@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Command;
 use App\Command\InstanceIsActiveCommand;
 use App\Model\Instance;
 use App\Services\CommandInstanceRepository;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -184,18 +185,12 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                     '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => Instance::DROPLET_STATUS_NEW,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => Instance::DROPLET_STATUS_NEW,
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
                 'expectedOutput' => 'new',
@@ -207,18 +202,12 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                     '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => Instance::DROPLET_STATUS_OFF,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => Instance::DROPLET_STATUS_OFF,
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
                 'expectedOutput' => 'off',
@@ -230,18 +219,12 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                     '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => Instance::DROPLET_STATUS_ARCHIVE,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => Instance::DROPLET_STATUS_ARCHIVE,
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
                 'expectedOutput' => 'archive',
@@ -253,18 +236,12 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                     '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => 'unknown-state',
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => 'unknown-state',
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
                 'expectedOutput' => 'unknown',
@@ -276,18 +253,12 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                     '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => Instance::DROPLET_STATUS_ACTIVE,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => Instance::DROPLET_STATUS_ACTIVE,
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => 'active',
@@ -299,30 +270,18 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                     '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => Instance::DROPLET_STATUS_NEW,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => Instance::DROPLET_STATUS_NEW,
-                            ],
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    ]),
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => Instance::DROPLET_STATUS_NEW,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => Instance::DROPLET_STATUS_NEW,
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
                 'expectedOutput' => 'new' . "\n" . 'new',
@@ -334,18 +293,12 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                     '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => Instance::DROPLET_STATUS_NEW,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => Instance::DROPLET_STATUS_NEW,
-                            ],
-                        ]),
-                    ],
+                    ]),
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 404,
                     ],
@@ -360,30 +313,18 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                     '--retry-delay' => 0,
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => Instance::DROPLET_STATUS_NEW,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => Instance::DROPLET_STATUS_NEW,
-                            ],
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    ]),
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
+                            'status' => Instance::DROPLET_STATUS_ACTIVE,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                                'status' => Instance::DROPLET_STATUS_ACTIVE,
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => 'new' . "\n" . 'active',

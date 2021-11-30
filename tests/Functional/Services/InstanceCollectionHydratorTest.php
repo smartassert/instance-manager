@@ -8,6 +8,7 @@ use App\Model\InstanceCollection;
 use App\Model\ServiceConfiguration;
 use App\Services\InstanceCollectionHydrator;
 use App\Tests\Services\DropletDataFactory;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
 use GuzzleHttp\Handler\MockHandler;
@@ -82,13 +83,9 @@ class InstanceCollectionHydratorTest extends KernelTestCase
                 DropletDataFactory::createWithIps($dropletId, [$instanceData['ipAddress']])
             );
             $this->mockHandler->append(
-                $this->httpResponseFactory->createFromArray([
-                    HttpResponseFactory::KEY_STATUS_CODE => 200,
-                    HttpResponseFactory::KEY_HEADERS => [
-                        'content-type' => 'application/json',
-                    ],
-                    HttpResponseFactory::KEY_BODY => json_encode($instanceData['state']),
-                ])
+                $this->httpResponseFactory->createFromArray(
+                    HttpResponseDataFactory::createJsonResponseData($instanceData['state'])
+                ),
             );
         }
 

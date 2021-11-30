@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceDestroyCommand;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -138,17 +139,11 @@ class InstanceDestroyCommandTest extends KernelTestCase
                     '--id' => '123',
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 123,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 123,
-                            ],
-                        ]),
-                    ],
+                    ]),
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 204,
                     ],

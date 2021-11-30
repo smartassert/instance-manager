@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Command;
 use App\Command\ImageExistsCommand;
 use App\Command\Option;
 use App\Services\ServiceConfiguration;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -134,17 +135,11 @@ class ImageExistsCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'image' => [
+                            'id' => 123,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'image' => [
-                                'id' => 123,
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
             ],
