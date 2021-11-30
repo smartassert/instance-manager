@@ -9,6 +9,7 @@ use App\Command\InstanceListCommand;
 use App\Command\Option;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\ServiceConfiguration;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -264,43 +265,13 @@ class InstanceListCommandTest extends KernelTestCase
         ];
 
         $collectionHttpResponses = [
-            'droplets' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json; charset=utf-8',
-                ],
-                HttpResponseFactory::KEY_BODY => (string) json_encode([
-                    'droplets' => array_values($dropletData),
-                ]),
-            ],
-            '1-state' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json',
-                ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-1']),
-            ],
-            '2-state' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json',
-                ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-2']),
-            ],
-            '3-state' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json',
-                ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-3']),
-            ],
-            '4-state' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json',
-                ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-4']),
-            ],
+            'droplets' => HttpResponseDataFactory::createJsonResponseData([
+                'droplets' => array_values($dropletData),
+            ]),
+            '1-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-1']),
+            '2-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-2']),
+            '3-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-3']),
+            '4-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-4']),
         ];
 
         $expectedOutputData = [

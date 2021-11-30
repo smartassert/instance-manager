@@ -9,6 +9,7 @@ use App\Command\Option;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandInstanceRepository;
 use App\Services\ServiceConfiguration;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -149,18 +150,11 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         );
 
         $instanceId = 123;
-
-        $dropletHttpResponseData = [
-            HttpResponseFactory::KEY_STATUS_CODE => 200,
-            HttpResponseFactory::KEY_HEADERS => [
-                'content-type' => 'application/json; charset=utf-8',
+        $dropletHttpResponseData = HttpResponseDataFactory::createJsonResponseData([
+            'droplet' => [
+                'id' => $instanceId,
             ],
-            HttpResponseFactory::KEY_BODY => (string) json_encode([
-                'droplet' => [
-                    'id' => $instanceId,
-                ],
-            ]),
-        ];
+        ]);
 
         return [
             'service id invalid, missing' => [
@@ -249,7 +243,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
-                    $this->createStateResponseData([]),
+                    HttpResponseDataFactory::createJsonResponseData([]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => 'ready',
@@ -264,7 +258,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
-                    $this->createStateResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'ready' => false,
                     ]),
                 ],
@@ -281,10 +275,10 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
-                    $this->createStateResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'ready' => false,
                     ]),
-                    $this->createStateResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'ready' => false,
                     ]),
                 ],
@@ -301,7 +295,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
-                    $this->createStateResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'ready' => false,
                     ]),
                     new \RuntimeException('exception message content'),
@@ -317,7 +311,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
-                    $this->createStateResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'ready' => true,
                     ]),
                 ],
@@ -334,10 +328,10 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
-                    $this->createStateResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'ready' => false,
                     ]),
-                    $this->createStateResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'ready' => true,
                     ]),
                 ],
@@ -352,7 +346,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
-                    $this->createStateResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'ready' => 'non-boolean value',
                     ]),
                 ],
@@ -379,21 +373,5 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             'serviceConfiguration',
             $serviceConfiguration
         );
-    }
-
-    /**
-     * @param array<mixed> $data
-     *
-     * @return array<mixed>
-     */
-    private function createStateResponseData(array $data): array
-    {
-        return [
-            HttpResponseFactory::KEY_STATUS_CODE => 200,
-            HttpResponseFactory::KEY_HEADERS => [
-                'content-type' => 'application/json; charset=utf-8',
-            ],
-            HttpResponseFactory::KEY_BODY => (string) json_encode($data),
-        ];
     }
 }

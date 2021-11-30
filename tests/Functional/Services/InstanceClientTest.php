@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Services;
 
 use App\Model\ServiceConfiguration;
 use App\Services\InstanceClient;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
 use GuzzleHttp\Handler\MockHandler;
@@ -36,13 +37,7 @@ class InstanceClientTest extends KernelTestCase
 
     public function testGetHealth(): void
     {
-        $response = $this->httpResponseFactory->createFromArray([
-            HttpResponseFactory::KEY_STATUS_CODE => 200,
-            HttpResponseFactory::KEY_HEADERS => [
-                'content-type' => 'application/json',
-            ],
-            HttpResponseFactory::KEY_BODY => (string) json_encode([]),
-        ]);
+        $response = $this->httpResponseFactory->createFromArray(HttpResponseDataFactory::createJsonResponseData([]));
 
         $this->mockHandler->append($response);
 
@@ -121,13 +116,7 @@ class InstanceClientTest extends KernelTestCase
             ],
             'response is json array, content type is "application/json; charset=UTF-8"' => [
                 'stateUrl' => '/state',
-                'responseData' => [
-                    HttpResponseFactory::KEY_STATUS_CODE => 200,
-                    HttpResponseFactory::KEY_HEADERS => [
-                        'content-type' => 'application/json; charset=UTF-8',
-                    ],
-                    HttpResponseFactory::KEY_BODY => (string) json_encode($data),
-                ],
+                'responseData' => HttpResponseDataFactory::createJsonResponseData($data),
                 'expectedState' => $data,
             ],
         ];

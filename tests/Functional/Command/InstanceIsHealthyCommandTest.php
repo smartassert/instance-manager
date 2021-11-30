@@ -9,6 +9,7 @@ use App\Command\Option;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandInstanceRepository;
 use App\Services\ServiceConfiguration;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -256,17 +257,11 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
 
         $instanceId = 123;
 
-        $dropletResponseData = [
-            HttpResponseFactory::KEY_STATUS_CODE => 200,
-            HttpResponseFactory::KEY_HEADERS => [
-                'content-type' => 'application/json; charset=utf-8',
+        $dropletResponseData = HttpResponseDataFactory::createJsonResponseData([
+            'droplet' => [
+                'id' => $instanceId,
             ],
-            HttpResponseFactory::KEY_BODY => (string) json_encode([
-                'droplet' => [
-                    'id' => 123,
-                ],
-            ]),
-        ];
+        ]);
 
         return [
             'no health check url' => [
@@ -293,7 +288,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
-                    $this->createHealthCheckResponseData([]),
+                    HttpResponseDataFactory::createJsonResponseData([]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => '[]',
@@ -308,14 +303,14 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
-                    $this->createHealthCheckResponseData(
+                    HttpResponseDataFactory::createJsonResponseData(
                         [
                             'service1' => 'unavailable',
                             'service2' => 'available',
                             'service3' => 'available',
                         ],
                         503
-                    )
+                    ),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
                 'expectedOutput' => (string) json_encode([
@@ -334,14 +329,14 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
-                    $this->createHealthCheckResponseData(
+                    HttpResponseDataFactory::createJsonResponseData(
                         [
                             'service1' => 'unavailable',
                             'service2' => 'available',
                         ],
                         503
                     ),
-                    $this->createHealthCheckResponseData(
+                    HttpResponseDataFactory::createJsonResponseData(
                         [
                             'service1' => 'unavailable',
                             'service2' => 'available',
@@ -363,14 +358,14 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
-                    $this->createHealthCheckResponseData(
+                    HttpResponseDataFactory::createJsonResponseData(
                         [
                             'service1' => 'unavailable',
                             'service2' => 'available',
                         ],
                         503
                     ),
-                    $this->createHealthCheckResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'service1' => 'available',
                         'service2' => 'available',
                     ]),
@@ -387,7 +382,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                 'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
-                    $this->createHealthCheckResponseData([
+                    HttpResponseDataFactory::createJsonResponseData([
                         'service1' => 'available',
                         'service2' => 'available',
                         'service3' => 'available',
@@ -420,21 +415,5 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             'serviceConfiguration',
             $serviceConfiguration
         );
-    }
-
-    /**
-     * @param array<mixed> $data
-     *
-     * @return array<mixed>
-     */
-    private function createHealthCheckResponseData(array $data, int $statusCode = 200): array
-    {
-        return [
-            HttpResponseFactory::KEY_STATUS_CODE => $statusCode,
-            HttpResponseFactory::KEY_HEADERS => [
-                'content-type' => 'application/json; charset=utf-8',
-            ],
-            HttpResponseFactory::KEY_BODY => (string) json_encode($data),
-        ];
     }
 }

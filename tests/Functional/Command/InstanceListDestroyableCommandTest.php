@@ -9,6 +9,7 @@ use App\Command\InstanceListDestroyableCommand;
 use App\Command\Option;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\ServiceConfiguration;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -228,43 +229,15 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         ];
 
         $collectionHttpResponses = [
-            'droplets' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json; charset=utf-8',
-                ],
-                HttpResponseFactory::KEY_BODY => (string) json_encode([
-                    'droplets' => array_values($dropletData),
-                ]),
-            ],
-            '1-state' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json',
-                ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-with-excluded-ip']),
-            ],
-            '2-state' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json',
-                ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-not-idle']),
-            ],
-            '3-state' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json',
-                ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-is-idle']),
-            ],
-            '4-state' => [
-                HttpResponseFactory::KEY_STATUS_CODE => 200,
-                HttpResponseFactory::KEY_HEADERS => [
-                    'content-type' => 'application/json',
-                ],
-                HttpResponseFactory::KEY_BODY => json_encode($stateResponseData['instance-null-idle']),
-            ],
+            'droplets' => HttpResponseDataFactory::createJsonResponseData([
+                'droplets' => array_values($dropletData),
+            ]),
+            '1-state' => HttpResponseDataFactory::createJsonResponseData(
+                $stateResponseData['instance-with-excluded-ip']
+            ),
+            '2-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-not-idle']),
+            '3-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-is-idle']),
+            '4-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-null-idle']),
         ];
 
         $expectedOutputData = [

@@ -10,6 +10,7 @@ use App\Exception\MissingSecretException;
 use App\Model\EnvironmentVariable;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
+use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -173,19 +174,13 @@ class InstanceCreateCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplets' => [
+                            [
+                                'id' => 123,
+                            ]
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplets' => [
-                                [
-                                    'id' => 123,
-                                ]
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
@@ -198,26 +193,14 @@ class InstanceCreateCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
                 'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplets' => [],
+                    ]),
+                    HttpResponseDataFactory::createJsonResponseData([
+                        'droplet' => [
+                            'id' => 789,
                         ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplets' => [],
-                        ]),
-                    ],
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-                        HttpResponseFactory::KEY_HEADERS => [
-                            'content-type' => 'application/json; charset=utf-8',
-                        ],
-                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => [
-                                'id' => 789,
-                            ],
-                        ]),
-                    ],
+                    ]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
