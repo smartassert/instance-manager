@@ -7,17 +7,23 @@ namespace App\Tests\Functional\Command;
 use App\Command\AbstractInstanceListCommand;
 use App\Command\InstanceListCommand;
 use App\Command\Option;
+use App\Model\ServiceConfiguration as ServiceConfigurationModel;
+use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
+use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceListCommandTest extends KernelTestCase
 {
+    use MockeryPHPUnitIntegration;
+
     private InstanceListCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
@@ -51,6 +57,17 @@ class InstanceListCommandTest extends KernelTestCase
         string $expectedExceptionMessage,
         int $expectedExceptionCode
     ): void {
+        $serviceId = 'service_id';
+
+        $this->mockServiceConfiguration(
+            $serviceId,
+            new ServiceConfigurationModel(
+                $serviceId,
+                'https://{{ host }}/health-check',
+                'https://{{ host }}/state'
+            )
+        );
+
         $this->mockHandler->append($this->httpResponseFactory->createFromArray($responseData));
 
         self::expectException($expectedExceptionClass);
@@ -59,7 +76,7 @@ class InstanceListCommandTest extends KernelTestCase
 
         $this->command->run(
             new ArrayInput([
-                '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                '--' . Option::OPTION_SERVICE_ID => $serviceId,
             ]),
             new NullOutput()
         );
@@ -83,59 +100,106 @@ class InstanceListCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runEmptyRequiredValueDataProvider
+     * @dataProvider runInvalidInputDataProvider
      *
-     * @param array<mixed> $input
+     * @param array<mixed>             $input
+     * @param array<int, array<mixed>> $httpResponseDataCollection
      */
-    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
-    {
-        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
-
-        self::assertSame($expectedReturnCode, $commandReturnCode);
+    public function testRunInvalidInput(
+        array $input,
+        ?ServiceConfigurationModel $serviceConfiguration,
+        array $httpResponseDataCollection,
+        int $expectedReturnCode,
+        string $expectedOutput
+    ): void {
+        $this->doTestRun(
+            $input,
+            $serviceConfiguration,
+            $httpResponseDataCollection,
+            function (int $returnCode, string $output) use ($expectedReturnCode, $expectedOutput) {
+                self::assertSame($expectedReturnCode, $returnCode);
+                self::assertSame($expectedOutput, $output);
+            }
+        );
     }
 
     /**
-     * @return array<mixed>
-     */
-    public function runEmptyRequiredValueDataProvider(): array
-    {
-        return [
-            'empty service id' => [
-                'input' => [],
-                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider runDataProvider
+     * @dataProvider runSuccessDataProvider
      *
      * @param array<mixed>             $input
      * @param array<int, array<mixed>> $httpResponseDataCollection
      */
     public function testRunSuccess(
         array $input,
+        ?ServiceConfigurationModel $serviceConfiguration,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
         string $expectedOutput
     ): void {
-        foreach ($httpResponseDataCollection as $httpResponseData) {
-            $this->mockHandler->append($this->httpResponseFactory->createFromArray($httpResponseData));
-        }
-
-        $output = new BufferedOutput();
-
-        $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
-
-        self::assertSame($expectedReturnCode, $commandReturnCode);
-        self::assertJsonStringEqualsJsonString($expectedOutput, $output->fetch());
+        $this->doTestRun(
+            $input,
+            $serviceConfiguration,
+            $httpResponseDataCollection,
+            function (int $returnCode, string $output) use ($expectedReturnCode, $expectedOutput) {
+                self::assertSame($expectedReturnCode, $returnCode);
+                self::assertJsonStringEqualsJsonString($expectedOutput, $output);
+            }
+        );
     }
 
     /**
      * @return array<mixed>
      */
-    public function runDataProvider(): array
+    public function runInvalidInputDataProvider(): array
     {
+        $serviceId = 'service_id';
+
+        return [
+            'service id invalid, missing' => [
+                'input' => [],
+                'serviceConfiguration' => null,
+                'httpResponseDataCollection' => [],
+                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_SERVICE_ID,
+                'expectedOutput' => '"service-id" option empty',
+            ],
+            'service configuration missing' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                ],
+                'serviceConfiguration' => null,
+                'httpResponseDataCollection' => [],
+                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_SERVICE_CONFIGURATION_MISSING,
+                'expectedOutput' => 'No configuration for service "service_id"',
+            ],
+            'service configuration state_url missing' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                ],
+                'serviceConfiguration' => new ServiceConfigurationModel(
+                    $serviceId,
+                    'https://{{ host }}/health-check',
+                    ''
+                ),
+                'httpResponseDataCollection' => [],
+                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_SERVICE_STATE_URL_MISSING,
+                'expectedOutput' => 'No state_url for service "service_id"',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function runSuccessDataProvider(): array
+    {
+        $serviceId = 'service_id';
+
+        $serviceConfiguration = new ServiceConfigurationModel(
+            $serviceId,
+            'https://{{ host }}/health-check',
+            'https://{{ host }}/state'
+        );
+
         $matchingIp = '127.0.0.1';
 
         $dropletData = [
@@ -291,6 +355,7 @@ class InstanceListCommandTest extends KernelTestCase
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -309,6 +374,7 @@ class InstanceListCommandTest extends KernelTestCase
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -332,6 +398,7 @@ class InstanceListCommandTest extends KernelTestCase
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
@@ -350,6 +417,7 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                     ]),
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
@@ -365,6 +433,7 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                     ]),
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
@@ -387,6 +456,7 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                     ]),
                 ],
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
@@ -394,5 +464,51 @@ class InstanceListCommandTest extends KernelTestCase
                 ]),
             ],
         ];
+    }
+
+    /**
+     * @param array<mixed>                $input
+     * @param array<int, array<mixed>>    $httpResponseDataCollection
+     * @param callable(int, string): void $assertions
+     */
+    private function doTestRun(
+        array $input,
+        ?ServiceConfigurationModel $serviceConfiguration,
+        array $httpResponseDataCollection,
+        callable $assertions
+    ): void {
+        $serviceId = $input['--service-id'] ?? '';
+        $serviceId = is_string($serviceId) ? $serviceId : '';
+
+        $this->mockServiceConfiguration($serviceId, $serviceConfiguration);
+
+        foreach ($httpResponseDataCollection as $httpResponseData) {
+            $this->mockHandler->append($this->httpResponseFactory->createFromArray($httpResponseData));
+        }
+
+        $output = new BufferedOutput();
+
+        $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
+
+        $assertions($commandReturnCode, $output->fetch());
+    }
+
+    private function mockServiceConfiguration(
+        string $serviceId,
+        ?ServiceConfigurationModel $serviceConfigurationModel
+    ): void {
+        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+        $serviceConfiguration
+            ->shouldReceive('getServiceConfiguration')
+            ->with($serviceId)
+            ->andReturn($serviceConfigurationModel)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            AbstractInstanceListCommand::class,
+            'serviceConfiguration',
+            $serviceConfiguration
+        );
     }
 }

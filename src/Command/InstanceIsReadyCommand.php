@@ -26,6 +26,8 @@ class InstanceIsReadyCommand extends Command
 
     public const NAME = 'app:instance:is-ready';
     public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
+    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
+    public const EXIT_CODE_SERVICE_STATE_URL_MISSING = 7;
 
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
@@ -67,6 +69,19 @@ class InstanceIsReadyCommand extends Command
             return self::EXIT_CODE_EMPTY_SERVICE_ID;
         }
 
+        $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
+        if (null === $serviceConfiguration) {
+            $output->write('No configuration for service "' . $serviceId . '"');
+
+            return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
+        }
+
+        if ('' === $serviceConfiguration->getStateUrl()) {
+            $output->write('No state_url for service "' . $serviceId . '"');
+
+            return self::EXIT_CODE_SERVICE_STATE_URL_MISSING;
+        }
+
         $instance = $this->commandInstanceRepository->get($input);
         if (null === $instance) {
             $output->write($this->commandInstanceRepository->getErrorMessage());
@@ -74,14 +89,12 @@ class InstanceIsReadyCommand extends Command
             return $this->commandInstanceRepository->getErrorCode();
         }
 
-        $stateUrl = (string) $this->serviceConfiguration->getServiceConfiguration($serviceId)?->getStateUrl();
-
         $result = $this->commandActionRunner->run(
             $this->getRetryLimit($input),
             $this->getRetryDelay($input),
             $output,
-            function (bool $isLastAttempt) use ($stateUrl, $output, $instance): bool {
-                $state = $this->instanceClient->getState($instance, $stateUrl);
+            function (bool $isLastAttempt) use ($serviceConfiguration, $instance, $output): bool {
+                $state = $this->instanceClient->getState($serviceConfiguration, $instance);
 
                 $isReady = $state['ready'] ?? null;
                 $isReady = is_bool($isReady) ? $isReady : true;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Model\Instance;
+use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -15,6 +16,7 @@ class InstanceClient
     public function __construct(
         private ClientInterface $httpClient,
         private RequestFactoryInterface $requestFactory,
+        private InstanceRouteGenerator $routeGenerator,
     ) {
     }
 
@@ -23,11 +25,10 @@ class InstanceClient
      *
      * @return array<int|string, mixed>
      */
-    public function getState(Instance $instance, string $stateUrl): array
+    public function getState(ServiceConfigurationModel $serviceConfiguration, Instance $instance): array
     {
-        $url = $instance->getUrl() . $stateUrl;
+        $url = $this->routeGenerator->createStateUrl($serviceConfiguration, $instance);
         $request = $this->requestFactory->createRequest('GET', $url);
-
         $response = $this->httpClient->sendRequest($request);
 
         if (str_starts_with($response->getHeaderLine('content-type'), 'application/json')) {
@@ -42,9 +43,9 @@ class InstanceClient
     /**
      * @throws ClientExceptionInterface
      */
-    public function getHealth(Instance $instance, string $healthCheckUrl): ResponseInterface
+    public function getHealth(ServiceConfigurationModel $serviceConfiguration, Instance $instance): ResponseInterface
     {
-        $url = $instance->getUrl() . $healthCheckUrl;
+        $url = $this->routeGenerator->createHealthCheckUrl($serviceConfiguration, $instance);
         $request = $this->requestFactory->createRequest('GET', $url);
 
         return $this->httpClient->sendRequest($request);

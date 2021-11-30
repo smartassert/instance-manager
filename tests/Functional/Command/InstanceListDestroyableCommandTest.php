@@ -7,6 +7,8 @@ namespace App\Tests\Functional\Command;
 use App\Command\AbstractInstanceListCommand;
 use App\Command\InstanceListDestroyableCommand;
 use App\Command\Option;
+use App\Model\ServiceConfiguration as ServiceConfigurationModel;
+use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
@@ -15,6 +17,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
+use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceListDestroyableCommandTest extends KernelTestCase
 {
@@ -51,6 +54,17 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         string $expectedExceptionMessage,
         int $expectedExceptionCode
     ): void {
+        $serviceId = 'service_id';
+
+        $this->mockServiceConfiguration(
+            $serviceId,
+            new ServiceConfigurationModel(
+                $serviceId,
+                'https://{{ host }}/health-check',
+                'https://{{ host }}/state'
+            )
+        );
+
         $this->mockHandler->append($this->httpResponseFactory->createFromArray($responseData));
 
         self::expectException($expectedExceptionClass);
@@ -102,7 +116,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         return [
             'empty service id' => [
                 'input' => [],
-                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
+                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_SERVICE_ID,
             ],
         ];
     }
@@ -115,10 +129,16 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
      */
     public function testRunSuccess(
         array $input,
+        ?ServiceConfigurationModel $serviceConfiguration,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
         string $expectedOutput
     ): void {
+        $serviceId = $input['--service-id'] ?? '';
+        $serviceId = is_string($serviceId) ? $serviceId : '';
+
+        $this->mockServiceConfiguration($serviceId, $serviceConfiguration);
+
         foreach ($httpResponseDataCollection as $httpResponseData) {
             $this->mockHandler->append($this->httpResponseFactory->createFromArray($httpResponseData));
         }
@@ -136,6 +156,14 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
      */
     public function runDataProvider(): array
     {
+        $serviceId = 'service_id';
+
+        $serviceConfiguration = new ServiceConfigurationModel(
+            $serviceId,
+            'https://{{ host }}/health-check',
+            'https://{{ host }}/state'
+        );
+
         $excludedIp = '127.0.0.1';
 
         $dropletData = [
@@ -294,6 +322,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         return [
             'no instances' => [
                 'input' => $input,
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -310,6 +339,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
             ],
             'single matching instance (idle=true, does not have matching IP)' => [
                 'input' => $input,
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -331,6 +361,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
             ],
             'single non-matching instance (idle=true, does have matching IP)' => [
                 'input' => $input,
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -350,6 +381,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
             ],
             'single non-matching instance (idle=false, does not have matching IP)' => [
                 'input' => $input,
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     'droplets' => [
                         HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -369,6 +401,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
             ],
             'many instances' => [
                 'input' => $input,
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => $collectionHttpResponses,
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
@@ -376,5 +409,24 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                 ]),
             ],
         ];
+    }
+
+    private function mockServiceConfiguration(
+        string $serviceId,
+        ?ServiceConfigurationModel $serviceConfigurationModel
+    ): void {
+        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
+        $serviceConfiguration
+            ->shouldReceive('getServiceConfiguration')
+            ->with($serviceId)
+            ->andReturn($serviceConfigurationModel)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            AbstractInstanceListCommand::class,
+            'serviceConfiguration',
+            $serviceConfiguration
+        );
     }
 }

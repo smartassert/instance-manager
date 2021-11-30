@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Services;
 
 use App\Model\InstanceCollection;
+use App\Model\ServiceConfiguration;
 use App\Services\InstanceCollectionHydrator;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
@@ -91,8 +92,13 @@ class InstanceCollectionHydratorTest extends KernelTestCase
             );
         }
 
+        $serviceConfiguration = new ServiceConfiguration(
+            'service_id',
+            'https://{{ host }}/health-check',
+            'https://{{ host }}/state'
+        );
         $instanceCollection = new InstanceCollection($instances);
-        $hydratedCollection = $this->instanceCollectionHydrator->hydrate($instanceCollection, '/state');
+        $hydratedCollection = $this->instanceCollectionHydrator->hydrate($serviceConfiguration, $instanceCollection);
 
         foreach ($hydratedCollection as $hydratedInstance) {
             $expectedInstanceStateData = $expectedStateData[$hydratedInstance->getId()];
