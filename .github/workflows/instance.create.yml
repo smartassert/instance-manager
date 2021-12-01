@@ -55,12 +55,12 @@ jobs:
           --service-id='${{ github.event.inputs.service_id }}' \
           --id=${{ steps.instance.outputs.id }}
 
-#      - name: Readiness check
-#        run: |
-#          php bin/console app:instance:is-ready \
-#          --service-id='${{ github.event.inputs.service_id }}' \
-#          --id=${{ steps.instance.outputs.id }}
-#
-#      - name: Remove instance on failure
-#        if: ${{ failure() }}
-#        run: php bin/console app:instance:destroy --id="${{ steps.instance.outputs.id }}"
+      - name: Readiness check
+        run: |
+          php bin/console app:instance:is-ready \
+          --service-id='${{ github.event.inputs.service_id }}' \
+          --id=${{ steps.instance.outputs.id }}
+
+      - name: Remove instance on failure
+        if: ${{ failure() }}
+        run: php bin/console app:instance:destroy --id="${{ steps.instance.outputs.id }}"
