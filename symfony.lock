@@ -78,16 +78,16 @@
         "version": "1.1.0"
     },
     "phpstan/phpstan": {
-        "version": "0.12.99"
+        "version": "1.2.0"
     },
     "phpstan/phpstan-mockery": {
-        "version": "0.12.14"
+        "version": "1.0.0"
     },
     "phpstan/phpstan-phpunit": {
-        "version": "0.12.22"
+        "version": "1.0.0"
     },
     "phpstan/phpstan-symfony": {
-        "version": "0.12.44"
+        "version": "1.0.1"
     },
     "phpunit/php-code-coverage": {
         "version": "9.2.7"
@@ -191,7 +191,7 @@
         "version": "3.0.2"
     },
     "smartassert/digitalocean-droplet-configuration": {
-        "version": "0.1"
+        "version": "0.5"
     },
     "squizlabs/php_codesniffer": {
         "version": "3.6",
@@ -280,9 +280,6 @@
             "src/Controller/.gitignore",
             "src/Kernel.php"
         ]
-    },
-    "symfony/http-client-contracts": {
-        "version": "v2.4.0"
     },
     "symfony/http-foundation": {
         "version": "v5.3.7"
