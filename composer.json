@@ -10,12 +10,12 @@
         "doctrine/collections": "^1.6",
         "guzzlehttp/guzzle": "^7.3",
         "smartassert/digitalocean-droplet-configuration": "~0.1",
-        "symfony/console": "5.3.*",
-        "symfony/dotenv": "5.3.*",
+        "symfony/console": "5.4.*",
+        "symfony/dotenv": "5.4.*",
         "symfony/flex": "^2.0",
-        "symfony/framework-bundle": "5.3.*",
-        "symfony/runtime": "5.3.*",
-        "symfony/yaml": "5.3.*",
+        "symfony/framework-bundle": "5.4.*",
+        "symfony/runtime": "5.4.*",
+        "symfony/yaml": "5.4.*",
         "toin0u/digitalocean-v2": "^4.4"
     },
     "require-dev": {
@@ -28,7 +28,7 @@
         "phpstan/phpstan-symfony": "^1",
         "phpunit/phpunit": "^9.5",
         "squizlabs/php_codesniffer": "^3.6",
-        "symfony/phpunit-bridge": "^5.3",
+        "symfony/phpunit-bridge": "5.4.*",
         "webignition/object-reflector": "^1.0"
     },
     "config": {
@@ -85,7 +85,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "5.3.*"
+            "require": "5.4.*"
         }
     }
 }
