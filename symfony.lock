@@ -2,44 +2,11 @@
     "clue/stream-filter": {
         "version": "v1.5.0"
     },
-    "composer/semver": {
-        "version": "3.2.5"
-    },
-    "composer/xdebug-handler": {
-        "version": "2.0.2"
-    },
-    "doctrine/annotations": {
-        "version": "1.0",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "1.0",
-            "ref": "a2759dd6123694c8d901d0ec80006e044c2e6457"
-        },
-        "files": [
-            "config/routes/annotations.yaml"
-        ]
-    },
     "doctrine/collections": {
         "version": "1.6.8"
     },
     "doctrine/instantiator": {
         "version": "1.4.0"
-    },
-    "doctrine/lexer": {
-        "version": "1.2.1"
-    },
-    "friendsofphp/php-cs-fixer": {
-        "version": "3.0",
-        "recipe": {
-            "repo": "github.com/symfony/recipes",
-            "branch": "master",
-            "version": "3.0",
-            "ref": "be2103eb4a20942e28a6dd87736669b757132435"
-        },
-        "files": [
-            ".php-cs-fixer.dist.php"
-        ]
     },
     "guzzlehttp/guzzle": {
         "version": "7.3.0"
@@ -67,9 +34,6 @@
     },
     "phar-io/version": {
         "version": "3.1.0"
-    },
-    "php-cs-fixer/diff": {
-        "version": "v2.0.2"
     },
     "php-http/client-common": {
         "version": "2.4.0"
@@ -362,9 +326,6 @@
     "symfony/polyfill-php81": {
         "version": "v1.23.0"
     },
-    "symfony/process": {
-        "version": "v5.3.7"
-    },
     "symfony/routing": {
         "version": "5.3",
         "recipe": {
@@ -383,9 +344,6 @@
     },
     "symfony/service-contracts": {
         "version": "v2.4.0"
-    },
-    "symfony/stopwatch": {
-        "version": "v5.3.4"
     },
     "symfony/string": {
         "version": "v5.3.7"
