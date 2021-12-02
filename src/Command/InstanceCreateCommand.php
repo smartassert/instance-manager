@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Exception\MissingSecretException;
-use App\Model\EnvironmentVariable;
+use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
+use App\Services\EnvironmentVariableSecretHydrator;
 use App\Services\InstanceRepository;
 use App\Services\KeyValueCollectionFactory;
 use App\Services\OutputFactory;
-use App\Services\SecretHydrator;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
-use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -41,7 +40,8 @@ class InstanceCreateCommand extends Command
         private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
         private KeyValueCollectionFactory $keyValueCollectionFactory,
-        private SecretHydrator $secretHydrator,
+        private EnvironmentVariableSecretHydrator $secretHydrator,
+        private BootScriptFactory $bootScriptFactory,
     ) {
         parent::__construct();
     }
@@ -89,24 +89,14 @@ class InstanceCreateCommand extends Command
         if (null === $instance) {
             $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
             $secretsOption = $input->getOption(self::OPTION_SECRETS_JSON);
+            $secretsOption = is_string($secretsOption) ? $secretsOption : '';
 
-            if (is_string($secretsOption) && '' !== $secretsOption) {
-                $secrets = $this->keyValueCollectionFactory->createFromJsonForKeysMatchingPrefix(
-                    strtoupper($serviceId),
-                    $secretsOption
-                );
+            $secrets = $this->keyValueCollectionFactory->createFromJsonForKeysMatchingPrefix(
+                strtoupper($serviceId),
+                $secretsOption
+            );
 
-                foreach ($environmentVariables as $index => $environmentVariable) {
-                    $mutatedEnvironmentVariable = $this->secretHydrator->hydrate($environmentVariable, $secrets);
-
-                    if (
-                        $mutatedEnvironmentVariable instanceof EnvironmentVariable
-                        && false === $mutatedEnvironmentVariable->equals($environmentVariable)
-                    ) {
-                        $environmentVariables->set($index, $mutatedEnvironmentVariable);
-                    }
-                }
-            }
+            $environmentVariables = $this->secretHydrator->hydrateCollection($environmentVariables, $secrets);
 
             foreach ($environmentVariables as $environmentVariable) {
                 $secretPlaceholder = $environmentVariable->getSecretPlaceholder();
@@ -116,7 +106,7 @@ class InstanceCreateCommand extends Command
                 }
             }
 
-            $firstBootScript = $this->createFirstBootScript(
+            $firstBootScript = $this->bootScriptFactory->create(
                 $environmentVariables,
                 $this->inputReader->getTrimmedStringOption(self::OPTION_FIRST_BOOT_SCRIPT, $input)
             );
@@ -127,24 +117,5 @@ class InstanceCreateCommand extends Command
         $output->write($this->outputFactory->createSuccessOutput(['id' => $instance->getId()]));
 
         return Command::SUCCESS;
-    }
-
-    /**
-     * @param Collection<int, EnvironmentVariable> $environmentVariables
-     */
-    private function createFirstBootScript(Collection $environmentVariables, string $serviceFirstBootScript): string
-    {
-        $script = '';
-
-        foreach ($environmentVariables as $environmentVariable) {
-            $script .= 'export ' . $environmentVariable . "\n";
-        }
-        $script = trim($script);
-
-        if ('' !== $script && '' !== $serviceFirstBootScript) {
-            $script .= "\n";
-        }
-
-        return $script . $serviceFirstBootScript;
     }
 }

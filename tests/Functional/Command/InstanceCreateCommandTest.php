@@ -269,7 +269,8 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'firstBootScriptOption' => './first-boot.sh',
                 'secretsJsonOption' => '',
                 'environmentVariableList' => new ArrayCollection(),
-                'expectedFirstBootScript' => './first-boot.sh',
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
+                    './first-boot.sh',
             ],
             'env var options only, no secrets' => [
                 'firstBootScriptOption' => '',
@@ -279,9 +280,10 @@ class InstanceCreateCommandTest extends KernelTestCase
                     new EnvironmentVariable('key2', 'one "two" three'),
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
-                'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
-                    'export key2="one \"two\" three"' . "\n" .
-                    'export key3="value3"',
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
+                    'echo \'key1="value1"\' >> /etc/environment' . "\n" .
+                    'echo \'key2="one \"two\" three"\' >> /etc/environment' . "\n" .
+                    'echo \'key3="value3"\' >> /etc/environment',
             ],
             'env var options only, has secrets' => [
                 'firstBootScriptOption' => '',
@@ -291,9 +293,10 @@ class InstanceCreateCommandTest extends KernelTestCase
                     new EnvironmentVariable('key2', 'one "two" three'),
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
-                'expectedFirstBootScript' => 'export key1="secret 001 value"' . "\n" .
-                    'export key2="one \"two\" three"' . "\n" .
-                    'export key3="value3"',
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
+                    'echo \'key1="secret 001 value"\' >> /etc/environment' . "\n" .
+                    'echo \'key2="one \"two\" three"\' >> /etc/environment' . "\n" .
+                    'echo \'key3="value3"\' >> /etc/environment',
             ],
             'first boot script option and env var options, no secrets' => [
                 'firstBootScriptOption' => './first-boot.sh',
@@ -303,9 +306,10 @@ class InstanceCreateCommandTest extends KernelTestCase
                     new EnvironmentVariable('key2', 'one "two" three'),
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
-                'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
-                    'export key2="one \"two\" three"' . "\n" .
-                    'export key3="value3"' . "\n" .
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
+                    'echo \'key1="value1"\' >> /etc/environment' . "\n" .
+                    'echo \'key2="one \"two\" three"\' >> /etc/environment' . "\n" .
+                    'echo \'key3="value3"\' >> /etc/environment' . "\n" .
                     './first-boot.sh',
             ],
         ];
