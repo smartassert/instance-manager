@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-interface SecretPlaceholderInterface
+interface SecretPlaceholderInterface extends \Stringable
 {
     public static function is(string $value): bool;
 

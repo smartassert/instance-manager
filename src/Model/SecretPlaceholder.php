@@ -14,6 +14,11 @@ class SecretPlaceholder implements SecretPlaceholderInterface
     ) {
     }
 
+    public function __toString(): string
+    {
+        return $this->placeholder;
+    }
+
     public static function is(string $value): bool
     {
         $pattern = sprintf(
