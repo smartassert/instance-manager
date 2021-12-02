@@ -137,7 +137,7 @@ class InstanceCreateCommand extends Command
         $script = '#!/usr/bin/env bash' . "\n";
 
         foreach ($environmentVariables as $environmentVariable) {
-            $script .= 'export ' . $environmentVariable . "\n";
+            $script .= 'echo \'' . $environmentVariable . '\' >> /etc/environment' . "\n";
         }
         $script = trim($script);
 
