@@ -269,7 +269,8 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'firstBootScriptOption' => './first-boot.sh',
                 'secretsJsonOption' => '',
                 'environmentVariableList' => new ArrayCollection(),
-                'expectedFirstBootScript' => './first-boot.sh',
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
+                    './first-boot.sh',
             ],
             'env var options only, no secrets' => [
                 'firstBootScriptOption' => '',
@@ -279,7 +280,8 @@ class InstanceCreateCommandTest extends KernelTestCase
                     new EnvironmentVariable('key2', 'one "two" three'),
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
-                'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
+                    'export key1="value1"' . "\n" .
                     'export key2="one \"two\" three"' . "\n" .
                     'export key3="value3"',
             ],
@@ -291,7 +293,8 @@ class InstanceCreateCommandTest extends KernelTestCase
                     new EnvironmentVariable('key2', 'one "two" three'),
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
-                'expectedFirstBootScript' => 'export key1="secret 001 value"' . "\n" .
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
+                    'export key1="secret 001 value"' . "\n" .
                     'export key2="one \"two\" three"' . "\n" .
                     'export key3="value3"',
             ],
@@ -303,7 +306,8 @@ class InstanceCreateCommandTest extends KernelTestCase
                     new EnvironmentVariable('key2', 'one "two" three'),
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
-                'expectedFirstBootScript' => 'export key1="value1"' . "\n" .
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
+                    'export key1="value1"' . "\n" .
                     'export key2="one \"two\" three"' . "\n" .
                     'export key3="value3"' . "\n" .
                     './first-boot.sh',
