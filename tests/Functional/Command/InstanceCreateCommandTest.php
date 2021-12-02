@@ -281,7 +281,7 @@ class InstanceCreateCommandTest extends KernelTestCase
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
                 'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
-                        'echo \'key1="value1"\' >> /etc/environment' . "\n" .
+                    'echo \'key1="value1"\' >> /etc/environment' . "\n" .
                     'echo \'key2="one \"two\" three"\' >> /etc/environment' . "\n" .
                     'echo \'key3="value3"\' >> /etc/environment',
             ],
@@ -294,7 +294,7 @@ class InstanceCreateCommandTest extends KernelTestCase
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
                 'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
-                        'echo \'key1="secret 001 value"\' >> /etc/environment' . "\n" .
+                    'echo \'key1="secret 001 value"\' >> /etc/environment' . "\n" .
                     'echo \'key2="one \"two\" three"\' >> /etc/environment' . "\n" .
                     'echo \'key3="value3"\' >> /etc/environment',
             ],
