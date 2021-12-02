@@ -134,7 +134,7 @@ class InstanceCreateCommand extends Command
      */
     private function createFirstBootScript(Collection $environmentVariables, string $serviceFirstBootScript): string
     {
-        $script = '';
+        $script = '#!/usr/bin/env bash' . "\n";
 
         foreach ($environmentVariables as $environmentVariable) {
             $script .= 'export ' . $environmentVariable . "\n";
