@@ -8,6 +8,7 @@ use App\Command\InstanceCreateCommand;
 use App\Command\Option;
 use App\Exception\MissingSecretException;
 use App\Model\EnvironmentVariable;
+use App\Services\BootScriptFactory;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
@@ -133,6 +134,56 @@ class InstanceCreateCommandTest extends KernelTestCase
         $commandReturnCode = $this->command->run($input, $output);
 
         self::assertSame(InstanceCreateCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
+    }
+
+    public function testRunFirstBootScriptInvalid(): void
+    {
+        $firstBootScript = './executable.sh';
+
+        $input = new ArrayInput([
+            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
+            '--' . InstanceCreateCommand::OPTION_FIRST_BOOT_SCRIPT => $firstBootScript,
+        ]);
+
+        $output = new BufferedOutput();
+
+        $this->setHttpResponse(
+            $this->httpResponseFactory->createFromArray(HttpResponseDataFactory::createJsonResponseData([
+                'droplets' => [],
+            ]))
+        );
+
+        $this->mockServiceConfiguration(self::IMAGE_ID, new ArrayCollection());
+
+        $invalidFirstBootScript = '#invalid first boot script';
+
+        $bootScriptFactory = \Mockery::mock(BootScriptFactory::class);
+        $bootScriptFactory
+            ->shouldReceive('create')
+            ->withArgs(function (Collection $collection, string $script) use ($firstBootScript) {
+                self::assertSame($firstBootScript, $script);
+
+                return true;
+            })
+            ->andReturn($invalidFirstBootScript)
+        ;
+
+        $bootScriptFactory
+            ->shouldReceive('validate')
+            ->with($invalidFirstBootScript)
+            ->andReturn(false)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'bootScriptFactory',
+            $bootScriptFactory
+        );
+
+        $commandReturnCode = $this->command->run($input, $output);
+
+        self::assertSame(InstanceCreateCommand::EXIT_CODE_FIRST_BOOT_SCRIPT_INVALID, $commandReturnCode);
     }
 
     /**
