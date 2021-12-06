@@ -25,6 +25,13 @@ class BootScriptFactory
         ]));
     }
 
+    public function validate(string $script): bool
+    {
+        $comparator = trim($script);
+
+        return '' === $comparator || str_starts_with($comparator, '#!');
+    }
+
     /**
      * @param Collection<int, EnvironmentVariable> $environmentVariables
      */

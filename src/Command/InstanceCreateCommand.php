@@ -32,6 +32,7 @@ class InstanceCreateCommand extends Command
 
     public const EXIT_CODE_EMPTY_SERVICE_ID = 3;
     public const EXIT_CODE_MISSING_IMAGE_ID = 4;
+    public const EXIT_CODE_FIRST_BOOT_SCRIPT_INVALID = 5;
 
     public function __construct(
         private InstanceRepository $instanceRepository,
@@ -110,6 +111,13 @@ class InstanceCreateCommand extends Command
                 $environmentVariables,
                 $this->inputReader->getTrimmedStringOption(self::OPTION_FIRST_BOOT_SCRIPT, $input)
             );
+
+            if (false === $this->bootScriptFactory->validate($firstBootScript)) {
+                $output->writeln('First boot script is invalid:');
+                $output->write($firstBootScript);
+
+                return self::EXIT_CODE_FIRST_BOOT_SCRIPT_INVALID;
+            }
 
             $instance = $this->instanceRepository->create($serviceId, $imageId, $firstBootScript);
         }

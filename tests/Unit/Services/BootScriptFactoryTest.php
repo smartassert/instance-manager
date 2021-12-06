@@ -12,6 +12,15 @@ use PHPUnit\Framework\TestCase;
 
 class BootScriptFactoryTest extends TestCase
 {
+    private BootScriptFactory $bootScriptFactory;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->bootScriptFactory = new BootScriptFactory();
+    }
+
     /**
      * @dataProvider createDataProvider
      *
@@ -19,11 +28,9 @@ class BootScriptFactoryTest extends TestCase
      */
     public function testCreate(Collection $environmentVariables, string $serviceBootScript, string $expected): void
     {
-        $bootScriptFactory = new BootScriptFactory();
-
         self::assertSame(
             $expected,
-            $bootScriptFactory->create($environmentVariables, $serviceBootScript)
+            $this->bootScriptFactory->create($environmentVariables, $serviceBootScript)
         );
     }
 
@@ -76,6 +83,43 @@ class BootScriptFactoryTest extends TestCase
                     'echo \'key2="value2"\' >> /etc/environment' . "\n" .
                     'echo \'key3="value3"\' >> /etc/environment' . "\n" .
                     './first-boot.sh',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider validateDataProvider
+     */
+    public function testValidate(string $script, bool $expected): void
+    {
+        self::assertSame($expected, $this->bootScriptFactory->validate($script));
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function validateDataProvider(): array
+    {
+        return [
+            'empty is valid' => [
+                'script' => '',
+                'expected' => true,
+            ],
+            'whitespace only is valid' => [
+                'script' => "\n\t \t\n",
+                'expected' => true,
+            ],
+            'first line is shebang is valid' => [
+                'script' => '#!/path/to/interpreter optional-arg',
+                'expected' => true,
+            ],
+            'first line is statement is not valid' => [
+                'script' => './executable.sh',
+                'expected' => false,
+            ],
+            'first line is comment is not valid' => [
+                'script' => '# This is a comment' . "\n" . '#!/path/to/interpreter optional-arg',
+                'expected' => false,
             ],
         ];
     }

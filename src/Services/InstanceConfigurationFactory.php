@@ -19,18 +19,11 @@ class InstanceConfigurationFactory
      */
     public function create(string $firstBootScript, array $tags): DropletConfiguration
     {
-        $firstBootScript = '' !== $firstBootScript ? $firstBootScript : '# No first-boot script';
-
-        $configuration = $this->dropletConfigurationFactory->create([
-            DropletConfigurationFactory::KEY_TAGS => $tags,
-        ]);
-
-        if ('' !== $configuration->getUserData()) {
-            $configuration = $configuration->appendUserData("\n\n");
-        }
-
-        return $configuration->appendUserData(
-            '# First-boot script' . "\n" . $firstBootScript
-        );
+        return $this->dropletConfigurationFactory
+            ->create([
+                DropletConfigurationFactory::KEY_TAGS => $tags,
+            ])
+            ->withUserData($firstBootScript)
+        ;
     }
 }
