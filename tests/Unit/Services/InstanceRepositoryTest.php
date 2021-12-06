@@ -85,53 +85,23 @@ class InstanceRepositoryTest extends TestCase
         $imageId = 123456;
 
         return [
-            'no default user data, no first-boot script' => [
+            'no first-boot script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
                 'serviceId' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => '',
-                'expectedCreatedUserData' => '# First-boot script' . "\n" .
-                    '# No first-boot script',
+                'expectedCreatedUserData' => '',
             ],
-            'has default user data, no first-boot script' => [
-                'instanceConfigurationFactory' => new InstanceConfigurationFactory(
-                    new DropletConfigurationFactory([
-                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                    ])
-                ),
-                'serviceId' => $serviceId,
-                'imageId' => $imageId,
-                'firstBootScript' => '',
-                'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
-                    '' . "\n" .
-                    '# First-boot script' . "\n" .
-                    '# No first-boot script',
-            ],
-            'no default user data, has first-boot script' => [
+            'has first-boot script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory()
                 ),
                 'serviceId' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => './scripts/first-boot.sh',
-                'expectedCreatedUserData' => '# First-boot script' . "\n" .
-                    './scripts/first-boot.sh',
-            ],
-            'has default user data, has first-boot script' => [
-                'instanceConfigurationFactory' => new InstanceConfigurationFactory(
-                    new DropletConfigurationFactory([
-                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
-                    ])
-                ),
-                'serviceId' => $serviceId,
-                'imageId' => $imageId,
-                'firstBootScript' => './scripts/first-boot.sh',
-                'expectedCreatedUserData' => 'echo "single-line user data"' . "\n" .
-                    '' . "\n" .
-                    '# First-boot script' . "\n" .
-                    './scripts/first-boot.sh',
+                'expectedCreatedUserData' => './scripts/first-boot.sh',
             ],
         ];
     }
