@@ -39,7 +39,7 @@ class BootScriptFactory
     {
         $content = [];
         foreach ($environmentVariables as $environmentVariable) {
-            $content[] = 'echo \'' . $environmentVariable . '\' >> /etc/environment';
+            $content[] = 'export ' . $environmentVariable;
         }
 
         return implode("\n", $content);
