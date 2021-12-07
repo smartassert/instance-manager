@@ -51,7 +51,7 @@ class BootScriptFactoryTest extends TestCase
                 ]),
                 'serviceBootScript' => '',
                 'expected' => '#!/usr/bin/env bash' . "\n" .
-                    'echo \'key="value"\' >> /etc/environment',
+                    'export key="value"',
             ],
             'multiple environment variables, empty service boot script' => [
                 'environmentVariables' => new ArrayCollection([
@@ -61,9 +61,9 @@ class BootScriptFactoryTest extends TestCase
                 ]),
                 'serviceBootScript' => '',
                 'expected' => '#!/usr/bin/env bash' . "\n" .
-                    'echo \'key1="value1"\' >> /etc/environment' . "\n" .
-                    'echo \'key2="value2"\' >> /etc/environment' . "\n" .
-                    'echo \'key3="value3"\' >> /etc/environment',
+                    'export key1="value1"' . "\n" .
+                    'export key2="value2"' . "\n" .
+                    'export key3="value3"',
             ],
             'empty environment variables, has service boot script' => [
                 'environmentVariables' => new ArrayCollection(),
@@ -79,9 +79,9 @@ class BootScriptFactoryTest extends TestCase
                 ]),
                 'serviceBootScript' => './first-boot.sh',
                 'expected' => '#!/usr/bin/env bash' . "\n" .
-                    'echo \'key1="value1"\' >> /etc/environment' . "\n" .
-                    'echo \'key2="value2"\' >> /etc/environment' . "\n" .
-                    'echo \'key3="value3"\' >> /etc/environment' . "\n" .
+                    'export key1="value1"' . "\n" .
+                    'export key2="value2"' . "\n" .
+                    'export key3="value3"' . "\n" .
                     './first-boot.sh',
             ],
         ];
