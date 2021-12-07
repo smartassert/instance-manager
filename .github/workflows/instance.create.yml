@@ -38,7 +38,7 @@ jobs:
         run: |
           CREATE_OUTPUT=$(
             php bin/console app:instance:create \
-              --first-boot-script='[[ -f ./first-boot.sh ]] && chmod +x ./first-boot.sh &&./first-boot.sh' \
+              --first-boot-script='[[ -f /root/first-boot.sh ]] && chmod +x /root/first-boot.sh && /root/first-boot.sh' \
               --service-id='${{ github.event.inputs.service_id }}' \
               --secrets-json='${{ toJson(secrets) }}'
           )
