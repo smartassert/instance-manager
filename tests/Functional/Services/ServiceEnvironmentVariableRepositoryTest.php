@@ -41,9 +41,14 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
     public function testGetCollectionSuccess(
         Collection $serviceConfigurationEnvironmentVariables,
         string $secretsJson,
+        string $serviceConfigurationDomain,
         Collection $expectedEnvironmentVariables,
     ): void {
-        $this->mockServiceConfiguration(self::IMAGE_ID, $serviceConfigurationEnvironmentVariables);
+        $this->mockServiceConfiguration(
+            self::IMAGE_ID,
+            $serviceConfigurationEnvironmentVariables,
+            $serviceConfigurationDomain
+        );
 
         $environmentVariables = $this->repository->getCollection(self::SERVICE_ID, $secretsJson);
 
@@ -59,7 +64,13 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
             'no service configuration env vars, no secrets' => [
                 'serviceConfigurationEnvironmentVariables' => new ArrayCollection(),
                 'secretsJson' => '',
-                'expectedEnvironmentVariables' => new ArrayCollection(),
+                'serviceConfigurationDomain' => 'example.com',
+                'expectedEnvironmentVariables' => new ArrayCollection([
+                    new EnvironmentVariable(
+                        ServiceEnvironmentVariableRepository::NAME_DOMAIN,
+                        'example.com',
+                    ),
+                ]),
             ],
             'service configuration env vars, no secrets' => [
                 'serviceConfigurationEnvironmentVariables' => new ArrayCollection([
@@ -67,9 +78,14 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                     new EnvironmentVariable('key2', 'value2'),
                 ]),
                 'secretsJson' => '',
+                'serviceConfigurationDomain' => 'example.com',
                 'expectedEnvironmentVariables' => new ArrayCollection([
                     new EnvironmentVariable('key1', 'value1'),
                     new EnvironmentVariable('key2', 'value2'),
+                    new EnvironmentVariable(
+                        ServiceEnvironmentVariableRepository::NAME_DOMAIN,
+                        'example.com',
+                    )
                 ]),
             ],
             'service configuration env vars with secret placeholders, has matching secrets' => [
@@ -78,9 +94,14 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                     new EnvironmentVariable('key2', 'value2'),
                 ]),
                 'secretsJson' => '{"SERVICE_ID_SECRET_001":"secret 001 value"}',
+                'serviceConfigurationDomain' => 'example.com',
                 'expectedEnvironmentVariables' => new ArrayCollection([
                     new EnvironmentVariable('key1', 'secret 001 value'),
                     new EnvironmentVariable('key2', 'value2'),
+                    new EnvironmentVariable(
+                        ServiceEnvironmentVariableRepository::NAME_DOMAIN,
+                        'example.com',
+                    )
                 ]),
             ],
         ];
@@ -133,7 +154,8 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
      */
     private function mockServiceConfiguration(
         ?string $imageId,
-        ?Collection $environmentVariables = null
+        ?Collection $environmentVariables = null,
+        ?string $domain = null,
     ): void {
         $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
         $serviceConfiguration
@@ -147,6 +169,13 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                 ->shouldReceive('getEnvironmentVariables')
                 ->with(self::SERVICE_ID)
                 ->andReturn($environmentVariables)
+            ;
+        }
+
+        if (is_string($domain)) {
+            $serviceConfiguration
+                ->shouldReceive('getDomain')
+                ->andReturn($domain)
             ;
         }
 

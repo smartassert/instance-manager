@@ -90,6 +90,7 @@ services:
     App\Services\ServiceConfiguration:
         arguments:
             $configurationDirectory: '%kernel.project_dir%/services'
+            $defaultDomain: 'localhost'
 
     App\Services\InstanceClient:
         arguments:
