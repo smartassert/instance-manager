@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\MissingSecretException;
 use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
-use App\Services\EnvironmentVariableSecretHydrator;
 use App\Services\InstanceRepository;
-use App\Services\KeyValueCollectionFactory;
 use App\Services\OutputFactory;
 use App\Services\ServiceConfiguration;
+use App\Services\ServiceEnvironmentVariableRepository;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -40,9 +38,8 @@ class InstanceCreateCommand extends Command
         private CommandConfigurator $configurator,
         private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
-        private KeyValueCollectionFactory $keyValueCollectionFactory,
-        private EnvironmentVariableSecretHydrator $secretHydrator,
         private BootScriptFactory $bootScriptFactory,
+        private ServiceEnvironmentVariableRepository $environmentVariableRepository,
     ) {
         parent::__construct();
     }
@@ -88,24 +85,9 @@ class InstanceCreateCommand extends Command
 
         $instance = $this->instanceRepository->findCurrent($serviceId, $imageId);
         if (null === $instance) {
-            $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
             $secretsOption = $input->getOption(self::OPTION_SECRETS_JSON);
             $secretsOption = is_string($secretsOption) ? $secretsOption : '';
-
-            $secrets = $this->keyValueCollectionFactory->createFromJsonForKeysMatchingPrefix(
-                strtoupper($serviceId),
-                $secretsOption
-            );
-
-            $environmentVariables = $this->secretHydrator->hydrateCollection($environmentVariables, $secrets);
-
-            foreach ($environmentVariables as $environmentVariable) {
-                $secretPlaceholder = $environmentVariable->getSecretPlaceholder();
-
-                if (null !== $secretPlaceholder) {
-                    throw new MissingSecretException($secretPlaceholder);
-                }
-            }
+            $environmentVariables = $this->environmentVariableRepository->getCollection($serviceId, $secretsOption);
 
             $firstBootScript = $this->bootScriptFactory->create(
                 $environmentVariables,
