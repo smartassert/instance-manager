@@ -14,9 +14,11 @@ class ServiceConfiguration
     public const ENV_VAR_FILENAME = 'env.json';
     public const CONFIGURATION_FILENAME = 'configuration.json';
     public const IMAGE_FILENAME = 'image.json';
+    public const DOMAIN_FILENAME = 'domain.json';
 
     public function __construct(
         private string $configurationDirectory,
+        private string $defaultDomain,
     ) {
     }
 
@@ -52,6 +54,14 @@ class ServiceConfiguration
         return is_int($imageId) || is_numeric($imageId) ? (int) $imageId : null;
     }
 
+    public function getDomain(string $serviceId): string
+    {
+        $data = $this->readJsonFileToArray($serviceId, self::DOMAIN_FILENAME);
+        $domain = $data['domain'] ?? null;
+
+        return is_string($domain) ? $domain : $this->defaultDomain;
+    }
+
     public function getServiceConfiguration(string $serviceId): ?ServiceConfigurationModel
     {
         $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);
@@ -64,17 +74,10 @@ class ServiceConfiguration
 
     public function setServiceConfiguration(ServiceConfigurationModel $serviceConfiguration): bool
     {
-        $data = [];
-
-        $healthCheckUrl = $serviceConfiguration->getHealthCheckUrl();
-        if (is_string($healthCheckUrl)) {
-            $data[ServiceConfigurationModel::KEY_HEALTH_CHECK_URL] = $healthCheckUrl;
-        }
-
-        $stateUrl = $serviceConfiguration->getStateUrl();
-        if (is_string($stateUrl)) {
-            $data[ServiceConfigurationModel::KEY_STATE_URL] = $stateUrl;
-        }
+        $data = [
+            ServiceConfigurationModel::KEY_HEALTH_CHECK_URL => $serviceConfiguration->getHealthCheckUrl(),
+            ServiceConfigurationModel::KEY_STATE_URL => $serviceConfiguration->getStateUrl(),
+        ];
 
         $serviceConfigurationDirectory = $this->getServiceConfigurationDirectory($serviceConfiguration->getServiceId());
         if (!file_exists($serviceConfigurationDirectory)) {

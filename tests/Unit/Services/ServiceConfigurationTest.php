@@ -18,6 +18,7 @@ class ServiceConfigurationTest extends TestCase
     use MockeryPHPUnitIntegration;
 
     private const SERVICE_CONFIGURATION_DIRECTORY = './services';
+    private const DEFAULT_DOMAIN = 'localhost';
 
     private ServiceConfiguration $serviceConfiguration;
 
@@ -25,7 +26,10 @@ class ServiceConfigurationTest extends TestCase
     {
         parent::setUp();
 
-        $this->serviceConfiguration = new ServiceConfiguration(self::SERVICE_CONFIGURATION_DIRECTORY);
+        $this->serviceConfiguration = new ServiceConfiguration(
+            self::SERVICE_CONFIGURATION_DIRECTORY,
+            self::DEFAULT_DOMAIN
+        );
     }
 
     public function testGetEnvironmentVariablesFileDoesNotExist(): void
@@ -401,6 +405,99 @@ class ServiceConfigurationTest extends TestCase
         $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
 
         self::assertTrue($result);
+    }
+
+    public function testGetDomainFileDoesNotExist(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileDoesNotExist(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::DOMAIN_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getDomain($serviceId);
+            },
+            function ($result) {
+                self::assertSame(self::DEFAULT_DOMAIN, $result);
+            }
+        );
+    }
+
+    public function testGetDomainFileIsNotReadable(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileIsNotReadable(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::DOMAIN_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getDomain($serviceId);
+            },
+            function ($result) {
+                self::assertSame(self::DEFAULT_DOMAIN, $result);
+            }
+        );
+    }
+
+    /**
+     * @dataProvider getDomainSuccessDataProvider
+     */
+    public function testGetDomainSuccess(
+        string $serviceId,
+        string $fileContent,
+        string $expectedDomain
+    ): void {
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::DOMAIN_FILENAME),
+            $fileContent
+        );
+
+        self::assertSame(
+            $expectedDomain,
+            $this->serviceConfiguration->getDomain($serviceId)
+        );
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getDomainSuccessDataProvider(): array
+    {
+        $serviceId = 'service_id';
+
+        return [
+            'empty' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{}',
+                'expectedDomain' => self::DEFAULT_DOMAIN,
+            ],
+            'content not a json array' => [
+                'serviceId' => $serviceId,
+                'fileContent' => 'true',
+                'expectedDomain' => self::DEFAULT_DOMAIN,
+            ],
+            'single invalid item, key not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{0:"value1"}',
+                'expectedDomain' => self::DEFAULT_DOMAIN,
+            ],
+            'single invalid item, value not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"key1":true}',
+                'expectedDomain' => self::DEFAULT_DOMAIN,
+            ],
+            'invalid, not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"domain":true}',
+                'expectedDomain' => self::DEFAULT_DOMAIN,
+            ],
+            'valid' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"domain":"example.com"}',
+                'expectedDomain' => 'example.com',
+            ],
+        ];
     }
 
     private function createFileReadSuccessMocks(string $namespace, string $filePath, string $content): void

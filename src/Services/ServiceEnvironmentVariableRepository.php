@@ -10,6 +10,8 @@ use Doctrine\Common\Collections\Collection;
 
 class ServiceEnvironmentVariableRepository
 {
+    public const NAME_DOMAIN = 'DOMAIN';
+
     public function __construct(
         private ServiceConfiguration $serviceConfiguration,
         private KeyValueCollectionFactory $keyValueCollectionFactory,
@@ -40,6 +42,11 @@ class ServiceEnvironmentVariableRepository
                 throw new MissingSecretException($secretPlaceholder);
             }
         }
+
+        $environmentVariables->add(new EnvironmentVariable(
+            self::NAME_DOMAIN,
+            $this->serviceConfiguration->getDomain($serviceId)
+        ));
 
         return $environmentVariables;
     }
