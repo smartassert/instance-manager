@@ -49,18 +49,18 @@ jobs:
           php bin/console app:instance:is-active \
           --id=${{ steps.instance.outputs.id }}
 
-      - name: Health check
+#      - name: Health check
+#        run: |
+#          php bin/console app:instance:is-healthy \
+#          --service-id='${{ github.event.inputs.service_id }}' \
+#          --id=${{ steps.instance.outputs.id }}
+
+      - name: Readiness check
         run: |
-          php bin/console app:instance:is-healthy \
+          php bin/console app:instance:is-ready \
           --service-id='${{ github.event.inputs.service_id }}' \
           --id=${{ steps.instance.outputs.id }}
 
-#      - name: Readiness check
-#        run: |
-#          php bin/console app:instance:is-ready \
-#          --service-id='${{ github.event.inputs.service_id }}' \
-#          --id=${{ steps.instance.outputs.id }}
-#
-#      - name: Remove instance on failure
+      - name: Remove instance on failure
 #        if: ${{ failure() }}
-#        run: php bin/console app:instance:destroy --id="${{ steps.instance.outputs.id }}"
+        run: php bin/console app:instance:destroy --id="${{ steps.instance.outputs.id }}"
