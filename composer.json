@@ -10,7 +10,7 @@
         "doctrine/collections": "^1.6",
         "guzzlehttp/guzzle": "^7.4",
         "php-http/client-common": "^2.5",
-        "smartassert/digitalocean-droplet-configuration": "~0.1",
+        "smartassert/digitalocean-droplet-configuration": "^1.2",
         "symfony/console": "6.0.*",
         "symfony/dotenv": "6.0.*",
         "symfony/flex": "^2.0",
