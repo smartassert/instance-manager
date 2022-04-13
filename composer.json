@@ -4,29 +4,29 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "php": ">=8",
+        "php": "^8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "doctrine/collections": "^1.6",
-        "guzzlehttp/guzzle": "^7.3",
+        "guzzlehttp/guzzle": "^7.4",
         "php-http/client-common": "^2.5",
-        "smartassert/digitalocean-droplet-configuration": "~0.1",
+        "smartassert/digitalocean-droplet-configuration": "^1.2",
         "symfony/console": "6.0.*",
         "symfony/dotenv": "6.0.*",
         "symfony/flex": "^2.0",
         "symfony/framework-bundle": "6.0.*",
         "symfony/runtime": "6.0.*",
         "symfony/yaml": "6.0.*",
-        "toin0u/digitalocean-v2": "^4.4"
+        "toin0u/digitalocean-v2": "^4.5"
     },
     "require-dev": {
-        "mockery/mockery": "^1.4",
+        "mockery/mockery": "^1.5",
         "php-mock/php-mock-mockery": "^1.3",
-        "phpstan/extension-installer": "^1",
-        "phpstan/phpstan": "^1",
-        "phpstan/phpstan-mockery": "^1",
-        "phpstan/phpstan-phpunit": "^1",
-        "phpstan/phpstan-symfony": "^1",
+        "phpstan/extension-installer": "^1.1",
+        "phpstan/phpstan": "^1.4",
+        "phpstan/phpstan-mockery": "^1.0",
+        "phpstan/phpstan-phpunit": "^1.0",
+        "phpstan/phpstan-symfony": "^1.1",
         "phpunit/phpunit": "^9.5",
         "squizlabs/php_codesniffer": "^3.6",
         "symfony/phpunit-bridge": "6.0.*",
@@ -37,7 +37,12 @@
         "preferred-install": {
             "*": "dist"
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "phpstan/extension-installer": true,
+            "symfony/flex": true,
+            "symfony/runtime": true
+        }
     },
     "autoload": {
         "psr-4": {
