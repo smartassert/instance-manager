@@ -192,6 +192,7 @@ class InstanceCollectionTest extends TestCase
                 'collection' => new InstanceCollection([
                     InstanceFactory::create([
                         'id' => 123,
+                        'created_at' => '2020-01-02T01:02:03.000Z',
                     ])
                 ]),
                 'expected' => [
@@ -199,6 +200,7 @@ class InstanceCollectionTest extends TestCase
                         'id' => 123,
                         'state' => [
                             'ips' => [],
+                            'created_at' => '2020-01-02T01:02:03.000Z',
                         ],
                     ],
                 ],
@@ -207,20 +209,31 @@ class InstanceCollectionTest extends TestCase
                 'collection' => new InstanceCollection([
                     InstanceFactory::create([
                         'id' => 465,
+                        'created_at' => '2020-01-02T04:05:06.000Z'
                     ]),
-                    InstanceFactory::create(DropletDataFactory::createWithIps(
-                        789,
+                    InstanceFactory::create(array_merge(
+                        DropletDataFactory::createWithIps(
+                            789,
+                            [
+                                '127.0.0.1',
+                                '10.0.0.1',
+                            ],
+                        ),
                         [
-                            '127.0.0.1',
-                            '10.0.0.1',
-                        ],
+                            'created_at' => '2020-01-02T07:08:09.000Z',
+                        ]
                     )),
-                    InstanceFactory::create(DropletDataFactory::createWithIps(
-                        321,
+                    InstanceFactory::create(array_merge(
+                        DropletDataFactory::createWithIps(
+                            321,
+                            [
+                                '127.0.0.2',
+                                '10.0.0.2',
+                            ],
+                        ),
                         [
-                            '127.0.0.2',
-                            '10.0.0.2',
-                        ],
+                            'created_at' => '2020-01-02T03:02:01.000Z',
+                        ]
                     ))->withAdditionalState([
                         'key1' => 'value1',
                         'key2' => 'value2',
@@ -231,6 +244,7 @@ class InstanceCollectionTest extends TestCase
                         'id' => 465,
                         'state' => [
                             'ips' => [],
+                            'created_at' => '2020-01-02T04:05:06.000Z'
                         ],
                     ],
                     [
@@ -240,6 +254,7 @@ class InstanceCollectionTest extends TestCase
                                 '127.0.0.1',
                                 '10.0.0.1',
                             ],
+                            'created_at' => '2020-01-02T07:08:09.000Z'
                         ],
                     ],
                     [
@@ -251,6 +266,7 @@ class InstanceCollectionTest extends TestCase
                                 '127.0.0.2',
                                 '10.0.0.2',
                             ],
+                            'created_at' => '2020-01-02T03:02:01.000Z'
                         ],
                     ],
                 ],

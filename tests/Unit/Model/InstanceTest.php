@@ -379,20 +379,27 @@ class InstanceTest extends TestCase
             'id-only' => [
                 'instance' => InstanceFactory::create([
                     'id' => 123,
+                    'created_at' => '2020-01-02T01:02:03.000Z'
                 ]),
                 'expected' => [
                     'id' => 123,
                     'state' => [
                         'ips' => [],
+                        'created_at' => '2020-01-02T01:02:03.000Z'
                     ],
                 ],
             ],
             'id and IP addresses' => [
-                'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(
-                    456,
+                'instance' => InstanceFactory::create(array_merge(
+                    DropletDataFactory::createWithIps(
+                        456,
+                        [
+                            '127.0.0.1',
+                            '10.0.0.1',
+                        ]
+                    ),
                     [
-                        '127.0.0.1',
-                        '10.0.0.1',
+                        'created_at' => '2020-01-02T04:05:06.000Z'
                     ]
                 )),
                 'expected' => [
@@ -402,12 +409,14 @@ class InstanceTest extends TestCase
                             '127.0.0.1',
                             '10.0.0.1',
                         ],
+                        'created_at' => '2020-01-02T04:05:06.000Z'
                     ],
                 ],
             ],
             'id, no IP addresses, additional custom state' => [
                 'instance' => InstanceFactory::create([
-                    'id' => 789
+                    'id' => 789,
+                    'created_at' => '2020-01-02T07:08:09.000Z'
                 ])->withAdditionalState([
                     'key1' => 'value1',
                     'key2' => 'value2',
@@ -418,15 +427,21 @@ class InstanceTest extends TestCase
                         'key1' => 'value1',
                         'key2' => 'value2',
                         'ips' => [],
+                        'created_at' => '2020-01-02T07:08:09.000Z'
                     ],
                 ],
             ],
             'id, IP addresses, additional custom state' => [
-                'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(
-                    321,
+                'instance' => InstanceFactory::create(array_merge(
+                    DropletDataFactory::createWithIps(
+                        321,
+                        [
+                            '127.0.0.2',
+                            '10.0.0.2',
+                        ]
+                    ),
                     [
-                        '127.0.0.2',
-                        '10.0.0.2',
+                        'created_at' => '2020-01-02T03:02:01.000Z'
                     ]
                 ))->withAdditionalState([
                     'key1' => 'value1',
@@ -441,6 +456,7 @@ class InstanceTest extends TestCase
                             '127.0.0.2',
                             '10.0.0.2',
                         ],
+                        'created_at' => '2020-01-02T03:02:01.000Z'
                     ],
                 ],
             ],
@@ -495,6 +511,55 @@ class InstanceTest extends TestCase
                     'status' => 'foo',
                 ]),
                 'expectedDropletStatus' => Instance::DROPLET_STATUS_UNKNOWN,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider getStateDataProvider
+     *
+     * @param array<mixed> $expected
+     */
+    public function testGetState(Instance $instance, array $expected): void
+    {
+        self::assertSame($expected, $instance->getState());
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getStateDataProvider(): array
+    {
+        $now = (new \DateTime())->format(Instance::CREATED_AT_FORMAT);
+        $yesterday = (new \DateTime('-1 day'))->format(Instance::CREATED_AT_FORMAT);
+
+        return [
+            'id and created_at only' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 123,
+                    'created_at' => $now,
+                ]),
+                'expected' => [
+                    'ips' => [],
+                    'created_at' => $now,
+                ],
+            ],
+            'id, created_at and ip addresses' => [
+                'instance' => InstanceFactory::create(
+                    array_merge(
+                        DropletDataFactory::createWithIps(123, ['127.0.0.1', '127.0.0.2']),
+                        [
+                            'created_at' => $yesterday,
+                        ]
+                    )
+                ),
+                'expected' => [
+                    'ips' => [
+                        '127.0.0.1',
+                        '127.0.0.2',
+                    ],
+                    'created_at' => $yesterday,
+                ],
             ],
         ];
     }

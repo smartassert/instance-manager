@@ -42,6 +42,7 @@ class InstanceCollectionHydratorTest extends KernelTestCase
         $instanceCollectionData = [
             123 => [
                 'ipAddress' => '127.0.0.1',
+                'createdAt' => '2020-01-02T01:01:01.000Z',
                 'state' => [
                     'version' => '0.1',
                     'message-queue-size' => 14,
@@ -50,6 +51,7 @@ class InstanceCollectionHydratorTest extends KernelTestCase
             ],
             456 => [
                 'ipAddress' => '127.0.0.2',
+                'createdAt' => '2020-01-02T02:02:02.000Z',
                 'state' => [
                     'version' => '0.2',
                     'message-queue-size' => 7,
@@ -66,6 +68,7 @@ class InstanceCollectionHydratorTest extends KernelTestCase
                 'ips' => [
                     '127.0.0.1',
                 ],
+                'created_at' => '2020-01-02T01:01:01.000Z',
             ],
             456 => [
                 'version' => '0.2',
@@ -74,14 +77,18 @@ class InstanceCollectionHydratorTest extends KernelTestCase
                 'ips' => [
                     '127.0.0.2',
                 ],
+                'created_at' => '2020-01-02T02:02:02.000Z',
             ],
         ];
 
         $instances = [];
         foreach ($instanceCollectionData as $dropletId => $instanceData) {
-            $instances[] = InstanceFactory::create(
-                DropletDataFactory::createWithIps($dropletId, [$instanceData['ipAddress']])
-            );
+            $instances[] = InstanceFactory::create(array_merge(
+                DropletDataFactory::createWithIps($dropletId, [$instanceData['ipAddress']]),
+                [
+                    'created_at' => $instanceData['createdAt'],
+                ]
+            ));
             $this->mockHandler->append(
                 $this->httpResponseFactory->createFromArray(
                     HttpResponseDataFactory::createJsonResponseData($instanceData['state'])
