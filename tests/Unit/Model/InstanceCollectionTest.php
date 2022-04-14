@@ -258,6 +258,111 @@ class InstanceCollectionTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider findByIpDataProvider
+     */
+    public function testFindByIp(InstanceCollection $collection, string $ip, ?Instance $expected): void
+    {
+        self::assertSame($expected, $collection->findByIP($ip));
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function findByIpDataProvider(): array
+    {
+        $ip = '127.0.0.1';
+        $instanceWithMatchingIPWithSingleIP = InstanceFactory::create(
+            DropletDataFactory::createWithIps(123, [$ip])
+        );
+        $instanceWithMatchingIPWithMultipleIPs = InstanceFactory::create(
+            DropletDataFactory::createWithIps(123, ['127.0.0.3', '127.0.0.2', $ip])
+        );
+
+        return [
+            'empty' => [
+                'collection' => new InstanceCollection(),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'single instance with no IPs' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create([
+                        'id' => 123,
+                    ]),
+                ]),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'multiple instance with no IPs' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create([
+                        'id' => 123,
+                    ]),
+                    InstanceFactory::create([
+                        'id' => 456,
+                    ]),
+                    InstanceFactory::create([
+                        'id' => 789,
+                    ]),
+                ]),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'single instance with non-matching IP' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                    ),
+                ]),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'multiple instance with non-matching IPs' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                    ),
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(456, ['127.0.0.3'])
+                    ),
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(789, ['127.0.0.4'])
+                    ),
+                ]),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'single instance with single matching IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithMatchingIPWithSingleIP,
+                ]),
+                'ip' => $ip,
+                'expected' => $instanceWithMatchingIPWithSingleIP,
+            ],
+            'single instance with three IPs, third matching IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithMatchingIPWithMultipleIPs,
+                ]),
+                'ip' => $ip,
+                'expected' => $instanceWithMatchingIPWithMultipleIPs,
+            ],
+            'multiple instances with single instance having matching IP' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                    ),
+                    $instanceWithMatchingIPWithSingleIP,
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(456, ['127.0.0.3'])
+                    ),
+                ]),
+                'ip' => $ip,
+                'expected' => $instanceWithMatchingIPWithSingleIP,
+            ],
+        ];
+    }
+
     private function createSortedCollection(): InstanceCollection
     {
         return new InstanceCollection([
