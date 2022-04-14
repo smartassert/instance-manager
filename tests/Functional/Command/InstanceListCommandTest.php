@@ -330,49 +330,49 @@ class InstanceListCommandTest extends KernelTestCase
         ];
 
         return [
-            //            'no instances' => [
-            //                'input' => [
-            //                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-            //                ],
-            //                'serviceConfiguration' => $serviceConfiguration,
-            //                'httpResponseDataCollection' => [
-            //                    'droplets' => [
-            //                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-            //                        HttpResponseFactory::KEY_HEADERS => [
-            //                            'content-type' => 'application/json; charset=utf-8',
-            //                        ],
-            //                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-            //                            'droplets' => [],
-            //                        ]),
-            //                    ],
-            //                ],
-            //                'expectedReturnCode' => Command::SUCCESS,
-            //                'expectedOutput' => (string) json_encode([]),
-            //            ],
-            //            'single instance' => [
-            //                'input' => [
-            //                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-            //                ],
-            //                'serviceConfiguration' => $serviceConfiguration,
-            //                'httpResponseDataCollection' => [
-            //                    'droplets' => [
-            //                        HttpResponseFactory::KEY_STATUS_CODE => 200,
-            //                        HttpResponseFactory::KEY_HEADERS => [
-            //                            'content-type' => 'application/json; charset=utf-8',
-            //                        ],
-            //                        HttpResponseFactory::KEY_BODY => (string) json_encode([
-            //                            'droplets' => [
-            //                                $dropletData['instance-1'],
-            //                            ],
-            //                        ]),
-            //                    ],
-            //                    '1-state' => $collectionHttpResponses['1-state'],
-            //                ],
-            //                'expectedReturnCode' => Command::SUCCESS,
-            //                'expectedOutput' => (string) json_encode([
-            //                    $expectedOutputData['instance-1'],
-            //                ]),
-            //            ],
+            'no instances' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                ],
+                'serviceConfiguration' => $serviceConfiguration,
+                'httpResponseDataCollection' => [
+                    'droplets' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplets' => [],
+                        ]),
+                    ],
+                ],
+                'expectedReturnCode' => Command::SUCCESS,
+                'expectedOutput' => (string) json_encode([]),
+            ],
+            'single instance' => [
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                ],
+                'serviceConfiguration' => $serviceConfiguration,
+                'httpResponseDataCollection' => [
+                    'droplets' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplets' => [
+                                $dropletData['instance-1'],
+                            ],
+                        ]),
+                    ],
+                    '1-state' => $collectionHttpResponses['1-state'],
+                ],
+                'expectedReturnCode' => Command::SUCCESS,
+                'expectedOutput' => (string) json_encode([
+                    $expectedOutputData['instance-1'],
+                ]),
+            ],
             'many instances, no filter' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
