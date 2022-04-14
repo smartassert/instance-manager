@@ -13,6 +13,17 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class InstanceCollection extends ArrayCollection implements \JsonSerializable
 {
+    public function findByIP(string $ip): ?Instance
+    {
+        foreach ($this as $instance) {
+            if ($instance->hasIp($ip)) {
+                return $instance;
+            }
+        }
+
+        return null;
+    }
+
     public function getNewest(): ?Instance
     {
         $sortedCollection = $this->sortByCreatedDate();
