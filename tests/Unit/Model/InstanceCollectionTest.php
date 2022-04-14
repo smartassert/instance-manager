@@ -48,7 +48,9 @@ class InstanceCollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider filterByFilterDataProvider
+     * @dataProvider filterByExcludedIpDataProvider
+     * @dataProvider filterByEmptyMessageQueueDataProvider
+     * @dataProvider filterByCreationDateDataProvider
      */
     public function testFilterByFilter(
         InstanceCollection $collection,
@@ -64,13 +66,57 @@ class InstanceCollectionTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function filterByFilterDataProvider(): array
+    public function filterByExcludedIpDataProvider(): array
     {
         $ip = '127.0.0.1';
         $instanceWithIp = InstanceFactory::create(DropletDataFactory::createWithIps(123, [$ip]));
         $instanceWithoutIp1 = InstanceFactory::create(DropletDataFactory::createWithIps(456, ['127.0.0.2']));
         $instanceWithoutIp2 = InstanceFactory::create(DropletDataFactory::createWithIps(789, ['127.0.0.3']));
 
+        $filter = new Filter('ips', $ip, FilterInterface::MATCH_TYPE_NEGATIVE);
+
+        return [
+            'empty, not has IP filter' => [
+                'collection' => new InstanceCollection([]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'single, not has IP filter, has IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithIp,
+                ]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'single, not has IP filter, does not have IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithoutIp1,
+                ]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([
+                    $instanceWithoutIp1,
+                ]),
+            ],
+            'multiple, not has IP filter, one has IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithoutIp1,
+                    $instanceWithIp,
+                    $instanceWithoutIp2,
+                ]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([
+                    $instanceWithoutIp1,
+                    $instanceWithoutIp2,
+                ]),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function filterByEmptyMessageQueueDataProvider(): array
+    {
         $instanceWithNonEmptyMessageQueue = InstanceFactory::create([
             'id' => 123,
         ])
@@ -95,43 +141,9 @@ class InstanceCollectionTest extends TestCase
             ])
         ;
 
-        $notHasIpFilter = new Filter('ips', $ip, FilterInterface::MATCH_TYPE_NEGATIVE);
         $hasEmptyMessageQueueFilter = new Filter('message-queue-size', 0, FilterInterface::MATCH_TYPE_POSITIVE);
 
         return [
-            'empty, not has IP filter' => [
-                'collection' => new InstanceCollection([]),
-                'filter' => $notHasIpFilter,
-                'expectedCollection' => new InstanceCollection([]),
-            ],
-            'single, not has IP filter, has IP' => [
-                'collection' => new InstanceCollection([
-                    $instanceWithIp,
-                ]),
-                'filter' => $notHasIpFilter,
-                'expectedCollection' => new InstanceCollection([]),
-            ],
-            'single, not has IP filter, does not have IP' => [
-                'collection' => new InstanceCollection([
-                    $instanceWithoutIp1,
-                ]),
-                'filter' => $notHasIpFilter,
-                'expectedCollection' => new InstanceCollection([
-                    $instanceWithoutIp1,
-                ]),
-            ],
-            'multiple, not has IP filter, one has IP' => [
-                'collection' => new InstanceCollection([
-                    $instanceWithoutIp1,
-                    $instanceWithIp,
-                    $instanceWithoutIp2,
-                ]),
-                'filter' => $notHasIpFilter,
-                'expectedCollection' => new InstanceCollection([
-                    $instanceWithoutIp1,
-                    $instanceWithoutIp2,
-                ]),
-            ],
             'empty, has empty message queue filter' => [
                 'collection' => new InstanceCollection([]),
                 'filter' => $hasEmptyMessageQueueFilter,
@@ -164,6 +176,75 @@ class InstanceCollectionTest extends TestCase
                     $instanceWithEmptyMessageQueue1,
                     $instanceWithEmptyMessageQueue2,
                 ]),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function filterByCreationDateDataProvider(): array
+    {
+        $now = (new \DateTime())->format(Instance::CREATED_AT_FORMAT);
+
+        $instancesCreatedBeforeNow = [
+            InstanceFactory::create([
+                'id' => 123,
+                'created_at' => (new \DateTime('-1 second'))->format(Instance::CREATED_AT_FORMAT),
+            ]),
+            InstanceFactory::create([
+                'id' => 456,
+                'created_at' => (new \DateTime('-1 minute'))->format(Instance::CREATED_AT_FORMAT),
+            ]),
+        ];
+
+        $instanceCreatedNow = InstanceFactory::create([
+            'id' => 123,
+            'created_at' => $now,
+        ]);
+
+        $instancesCreatedAfterNow = [
+            InstanceFactory::create([
+                'id' => 789,
+                'created_at' => (new \DateTime('+1 second'))->format(Instance::CREATED_AT_FORMAT),
+            ]),
+            InstanceFactory::create([
+                'id' => 654,
+                'created_at' => (new \DateTime('+1 minute'))->format(Instance::CREATED_AT_FORMAT),
+            ]),
+        ];
+
+        $filter = new Filter('created_at', $now, FilterInterface::MATCH_TYPE_LESS_THAN);
+
+        return [
+            'empty' => [
+                'collection' => new InstanceCollection([]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'single instance, created_at same as in filter' => [
+                'collection' => new InstanceCollection([$instanceCreatedNow]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'three instances, two created before value in filters' => [
+                'collection' => new InstanceCollection(array_merge($instancesCreatedBeforeNow, [$instanceCreatedNow])),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection($instancesCreatedBeforeNow),
+            ],
+            'three instances, one created now and two created after now' => [
+                'collection' => new InstanceCollection(array_merge($instancesCreatedAfterNow, [$instanceCreatedNow])),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'five instances, two created before now, one created now and two created after now' => [
+                'collection' => new InstanceCollection(array_merge(
+                    $instancesCreatedBeforeNow,
+                    $instancesCreatedAfterNow,
+                    [$instanceCreatedNow]
+                )),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection($instancesCreatedBeforeNow),
             ],
         ];
     }

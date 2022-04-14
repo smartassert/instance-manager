@@ -136,24 +136,33 @@ class Instance implements \JsonSerializable
     {
         $state = $this->getState();
         $field = $filter->getField();
+        $matchType = $filter->getMatchType();
 
         if (array_key_exists($field, $state)) {
             $stateValue = $state[$field];
-            $value = $filter->getValue();
-            $matchType = $filter->getMatchType();
 
-            if (is_scalar($stateValue)) {
-                return FilterInterface::MATCH_TYPE_POSITIVE === $matchType && $stateValue === $value
-                     || FilterInterface::MATCH_TYPE_NEGATIVE === $matchType && $stateValue !== $value;
+            if (FilterInterface::MATCH_TYPE_POSITIVE === $matchType && is_scalar($stateValue)) {
+                return $stateValue === $filter->getValue();
             }
 
-            if (is_array($stateValue)) {
-                return FilterInterface::MATCH_TYPE_POSITIVE === $matchType && in_array($value, $stateValue)
-                    || FilterInterface::MATCH_TYPE_NEGATIVE === $matchType && !in_array($value, $stateValue);
+            if (FilterInterface::MATCH_TYPE_NEGATIVE === $matchType && is_scalar($stateValue)) {
+                return $stateValue !== $filter->getValue();
+            }
+
+            if (FilterInterface::MATCH_TYPE_POSITIVE === $matchType && is_array($stateValue)) {
+                return in_array($filter->getValue(), $stateValue);
+            }
+
+            if (FilterInterface::MATCH_TYPE_NEGATIVE === $matchType && is_array($stateValue)) {
+                return !in_array($filter->getValue(), $stateValue);
+            }
+
+            if (FilterInterface::MATCH_TYPE_LESS_THAN === $matchType && is_scalar($stateValue)) {
+                return $stateValue < $filter->getValue();
             }
         }
 
-        return FilterInterface::MATCH_TYPE_POSITIVE !== $filter->getMatchType();
+        return FilterInterface::MATCH_TYPE_POSITIVE !== $matchType;
     }
 
     /**
