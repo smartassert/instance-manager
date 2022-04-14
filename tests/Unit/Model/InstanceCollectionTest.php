@@ -185,32 +185,32 @@ class InstanceCollectionTest extends TestCase
      */
     public function filterByCreationDateDataProvider(): array
     {
-        $now = (new \DateTime())->format(Instance::CREATED_AT_FORMAT);
+        $now = '2022-04-14T16:40:05.000Z';
 
         $instancesCreatedBeforeNow = [
             InstanceFactory::create([
                 'id' => 123,
-                'created_at' => (new \DateTime('-1 second'))->format(Instance::CREATED_AT_FORMAT),
+                'created_at' => '2022-04-14T16:40:04.000Z',
             ]),
             InstanceFactory::create([
                 'id' => 456,
-                'created_at' => (new \DateTime('-1 minute'))->format(Instance::CREATED_AT_FORMAT),
+                'created_at' => '2022-04-14T16:39:05.000Z',
             ]),
         ];
 
         $instanceCreatedNow = InstanceFactory::create([
             'id' => 123,
-            'created_at' => $now,
+            'created_at' => '2022-04-14T16:40:05.000Z',
         ]);
 
         $instancesCreatedAfterNow = [
             InstanceFactory::create([
                 'id' => 789,
-                'created_at' => (new \DateTime('+1 second'))->format(Instance::CREATED_AT_FORMAT),
+                'created_at' => '2022-04-14T16:40:06.000Z',
             ]),
             InstanceFactory::create([
                 'id' => 654,
-                'created_at' => (new \DateTime('+1 minute'))->format(Instance::CREATED_AT_FORMAT),
+                'created_at' => '2022-04-14T16:41:05.000Z',
             ]),
         ];
 

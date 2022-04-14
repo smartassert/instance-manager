@@ -530,8 +530,8 @@ class InstanceTest extends TestCase
      */
     public function getStateDataProvider(): array
     {
-        $now = (new \DateTime())->format(Instance::CREATED_AT_FORMAT);
-        $yesterday = (new \DateTime('-1 day'))->format(Instance::CREATED_AT_FORMAT);
+        $now = '2022-04-14T16:40:05.000Z';
+        $yesterday = '2022-04-13T16:40:05.000Z';
 
         return [
             'id and created_at only' => [

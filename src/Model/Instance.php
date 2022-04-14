@@ -13,7 +13,6 @@ class Instance implements \JsonSerializable
     public const DROPLET_STATUS_OFF = 'off';
     public const DROPLET_STATUS_ARCHIVE = 'archive';
     public const DROPLET_STATUS_UNKNOWN = 'unknown';
-    public const CREATED_AT_FORMAT = 'Y-m-d\TH:i:s.000\Z';
 
     /**
      * @var array<int|string, mixed>
@@ -62,7 +61,7 @@ class Instance implements \JsonSerializable
             $this->state,
             [
                 'ips' => $this->getIps(),
-                'created_at' => $this->getCreatedAt()->format(self::CREATED_AT_FORMAT),
+                'created_at' => $this->getCreatedAt(),
             ]
         );
     }
@@ -127,9 +126,9 @@ class Instance implements \JsonSerializable
         );
     }
 
-    public function getCreatedAt(): \DateTimeInterface
+    public function getCreatedAt(): string
     {
-        return new \DateTimeImmutable($this->droplet->createdAt);
+        return $this->droplet->createdAt;
     }
 
     public function isMatchedBy(Filter $filter): bool
