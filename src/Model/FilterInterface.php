@@ -8,6 +8,7 @@ interface FilterInterface
 {
     public const MATCH_TYPE_POSITIVE = 'positive';
     public const MATCH_TYPE_NEGATIVE = 'negative';
+    public const MATCH_TYPE_LESS_THAN = 'less-than';
 
     public function getField(): string;
 
