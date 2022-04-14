@@ -13,6 +13,7 @@ class Instance implements \JsonSerializable
     public const DROPLET_STATUS_OFF = 'off';
     public const DROPLET_STATUS_ARCHIVE = 'archive';
     public const DROPLET_STATUS_UNKNOWN = 'unknown';
+    public const CREATED_AT_FORMAT = 'Y-m-d\TH:i:s.000\Z';
 
     /**
      * @var array<int|string, mixed>
@@ -61,6 +62,7 @@ class Instance implements \JsonSerializable
             $this->state,
             [
                 'ips' => $this->getIps(),
+                'created_at' => $this->getCreatedAt()->format(self::CREATED_AT_FORMAT),
             ]
         );
     }

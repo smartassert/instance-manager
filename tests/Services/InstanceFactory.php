@@ -14,6 +14,10 @@ class InstanceFactory
      */
     public static function create(array $dropletData): Instance
     {
+        if (!array_key_exists('created_at', $dropletData)) {
+            $dropletData['created_at'] = (new \DateTime())->format(Instance::CREATED_AT_FORMAT);
+        }
+
         return new Instance(
             new Droplet(
                 DropletDataFactory::normalize($dropletData)

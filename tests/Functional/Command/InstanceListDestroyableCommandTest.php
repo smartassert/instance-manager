@@ -170,6 +170,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
         $dropletData = [
             'instance-with-excluded-ip' => [
                 'id' => 1,
+                'created_at' => '2020-01-02T01:01:01.000Z',
                 'networks' => [
                     'v4' => [
                         [
@@ -180,6 +181,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
             ],
             'instance-not-idle' => [
                 'id' => 2,
+                'created_at' => '2020-01-02T02:02:02.000Z',
                 'networks' => [
                     'v4' => [
                         [
@@ -190,6 +192,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
             ],
             'instance-is-idle' => [
                 'id' => 3,
+                'created_at' => '2020-01-02T03:03:03.000Z',
                 'networks' => [
                     'v4' => [
                         [
@@ -200,6 +203,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
             ],
             'instance-null-idle' => [
                 'id' => 4,
+                'created_at' => '2020-01-02T04:04:04.000Z',
                 'networks' => [
                     'v4' => [
                         [
@@ -248,6 +252,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                         'ips' => [
                             $excludedIp,
                         ],
+                        'created_at' => '2020-01-02T01:01:01.000Z',
                     ],
                     $stateResponseData['instance-with-excluded-ip']
                 ),
@@ -259,6 +264,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                         'ips' => [
                             '127.0.0.2',
                         ],
+                        'created_at' => '2020-01-02T02:02:02.000Z',
                     ],
                     $stateResponseData['instance-not-idle']
                 ),
@@ -270,6 +276,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                         'ips' => [
                             '127.0.0.3',
                         ],
+                        'created_at' => '2020-01-02T03:03:03.000Z',
                     ],
                     $stateResponseData['instance-is-idle']
                 ),
@@ -281,6 +288,7 @@ class InstanceListDestroyableCommandTest extends KernelTestCase
                         'ips' => [
                             '127.0.0.4',
                         ],
+                        'created_at' => '2020-01-02T04:04:04.000Z',
                     ],
                     $stateResponseData['instance-null-idle']
                 ),
