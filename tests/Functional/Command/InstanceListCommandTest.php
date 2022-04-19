@@ -372,7 +372,7 @@ class InstanceListCommandTest extends KernelTestCase
                     $expectedOutputData['instance-1'],
                 ]),
             ],
-            'many instances, no filter' => [
+            'many instances' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
@@ -381,24 +381,6 @@ class InstanceListCommandTest extends KernelTestCase
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
                     $expectedOutputData['instance-1'],
-                    $expectedOutputData['instance-2'],
-                    $expectedOutputData['instance-3'],
-                    $expectedOutputData['instance-4'],
-                ]),
-            ],
-            'many instances, filter to not contains IP matching IP' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--' . InstanceListCommand::OPTION_EXCLUDE => (string) json_encode([
-                        [
-                            'ips' => $matchingIp,
-                        ],
-                    ]),
-                ],
-                'serviceConfiguration' => $serviceConfiguration,
-                'httpResponseDataCollection' => $collectionHttpResponses,
-                'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
                     $expectedOutputData['instance-2'],
                     $expectedOutputData['instance-3'],
                     $expectedOutputData['instance-4'],
