@@ -38,6 +38,7 @@ class InstanceRepositoryTest extends KernelTestCase
     {
         $dropletData = [
             'id' => 123,
+            'created_at' => '2020-01-02T01:02:03.000Z',
         ];
 
         $successResponseData = [
@@ -243,11 +244,12 @@ class InstanceRepositoryTest extends KernelTestCase
                     HttpResponseFactory::KEY_BODY => (string) json_encode([
                         'droplet' => [
                             'id' => 123,
+                            'created_at' => '2020-01-02T01:02:03.000Z',
                         ],
                     ]),
                 ],
                 'id' => 123,
-                'expectedImage' => InstanceFactory::create(['id' => 123]),
+                'expectedImage' => InstanceFactory::create(['id' => 123, 'created_at' => '2020-01-02T01:02:03.000Z']),
             ],
         ];
     }

@@ -10,8 +10,8 @@ class InstanceCreatedDateSorter implements InstanceSorterInterface
 {
     public function sort(Instance $a, Instance $b): int
     {
-        $aTimestamp = $a->getCreatedAt()->getTimestamp();
-        $bTimestamp = $b->getCreatedAt()->getTimestamp();
+        $aTimestamp = (new \DateTimeImmutable($a->getCreatedAt()))->getTimestamp();
+        $bTimestamp = (new \DateTimeImmutable($b->getCreatedAt()))->getTimestamp();
 
         if ($aTimestamp === $bTimestamp) {
             return 0;

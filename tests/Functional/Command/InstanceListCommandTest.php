@@ -206,6 +206,7 @@ class InstanceListCommandTest extends KernelTestCase
         $dropletData = [
             'instance-1' => [
                 'id' => 1,
+                'created_at' => '2020-01-02T01:01:01.000Z',
                 'networks' => [
                     'v4' => [
                         [
@@ -216,6 +217,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'instance-2' => [
                 'id' => 2,
+                'created_at' => '2020-01-02T02:02:02.000Z',
                 'networks' => [
                     'v4' => [
                         [
@@ -226,6 +228,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'instance-3' => [
                 'id' => 3,
+                'created_at' => '2020-01-02T03:03:03.000Z',
                 'networks' => [
                     'v4' => [
                         [
@@ -236,6 +239,7 @@ class InstanceListCommandTest extends KernelTestCase
             ],
             'instance-4' => [
                 'id' => 4,
+                'created_at' => '2020-01-02T04:04:04.000Z',
                 'networks' => [
                     'v4' => [
                         [
@@ -282,8 +286,9 @@ class InstanceListCommandTest extends KernelTestCase
                         'ips' => [
                             $matchingIp,
                         ],
+                        'created_at' => '2020-01-02T01:01:01.000Z',
                     ],
-                    $stateResponseData['instance-1']
+                    $stateResponseData['instance-1'],
                 ),
             ],
             'instance-2' => [
@@ -293,6 +298,7 @@ class InstanceListCommandTest extends KernelTestCase
                         'ips' => [
                             '127.0.0.2',
                         ],
+                        'created_at' => '2020-01-02T02:02:02.000Z',
                     ],
                     $stateResponseData['instance-2']
                 ),
@@ -304,6 +310,7 @@ class InstanceListCommandTest extends KernelTestCase
                         'ips' => [
                             '127.0.0.3',
                         ],
+                        'created_at' => '2020-01-02T03:03:03.000Z',
                     ],
                     $stateResponseData['instance-3']
                 ),
@@ -315,6 +322,7 @@ class InstanceListCommandTest extends KernelTestCase
                         'ips' => [
                             '127.0.0.4',
                         ],
+                        'created_at' => '2020-01-02T04:04:04.000Z',
                     ],
                     $stateResponseData['instance-4']
                 ),

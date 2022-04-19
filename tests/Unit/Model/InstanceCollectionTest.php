@@ -48,7 +48,9 @@ class InstanceCollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider filterByFilterDataProvider
+     * @dataProvider filterByExcludedIpDataProvider
+     * @dataProvider filterByEmptyMessageQueueDataProvider
+     * @dataProvider filterByCreationDateDataProvider
      */
     public function testFilterByFilter(
         InstanceCollection $collection,
@@ -64,13 +66,57 @@ class InstanceCollectionTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function filterByFilterDataProvider(): array
+    public function filterByExcludedIpDataProvider(): array
     {
         $ip = '127.0.0.1';
         $instanceWithIp = InstanceFactory::create(DropletDataFactory::createWithIps(123, [$ip]));
         $instanceWithoutIp1 = InstanceFactory::create(DropletDataFactory::createWithIps(456, ['127.0.0.2']));
         $instanceWithoutIp2 = InstanceFactory::create(DropletDataFactory::createWithIps(789, ['127.0.0.3']));
 
+        $filter = new Filter('ips', $ip, FilterInterface::MATCH_TYPE_NEGATIVE);
+
+        return [
+            'empty, not has IP filter' => [
+                'collection' => new InstanceCollection([]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'single, not has IP filter, has IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithIp,
+                ]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'single, not has IP filter, does not have IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithoutIp1,
+                ]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([
+                    $instanceWithoutIp1,
+                ]),
+            ],
+            'multiple, not has IP filter, one has IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithoutIp1,
+                    $instanceWithIp,
+                    $instanceWithoutIp2,
+                ]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([
+                    $instanceWithoutIp1,
+                    $instanceWithoutIp2,
+                ]),
+            ],
+        ];
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function filterByEmptyMessageQueueDataProvider(): array
+    {
         $instanceWithNonEmptyMessageQueue = InstanceFactory::create([
             'id' => 123,
         ])
@@ -95,43 +141,9 @@ class InstanceCollectionTest extends TestCase
             ])
         ;
 
-        $notHasIpFilter = new Filter('ips', $ip, FilterInterface::MATCH_TYPE_NEGATIVE);
         $hasEmptyMessageQueueFilter = new Filter('message-queue-size', 0, FilterInterface::MATCH_TYPE_POSITIVE);
 
         return [
-            'empty, not has IP filter' => [
-                'collection' => new InstanceCollection([]),
-                'filter' => $notHasIpFilter,
-                'expectedCollection' => new InstanceCollection([]),
-            ],
-            'single, not has IP filter, has IP' => [
-                'collection' => new InstanceCollection([
-                    $instanceWithIp,
-                ]),
-                'filter' => $notHasIpFilter,
-                'expectedCollection' => new InstanceCollection([]),
-            ],
-            'single, not has IP filter, does not have IP' => [
-                'collection' => new InstanceCollection([
-                    $instanceWithoutIp1,
-                ]),
-                'filter' => $notHasIpFilter,
-                'expectedCollection' => new InstanceCollection([
-                    $instanceWithoutIp1,
-                ]),
-            ],
-            'multiple, not has IP filter, one has IP' => [
-                'collection' => new InstanceCollection([
-                    $instanceWithoutIp1,
-                    $instanceWithIp,
-                    $instanceWithoutIp2,
-                ]),
-                'filter' => $notHasIpFilter,
-                'expectedCollection' => new InstanceCollection([
-                    $instanceWithoutIp1,
-                    $instanceWithoutIp2,
-                ]),
-            ],
             'empty, has empty message queue filter' => [
                 'collection' => new InstanceCollection([]),
                 'filter' => $hasEmptyMessageQueueFilter,
@@ -169,6 +181,75 @@ class InstanceCollectionTest extends TestCase
     }
 
     /**
+     * @return array<mixed>
+     */
+    public function filterByCreationDateDataProvider(): array
+    {
+        $now = '2022-04-14T16:40:05.000Z';
+
+        $instancesCreatedBeforeNow = [
+            InstanceFactory::create([
+                'id' => 123,
+                'created_at' => '2022-04-14T16:40:04.000Z',
+            ]),
+            InstanceFactory::create([
+                'id' => 456,
+                'created_at' => '2022-04-14T16:39:05.000Z',
+            ]),
+        ];
+
+        $instanceCreatedNow = InstanceFactory::create([
+            'id' => 123,
+            'created_at' => '2022-04-14T16:40:05.000Z',
+        ]);
+
+        $instancesCreatedAfterNow = [
+            InstanceFactory::create([
+                'id' => 789,
+                'created_at' => '2022-04-14T16:40:06.000Z',
+            ]),
+            InstanceFactory::create([
+                'id' => 654,
+                'created_at' => '2022-04-14T16:41:05.000Z',
+            ]),
+        ];
+
+        $filter = new Filter('created_at', $now, FilterInterface::MATCH_TYPE_LESS_THAN);
+
+        return [
+            'empty' => [
+                'collection' => new InstanceCollection([]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'single instance, created_at same as in filter' => [
+                'collection' => new InstanceCollection([$instanceCreatedNow]),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'three instances, two created before value in filters' => [
+                'collection' => new InstanceCollection(array_merge($instancesCreatedBeforeNow, [$instanceCreatedNow])),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection($instancesCreatedBeforeNow),
+            ],
+            'three instances, one created now and two created after now' => [
+                'collection' => new InstanceCollection(array_merge($instancesCreatedAfterNow, [$instanceCreatedNow])),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection([]),
+            ],
+            'five instances, two created before now, one created now and two created after now' => [
+                'collection' => new InstanceCollection(array_merge(
+                    $instancesCreatedBeforeNow,
+                    $instancesCreatedAfterNow,
+                    [$instanceCreatedNow]
+                )),
+                'filter' => $filter,
+                'expectedCollection' => new InstanceCollection($instancesCreatedBeforeNow),
+            ],
+        ];
+    }
+
+    /**
      * @dataProvider jsonSerializeDataProvider
      *
      * @param array<mixed> $expected
@@ -192,6 +273,7 @@ class InstanceCollectionTest extends TestCase
                 'collection' => new InstanceCollection([
                     InstanceFactory::create([
                         'id' => 123,
+                        'created_at' => '2020-01-02T01:02:03.000Z',
                     ])
                 ]),
                 'expected' => [
@@ -199,6 +281,7 @@ class InstanceCollectionTest extends TestCase
                         'id' => 123,
                         'state' => [
                             'ips' => [],
+                            'created_at' => '2020-01-02T01:02:03.000Z',
                         ],
                     ],
                 ],
@@ -207,20 +290,31 @@ class InstanceCollectionTest extends TestCase
                 'collection' => new InstanceCollection([
                     InstanceFactory::create([
                         'id' => 465,
+                        'created_at' => '2020-01-02T04:05:06.000Z'
                     ]),
-                    InstanceFactory::create(DropletDataFactory::createWithIps(
-                        789,
+                    InstanceFactory::create(array_merge(
+                        DropletDataFactory::createWithIps(
+                            789,
+                            [
+                                '127.0.0.1',
+                                '10.0.0.1',
+                            ],
+                        ),
                         [
-                            '127.0.0.1',
-                            '10.0.0.1',
-                        ],
+                            'created_at' => '2020-01-02T07:08:09.000Z',
+                        ]
                     )),
-                    InstanceFactory::create(DropletDataFactory::createWithIps(
-                        321,
+                    InstanceFactory::create(array_merge(
+                        DropletDataFactory::createWithIps(
+                            321,
+                            [
+                                '127.0.0.2',
+                                '10.0.0.2',
+                            ],
+                        ),
                         [
-                            '127.0.0.2',
-                            '10.0.0.2',
-                        ],
+                            'created_at' => '2020-01-02T03:02:01.000Z',
+                        ]
                     ))->withAdditionalState([
                         'key1' => 'value1',
                         'key2' => 'value2',
@@ -231,6 +325,7 @@ class InstanceCollectionTest extends TestCase
                         'id' => 465,
                         'state' => [
                             'ips' => [],
+                            'created_at' => '2020-01-02T04:05:06.000Z'
                         ],
                     ],
                     [
@@ -240,6 +335,7 @@ class InstanceCollectionTest extends TestCase
                                 '127.0.0.1',
                                 '10.0.0.1',
                             ],
+                            'created_at' => '2020-01-02T07:08:09.000Z'
                         ],
                     ],
                     [
@@ -251,9 +347,115 @@ class InstanceCollectionTest extends TestCase
                                 '127.0.0.2',
                                 '10.0.0.2',
                             ],
+                            'created_at' => '2020-01-02T03:02:01.000Z'
                         ],
                     ],
                 ],
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider findByIpDataProvider
+     */
+    public function testFindByIp(InstanceCollection $collection, string $ip, ?Instance $expected): void
+    {
+        self::assertSame($expected, $collection->findByIP($ip));
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function findByIpDataProvider(): array
+    {
+        $ip = '127.0.0.1';
+        $instanceWithMatchingIPWithSingleIP = InstanceFactory::create(
+            DropletDataFactory::createWithIps(123, [$ip])
+        );
+        $instanceWithMatchingIPWithMultipleIPs = InstanceFactory::create(
+            DropletDataFactory::createWithIps(123, ['127.0.0.3', '127.0.0.2', $ip])
+        );
+
+        return [
+            'empty' => [
+                'collection' => new InstanceCollection(),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'single instance with no IPs' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create([
+                        'id' => 123,
+                    ]),
+                ]),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'multiple instance with no IPs' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create([
+                        'id' => 123,
+                    ]),
+                    InstanceFactory::create([
+                        'id' => 456,
+                    ]),
+                    InstanceFactory::create([
+                        'id' => 789,
+                    ]),
+                ]),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'single instance with non-matching IP' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                    ),
+                ]),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'multiple instance with non-matching IPs' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                    ),
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(456, ['127.0.0.3'])
+                    ),
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(789, ['127.0.0.4'])
+                    ),
+                ]),
+                'ip' => $ip,
+                'expected' => null,
+            ],
+            'single instance with single matching IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithMatchingIPWithSingleIP,
+                ]),
+                'ip' => $ip,
+                'expected' => $instanceWithMatchingIPWithSingleIP,
+            ],
+            'single instance with three IPs, third matching IP' => [
+                'collection' => new InstanceCollection([
+                    $instanceWithMatchingIPWithMultipleIPs,
+                ]),
+                'ip' => $ip,
+                'expected' => $instanceWithMatchingIPWithMultipleIPs,
+            ],
+            'multiple instances with single instance having matching IP' => [
+                'collection' => new InstanceCollection([
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                    ),
+                    $instanceWithMatchingIPWithSingleIP,
+                    InstanceFactory::create(
+                        DropletDataFactory::createWithIps(456, ['127.0.0.3'])
+                    ),
+                ]),
+                'ip' => $ip,
+                'expected' => $instanceWithMatchingIPWithSingleIP,
             ],
         ];
     }
