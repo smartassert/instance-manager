@@ -43,15 +43,6 @@ class InstanceCollection extends ArrayCollection implements \JsonSerializable
         return new InstanceCollection($instances);
     }
 
-    public function filterByFilter(Filter $filter): self
-    {
-        $filteredCollection = $this->filter(function (Instance $instance) use ($filter) {
-            return $instance->isMatchedBy($filter);
-        });
-
-        return new InstanceCollection(array_values($filteredCollection->toArray()));
-    }
-
     /**
      * @return array<mixed>
      */
