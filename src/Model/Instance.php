@@ -14,11 +14,6 @@ class Instance implements \JsonSerializable
     public const DROPLET_STATUS_ARCHIVE = 'archive';
     public const DROPLET_STATUS_UNKNOWN = 'unknown';
 
-    /**
-     * @var array<int|string, mixed>
-     */
-    private array $state = [];
-
     public function __construct(private Droplet $droplet)
     {
     }
@@ -57,24 +52,10 @@ class Instance implements \JsonSerializable
      */
     public function getState(): array
     {
-        return array_merge(
-            $this->state,
-            [
-                'ips' => $this->getIps(),
-                'created_at' => $this->getCreatedAt(),
-            ]
-        );
-    }
-
-    /**
-     * @param array<int|string, mixed> $state
-     */
-    public function withAdditionalState(array $state): self
-    {
-        $new = clone $this;
-        $new->state = $state;
-
-        return $new;
+        return [
+            'ips' => $this->getIps(),
+            'created_at' => $this->getCreatedAt(),
+        ];
     }
 
     public function getUrl(): ?string

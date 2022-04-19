@@ -115,7 +115,7 @@ class InstanceTest extends TestCase
     public function jsonSerializeDataProvider(): array
     {
         return [
-            'id-only' => [
+            'id only' => [
                 'instance' => InstanceFactory::create([
                     'id' => 123,
                     'created_at' => '2020-01-02T01:02:03.000Z'
@@ -125,6 +125,19 @@ class InstanceTest extends TestCase
                     'state' => [
                         'ips' => [],
                         'created_at' => '2020-01-02T01:02:03.000Z'
+                    ],
+                ],
+            ],
+            'id, no IP addresses' => [
+                'instance' => InstanceFactory::create([
+                    'id' => 789,
+                    'created_at' => '2020-01-02T07:08:09.000Z'
+                ]),
+                'expected' => [
+                    'id' => 789,
+                    'state' => [
+                        'ips' => [],
+                        'created_at' => '2020-01-02T07:08:09.000Z'
                     ],
                 ],
             ],
@@ -149,53 +162,6 @@ class InstanceTest extends TestCase
                             '10.0.0.1',
                         ],
                         'created_at' => '2020-01-02T04:05:06.000Z'
-                    ],
-                ],
-            ],
-            'id, no IP addresses, additional custom state' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 789,
-                    'created_at' => '2020-01-02T07:08:09.000Z'
-                ])->withAdditionalState([
-                    'key1' => 'value1',
-                    'key2' => 'value2',
-                ]),
-                'expected' => [
-                    'id' => 789,
-                    'state' => [
-                        'key1' => 'value1',
-                        'key2' => 'value2',
-                        'ips' => [],
-                        'created_at' => '2020-01-02T07:08:09.000Z'
-                    ],
-                ],
-            ],
-            'id, IP addresses, additional custom state' => [
-                'instance' => InstanceFactory::create(array_merge(
-                    DropletDataFactory::createWithIps(
-                        321,
-                        [
-                            '127.0.0.2',
-                            '10.0.0.2',
-                        ]
-                    ),
-                    [
-                        'created_at' => '2020-01-02T03:02:01.000Z'
-                    ]
-                ))->withAdditionalState([
-                    'key1' => 'value1',
-                    'key2' => 'value2',
-                ]),
-                'expected' => [
-                    'id' => 321,
-                    'state' => [
-                        'key1' => 'value1',
-                        'key2' => 'value2',
-                        'ips' => [
-                            '127.0.0.2',
-                            '10.0.0.2',
-                        ],
-                        'created_at' => '2020-01-02T03:02:01.000Z'
                     ],
                 ],
             ],
