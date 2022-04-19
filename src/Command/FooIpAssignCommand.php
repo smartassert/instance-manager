@@ -107,12 +107,12 @@ class FooIpAssignCommand extends Command
                     $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
                 );
             } catch (ActionTimeoutException) {
-                $output->write($this->createAssignmentTimeoutOutput('creation', $ip, null, $target));
+                $output->write($this->createAssignmentTimeoutOutput('create', $ip, null, $target));
 
                 return self::EXIT_CODE_CREATION_TIMED_OUT;
             }
 
-            $output->write($this->createAssignmentSuccessOutput('created', $ip, null, $target));
+            $output->write($this->createAssignmentSuccessOutput('create', $ip, null, $target));
 
             return Command::SUCCESS;
         }
@@ -121,7 +121,7 @@ class FooIpAssignCommand extends Command
         $source = $assignedIp->getInstance()->getId();
 
         if ($instance->hasIp($ip)) {
-            $output->write($this->createAssignmentSuccessOutput('already-assigned', $ip, $target, $target));
+            $output->write($this->createAssignmentSuccessOutput('assign', $ip, $target, $target));
 
             return Command::SUCCESS;
         }
@@ -142,11 +142,11 @@ class FooIpAssignCommand extends Command
                 $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
             );
 
-            $output->write($this->createAssignmentSuccessOutput('re-assigned', $ip, $source, $target));
+            $output->write($this->createAssignmentSuccessOutput('assign', $ip, $source, $target));
 
             return Command::SUCCESS;
         } catch (ActionTimeoutException) {
-            $output->write($this->createAssignmentTimeoutOutput('assignment', $ip, $source, $target));
+            $output->write($this->createAssignmentTimeoutOutput('assign', $ip, $source, $target));
 
             return self::EXIT_CODE_ASSIGNMENT_TIMED_OUT;
         }

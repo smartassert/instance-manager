@@ -198,7 +198,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                     'status' => 'success',
                     'ip' => '127.0.0.100',
                     'target-instance' => 123,
-                    'outcome' => 'created',
+                    'outcome' => 'create',
                     'source-instance' => null,
                 ]),
             ],
@@ -255,7 +255,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                 'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_CREATION_TIMED_OUT,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
-                    'error-code' => 'creation-timed-out',
+                    'error-code' => 'create-timed-out',
                     'ip' => '127.0.0.100',
                     'source-instance' => null,
                     'target-instance' => 456,
@@ -299,7 +299,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                 'expectedExitCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'success',
-                    'outcome' => 'already-assigned',
+                    'outcome' => 'assign',
                     'ip' => '127.0.0.200',
                     'source-instance' => 123,
                     'target-instance' => 123,
@@ -370,7 +370,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                 'expectedExitCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'success',
-                    'outcome' => 're-assigned',
+                    'outcome' => 'assign',
                     'ip' => '127.0.0.200',
                     'source-instance' => 123,
                     'target-instance' => 456,
@@ -454,7 +454,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                 'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_ASSIGNMENT_TIMED_OUT,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
-                    'error-code' => 'assignment-timed-out',
+                    'error-code' => 'assign-timed-out',
                     'ip' => '127.0.0.200',
                     'source-instance' => 123,
                     'target-instance' => 456,
