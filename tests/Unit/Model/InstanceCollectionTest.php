@@ -111,10 +111,7 @@ class InstanceCollectionTest extends TestCase
                         [
                             'created_at' => '2020-01-02T03:02:01.000Z',
                         ]
-                    ))->withAdditionalState([
-                        'key1' => 'value1',
-                        'key2' => 'value2',
-                    ]),
+                    )),
                 ]),
                 'expected' => [
                     [
@@ -137,8 +134,6 @@ class InstanceCollectionTest extends TestCase
                     [
                         'id' => 321,
                         'state' => [
-                            'key1' => 'value1',
-                            'key2' => 'value2',
                             'ips' => [
                                 '127.0.0.2',
                                 '10.0.0.2',
