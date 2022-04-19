@@ -6,12 +6,6 @@ namespace App\Command;
 
 use App\Model\Filter;
 use App\Model\FilterInterface;
-use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
-use App\Services\FilterFactory;
-use App\Services\InstanceCollectionHydrator;
-use App\Services\InstanceRepository;
-use App\Services\ServiceConfiguration;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -25,23 +19,6 @@ class InstanceListCommand extends AbstractInstanceListCommand
     public const NAME = 'app:instance:list';
     public const OPTION_INCLUDE = 'include';
     public const OPTION_EXCLUDE = 'exclude';
-
-    public function __construct(
-        InstanceRepository $instanceRepository,
-        InstanceCollectionHydrator $instanceCollectionHydrator,
-        CommandConfigurator $configurator,
-        CommandInputReader $inputReader,
-        ServiceConfiguration $serviceConfiguration,
-        private FilterFactory $filterFactory,
-    ) {
-        parent::__construct(
-            $instanceRepository,
-            $instanceCollectionHydrator,
-            $configurator,
-            $inputReader,
-            $serviceConfiguration
-        );
-    }
 
     protected function configure(): void
     {

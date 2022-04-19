@@ -9,6 +9,7 @@ use App\Model\InstanceCollection;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
+use App\Services\FilterFactory;
 use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
@@ -29,6 +30,7 @@ abstract class AbstractInstanceListCommand extends Command
         private CommandConfigurator $configurator,
         private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
+        protected FilterFactory $filterFactory,
     ) {
         parent::__construct();
     }
