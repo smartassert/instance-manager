@@ -107,15 +107,7 @@ class FooIpAssignCommand extends Command
                     $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
                 );
             } catch (ActionTimeoutException) {
-                $output->write($this->outputFactory->createErrorOutput(
-                    'creation-timed-out',
-                    [
-                        'ip' => $ip,
-                        'source-instance' => null,
-                        'target-instance' => $target,
-                        'timeout-in-seconds' => $this->assigmentTimeoutInSeconds,
-                    ]
-                ));
+                $output->write($this->createAssignmentTimeoutOutput('creation', $ip, null, $target));
 
                 return self::EXIT_CODE_CREATION_TIMED_OUT;
             }
@@ -154,15 +146,7 @@ class FooIpAssignCommand extends Command
 
             return Command::SUCCESS;
         } catch (ActionTimeoutException) {
-            $output->write($this->outputFactory->createErrorOutput(
-                'assignment-timed-out',
-                [
-                    'ip' => $ip,
-                    'source-instance' => $source,
-                    'target-instance' => $target,
-                    'timeout-in-seconds' => $this->assigmentTimeoutInSeconds,
-                ]
-            ));
+            $output->write($this->createAssignmentTimeoutOutput('assignment', $ip, $source, $target));
 
             return self::EXIT_CODE_ASSIGNMENT_TIMED_OUT;
         }
@@ -176,5 +160,18 @@ class FooIpAssignCommand extends Command
             'source-instance' => $source,
             'target-instance' => $target,
         ]);
+    }
+
+    private function createAssignmentTimeoutOutput(string $action, string $ip, ?int $source, int $target): string
+    {
+        return $this->outputFactory->createErrorOutput(
+            $action . '-timed-out',
+            [
+                'ip' => $ip,
+                'source-instance' => $source,
+                'target-instance' => $target,
+                'timeout-in-seconds' => $this->assigmentTimeoutInSeconds,
+            ]
+        );
     }
 }
