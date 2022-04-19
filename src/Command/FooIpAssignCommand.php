@@ -32,10 +32,9 @@ class FooIpAssignCommand extends Command
     public const NAME = 'foo:ip:assign';
 
     public const EXIT_CODE_NO_CURRENT_INSTANCE = 3;
-    public const EXIT_CODE_ASSIGNMENT_TIMED_OUT = 5;
+    public const EXIT_CODE_ACTION_TIMED_OUT = 5;
     public const EXIT_CODE_EMPTY_SERVICE_ID = 6;
     public const EXIT_CODE_MISSING_IMAGE_ID = 7;
-    public const EXIT_CODE_CREATION_TIMED_OUT = 8;
 
     private const MICROSECONDS_PER_SECOND = 1000000;
 
@@ -113,7 +112,7 @@ class FooIpAssignCommand extends Command
             } catch (ActionTimeoutException) {
                 $output->write($this->createAssignmentTimeoutOutput('create', $ip, null, $target));
 
-                return self::EXIT_CODE_CREATION_TIMED_OUT;
+                return self::EXIT_CODE_ACTION_TIMED_OUT;
             }
         }
 
@@ -148,7 +147,7 @@ class FooIpAssignCommand extends Command
         } catch (ActionTimeoutException) {
             $output->write($this->createAssignmentTimeoutOutput('assign', $ip, $source, $target));
 
-            return self::EXIT_CODE_ASSIGNMENT_TIMED_OUT;
+            return self::EXIT_CODE_ACTION_TIMED_OUT;
         }
     }
 

@@ -252,7 +252,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                         ]),
                     ],
                 ],
-                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_CREATION_TIMED_OUT,
+                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_ACTION_TIMED_OUT,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'create-timed-out',
@@ -451,7 +451,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                         ]),
                     ],
                 ],
-                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_ASSIGNMENT_TIMED_OUT,
+                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_ACTION_TIMED_OUT,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'assign-timed-out',
