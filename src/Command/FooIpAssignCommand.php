@@ -35,6 +35,7 @@ class FooIpAssignCommand extends Command
     public const EXIT_CODE_ASSIGNMENT_TIMED_OUT = 5;
     public const EXIT_CODE_EMPTY_SERVICE_ID = 6;
     public const EXIT_CODE_MISSING_IMAGE_ID = 7;
+    public const EXIT_CODE_CREATION_TIMED_OUT = 8;
 
     private const MICROSECONDS_PER_SECOND = 1000000;
 
@@ -89,22 +90,35 @@ class FooIpAssignCommand extends Command
 
         $assignedIp = $this->floatingIpRepository->find($serviceId);
         if (null === $assignedIp) {
-            // create
             $assignedIp = $this->floatingIpManager->create($instance);
             $ip = $assignedIp->getIp();
 
-            $this->actionRunner->run(
-                new ActionHandler(
-                    function (mixed $actionResult) use ($ip) {
-                        return $actionResult instanceof Instance && $actionResult->hasIp($ip);
-                    },
-                    function () use ($instance) {
-                        return $this->instanceRepository->find($instance->getId());
-                    },
-                ),
-                $this->assigmentTimeoutInSeconds * self::MICROSECONDS_PER_SECOND,
-                $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
-            );
+            try {
+                $this->actionRunner->run(
+                    new ActionHandler(
+                        function (mixed $actionResult) use ($ip) {
+                            return $actionResult instanceof Instance && $actionResult->hasIp($ip);
+                        },
+                        function () use ($instance) {
+                            return $this->instanceRepository->find($instance->getId());
+                        },
+                    ),
+                    $this->assigmentTimeoutInSeconds * self::MICROSECONDS_PER_SECOND,
+                    $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
+                );
+            } catch (ActionTimeoutException) {
+                $output->write($this->outputFactory->createErrorOutput(
+                    'creation-timed-out',
+                    [
+                        'ip' => $ip,
+                        'source-instance' => null,
+                        'target-instance' => $targetInstanceId,
+                        'timeout-in-seconds' => $this->assigmentTimeoutInSeconds,
+                    ]
+                ));
+
+                return self::EXIT_CODE_CREATION_TIMED_OUT;
+            }
 
             $output->write($this->outputFactory->createSuccessOutput([
                 'outcome' => 'created',

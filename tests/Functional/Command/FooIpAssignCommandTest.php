@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Command;
 
 use App\Command\FooIpAssignCommand;
-use App\Command\IpAssignCommand;
 use App\Command\Option;
 use App\Exception\ActionTimeoutException;
 use App\Services\ActionRunner;
@@ -69,7 +68,7 @@ class FooIpAssignCommandTest extends KernelTestCase
         return [
             'empty service id' => [
                 'input' => [],
-                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_SERVICE_ID,
+                'expectedReturnCode' => FooIpAssignCommand::EXIT_CODE_EMPTY_SERVICE_ID,
             ],
         ];
     }
@@ -86,7 +85,7 @@ class FooIpAssignCommandTest extends KernelTestCase
 
         $commandReturnCode = $this->command->run($input, $output);
 
-        self::assertSame(IpAssignCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
+        self::assertSame(FooIpAssignCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
     }
 
     /**
@@ -142,7 +141,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                         ])
                     ],
                 ],
-                'expectedExitCode' => IpAssignCommand::EXIT_CODE_NO_CURRENT_INSTANCE,
+                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_NO_CURRENT_INSTANCE,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'no-instance',
@@ -201,6 +200,66 @@ class FooIpAssignCommandTest extends KernelTestCase
                     'target-instance' => 123,
                     'outcome' => 'created',
                     'source-instance' => null,
+                ]),
+            ],
+            'creation timed out' => [
+                'setup' => function (FooIpAssignCommand $command) {
+                    $actionRunner = \Mockery::mock(ActionRunner::class);
+                    $actionRunner
+                        ->shouldReceive('run')
+                        ->andThrow(new ActionTimeoutException())
+                    ;
+
+                    ObjectReflector::setProperty(
+                        $command,
+                        FooIpAssignCommand::class,
+                        'actionRunner',
+                        $actionRunner
+                    );
+                },
+                'httpResponseDataCollection' => [
+                    'droplets response' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplets' => [
+                                [
+                                    'id' => 456,
+                                ],
+                            ],
+                        ]),
+                    ],
+                    'ip find response' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'floating_ips' => [],
+                        ]),
+                    ],
+                    'ip create response' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'floating_ip' => [
+                                'ip' => '127.0.0.100',
+                            ],
+                        ]),
+                    ],
+                ],
+                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_CREATION_TIMED_OUT,
+                'expectedOutput' => (string) json_encode([
+                    'status' => 'error',
+                    'error-code' => 'creation-timed-out',
+                    'ip' => '127.0.0.100',
+                    'source-instance' => null,
+                    'target-instance' => 456,
+                    'timeout-in-seconds' => 30,
                 ]),
             ],
             'ip already assigned to current instance' => [
@@ -392,7 +451,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                         ]),
                     ],
                 ],
-                'expectedExitCode' => IpAssignCommand::EXIT_CODE_ASSIGNMENT_TIMED_OUT,
+                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_ASSIGNMENT_TIMED_OUT,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'assignment-timed-out',
