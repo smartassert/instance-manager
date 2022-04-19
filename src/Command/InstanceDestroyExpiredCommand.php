@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Model\Filter;
-use App\Model\FilterInterface;
 use App\Model\Instance;
+use App\Model\InstanceCollection;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\FloatingIpRepository;
@@ -66,11 +65,7 @@ class InstanceDestroyExpiredCommand extends Command
             return Command::SUCCESS;
         }
 
-        $expiredInstances = $instances->filterByFilter(new Filter(
-            'created_at',
-            $assignedIp->getInstance()->getCreatedAt(),
-            FilterInterface::MATCH_TYPE_LESS_THAN
-        ));
+        $expiredInstances = $this->filterToInstancesOlderThan($instances, $assignedIp->getInstance()->getCreatedAt());
 
         if (count($expiredInstances) > 0) {
             $output->write((string) json_encode($expiredInstances));
@@ -82,5 +77,19 @@ class InstanceDestroyExpiredCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    private function filterToInstancesOlderThan(InstanceCollection $collection, string $threshold): InstanceCollection
+    {
+        $filteredInstances = [];
+
+        /** @var Instance $instance */
+        foreach ($collection as $instance) {
+            if ($instance->getCreatedAt() < $threshold) {
+                $filteredInstances[] = $instance;
+            }
+        }
+
+        return new InstanceCollection($filteredInstances);
     }
 }
