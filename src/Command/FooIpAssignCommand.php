@@ -6,6 +6,7 @@ namespace App\Command;
 
 use App\ActionHandler\ActionHandler;
 use App\Exception\ActionTimeoutException;
+use App\Model\AssignedIp;
 use App\Model\Instance;
 use App\Services\ActionRepository;
 use App\Services\ActionRunner;
@@ -88,67 +89,56 @@ class FooIpAssignCommand extends Command
         $target = $instance->getId();
 
         $assignedIp = $this->floatingIpRepository->find($serviceId);
-        if (null === $assignedIp) {
-            $assignedIp = $this->floatingIpManager->create($instance);
-            $ip = $assignedIp->getIp();
 
-            try {
-                $this->actionRunner->run(
-                    new ActionHandler(
-                        function (mixed $actionResult) use ($ip) {
-                            return $actionResult instanceof Instance && $actionResult->hasIp($ip);
-                        },
-                        function () use ($instance) {
-                            return $this->instanceRepository->find($instance->getId());
-                        },
-                    ),
-                    $this->assigmentTimeoutInSeconds * self::MICROSECONDS_PER_SECOND,
-                    $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
-                );
-
-                $output->write($this->createAssignmentSuccessOutput('create', $ip, null, $target));
-
-                return Command::SUCCESS;
-            } catch (ActionTimeoutException) {
-                $output->write($this->createAssignmentTimeoutOutput('create', $ip, null, $target));
-
-                return self::EXIT_CODE_ACTION_TIMED_OUT;
-            }
-        }
-
-        $ip = $assignedIp->getIp();
-        $source = $assignedIp->getInstance()->getId();
-
-        if ($instance->hasIp($ip)) {
-            $output->write($this->createAssignmentSuccessOutput('assign', $ip, $target, $target));
+        if ($assignedIp instanceof AssignedIp && $instance->hasIp($assignedIp->getIp())) {
+            $output->write($this->createAssignmentSuccessOutput('assign', $assignedIp->getIp(), $target, $target));
 
             return Command::SUCCESS;
         }
 
-        $actionEntity = $this->floatingIpManager->reAssign($instance, $ip);
+        if ($assignedIp instanceof AssignedIp) {
+            $action = 'assign';
+            $ip = $assignedIp->getIp();
+            $source = $assignedIp->getInstance()->getId();
+            $actionEntity = $this->floatingIpManager->reAssign($instance, $ip);
+            $actionHandler = new ActionHandler(
+                function (mixed $actionResult): bool {
+                    return $actionResult instanceof ActionEntity && 'completed' === $actionResult->status;
+                },
+                function () use ($actionEntity) {
+                    return $this->actionRepository->update($actionEntity);
+                },
+            );
+        } else {
+            $action = 'create';
+            $assignedIp = $this->floatingIpManager->create($instance);
+            $ip = $assignedIp->getIp();
+            $source = null;
+            $actionHandler = new ActionHandler(
+                function (mixed $actionResult) use ($ip) {
+                    return $actionResult instanceof Instance && $actionResult->hasIp($ip);
+                },
+                function () use ($instance) {
+                    return $this->instanceRepository->find($instance->getId());
+                },
+            );
+        }
 
         try {
             $this->actionRunner->run(
-                new ActionHandler(
-                    function (mixed $actionResult): bool {
-                        return $actionResult instanceof ActionEntity && 'completed' === $actionResult->status;
-                    },
-                    function () use ($actionEntity) {
-                        return $this->actionRepository->update($actionEntity);
-                    },
-                ),
+                $actionHandler,
                 $this->assigmentTimeoutInSeconds * self::MICROSECONDS_PER_SECOND,
                 $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
             );
-
-            $output->write($this->createAssignmentSuccessOutput('assign', $ip, $source, $target));
-
-            return Command::SUCCESS;
         } catch (ActionTimeoutException) {
-            $output->write($this->createAssignmentTimeoutOutput('assign', $ip, $source, $target));
+            $output->write($this->createAssignmentTimeoutOutput($action, $ip, $source, $target));
 
             return self::EXIT_CODE_ACTION_TIMED_OUT;
         }
+
+        $output->write($this->createAssignmentSuccessOutput($action, $ip, $source, $target));
+
+        return Command::SUCCESS;
     }
 
     private function createAssignmentSuccessOutput(string $outcome, string $ip, ?int $source, int $target): string
