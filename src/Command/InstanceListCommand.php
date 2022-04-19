@@ -7,7 +7,6 @@ namespace App\Command;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\FilterFactory;
-use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
@@ -26,11 +25,9 @@ class InstanceListCommand extends Command
 
     public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
     public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
-    public const EXIT_CODE_SERVICE_STATE_URL_MISSING = 7;
 
     public function __construct(
         private InstanceRepository $instanceRepository,
-        private InstanceCollectionHydrator $instanceCollectionHydrator,
         private CommandConfigurator $configurator,
         private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
@@ -63,16 +60,9 @@ class InstanceListCommand extends Command
             return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
         }
 
-        if ('' === $serviceConfiguration->getStateUrl()) {
-            $output->write('No state_url for service "' . $serviceId . '"');
-
-            return self::EXIT_CODE_SERVICE_STATE_URL_MISSING;
-        }
-
-        $instances = $this->instanceRepository->findAll($serviceConfiguration->getServiceId());
-        $instances = $this->instanceCollectionHydrator->hydrate($serviceConfiguration, $instances);
-
-        $output->write((string) json_encode($instances));
+        $output->write((string) json_encode(
+            $this->instanceRepository->findAll($serviceConfiguration->getServiceId())
+        ));
 
         return Command::SUCCESS;
     }
