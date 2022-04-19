@@ -28,7 +28,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class InstanceListCommand extends Command
 {
     public const NAME = 'app:instance:list';
-    public const OPTION_INCLUDE = 'include';
     public const OPTION_EXCLUDE = 'exclude';
 
     public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
@@ -51,12 +50,6 @@ class InstanceListCommand extends Command
         $this->configurator->addServiceIdOption($this);
 
         $this
-            ->addOption(
-                self::OPTION_INCLUDE,
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Include instances matching this filter'
-            )
             ->addOption(
                 self::OPTION_EXCLUDE,
                 null,
@@ -111,14 +104,6 @@ class InstanceListCommand extends Command
             $filters = array_merge(
                 $filters,
                 $this->filterFactory->createFromString($negativeFilterString, FilterInterface::MATCH_TYPE_NEGATIVE)
-            );
-        }
-
-        $positiveFilterString = $input->getOption(self::OPTION_INCLUDE);
-        if (is_string($positiveFilterString)) {
-            $filters = array_merge(
-                $filters,
-                $this->filterFactory->createFromString($positiveFilterString, FilterInterface::MATCH_TYPE_POSITIVE)
             );
         }
 
