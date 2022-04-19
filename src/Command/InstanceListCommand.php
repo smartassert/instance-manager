@@ -4,88 +4,66 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Model\Filter;
-use App\Model\FilterInterface;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\FilterFactory;
-use App\Services\InstanceCollectionHydrator;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
+use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: InstanceListCommand::NAME,
     description: 'List instances',
 )]
-class InstanceListCommand extends AbstractInstanceListCommand
+class InstanceListCommand extends Command
 {
     public const NAME = 'app:instance:list';
-    public const OPTION_INCLUDE = 'include';
-    public const OPTION_EXCLUDE = 'exclude';
+
+    public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
+    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
 
     public function __construct(
-        InstanceRepository $instanceRepository,
-        InstanceCollectionHydrator $instanceCollectionHydrator,
-        CommandConfigurator $configurator,
-        CommandInputReader $inputReader,
-        ServiceConfiguration $serviceConfiguration,
-        private FilterFactory $filterFactory,
+        private InstanceRepository $instanceRepository,
+        private CommandConfigurator $configurator,
+        private CommandInputReader $inputReader,
+        private ServiceConfiguration $serviceConfiguration,
+        protected FilterFactory $filterFactory,
     ) {
-        parent::__construct(
-            $instanceRepository,
-            $instanceCollectionHydrator,
-            $configurator,
-            $inputReader,
-            $serviceConfiguration
-        );
+        parent::__construct();
     }
 
     protected function configure(): void
     {
-        parent::configure();
-
-        $this
-            ->addOption(
-                self::OPTION_INCLUDE,
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Include instances matching this filter'
-            )
-            ->addOption(
-                self::OPTION_EXCLUDE,
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Exclude instances matching this filter'
-            )
-        ;
+        $this->configurator->addServiceIdOption($this);
     }
 
     /**
-     * @return Filter[]
+     * @throws ExceptionInterface
      */
-    protected function createFilterCollection(InputInterface $input): array
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $filters = [];
+        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
+        if ('' === $serviceId) {
+            $output->write('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
-        $negativeFilterString = $input->getOption(self::OPTION_EXCLUDE);
-        if (is_string($negativeFilterString)) {
-            $filters = array_merge(
-                $filters,
-                $this->filterFactory->createFromString($negativeFilterString, FilterInterface::MATCH_TYPE_NEGATIVE)
-            );
+            return self::EXIT_CODE_EMPTY_SERVICE_ID;
         }
 
-        $positiveFilterString = $input->getOption(self::OPTION_INCLUDE);
-        if (is_string($positiveFilterString)) {
-            $filters = array_merge(
-                $filters,
-                $this->filterFactory->createFromString($positiveFilterString, FilterInterface::MATCH_TYPE_POSITIVE)
-            );
+        $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
+        if (null === $serviceConfiguration) {
+            $output->write('No configuration for service "' . $serviceId . '"');
+
+            return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
         }
 
-        return $filters;
+        $output->write((string) json_encode(
+            $this->instanceRepository->findAll($serviceConfiguration->getServiceId())
+        ));
+
+        return Command::SUCCESS;
     }
 }

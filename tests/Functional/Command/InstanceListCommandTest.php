@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Command;
 
-use App\Command\AbstractInstanceListCommand;
 use App\Command\InstanceListCommand;
 use App\Command\Option;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
@@ -160,7 +159,7 @@ class InstanceListCommandTest extends KernelTestCase
                 'input' => [],
                 'serviceConfiguration' => null,
                 'httpResponseDataCollection' => [],
-                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_SERVICE_ID,
+                'expectedReturnCode' => InstanceListCommand::EXIT_CODE_EMPTY_SERVICE_ID,
                 'expectedOutput' => '"service-id" option empty',
             ],
             'service configuration missing' => [
@@ -169,21 +168,8 @@ class InstanceListCommandTest extends KernelTestCase
                 ],
                 'serviceConfiguration' => null,
                 'httpResponseDataCollection' => [],
-                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_SERVICE_CONFIGURATION_MISSING,
+                'expectedReturnCode' => InstanceListCommand::EXIT_CODE_SERVICE_CONFIGURATION_MISSING,
                 'expectedOutput' => 'No configuration for service "service_id"',
-            ],
-            'service configuration state_url missing' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
-                ],
-                'serviceConfiguration' => new ServiceConfigurationModel(
-                    $serviceId,
-                    'https://{{ host }}/health-check',
-                    ''
-                ),
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_SERVICE_STATE_URL_MISSING,
-                'expectedOutput' => 'No state_url for service "service_id"',
             ],
         ];
     }
@@ -250,32 +236,10 @@ class InstanceListCommandTest extends KernelTestCase
             ],
         ];
 
-        $stateResponseData = [
-            'instance-1' => [
-                'version' => '0.1',
-                'idle' => false,
-            ],
-            'instance-2' => [
-                'version' => '0.2',
-                'idle' => false,
-            ],
-            'instance-3' => [
-                'version' => '0.3',
-                'idle' => true,
-            ],
-            'instance-4' => [
-                'version' => '0.4',
-            ],
-        ];
-
         $collectionHttpResponses = [
             'droplets' => HttpResponseDataFactory::createJsonResponseData([
                 'droplets' => array_values($dropletData),
             ]),
-            '1-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-1']),
-            '2-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-2']),
-            '3-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-3']),
-            '4-state' => HttpResponseDataFactory::createJsonResponseData($stateResponseData['instance-4']),
         ];
 
         $expectedOutputData = [
@@ -288,7 +252,6 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                         'created_at' => '2020-01-02T01:01:01.000Z',
                     ],
-                    $stateResponseData['instance-1'],
                 ),
             ],
             'instance-2' => [
@@ -300,7 +263,6 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                         'created_at' => '2020-01-02T02:02:02.000Z',
                     ],
-                    $stateResponseData['instance-2']
                 ),
             ],
             'instance-3' => [
@@ -312,7 +274,6 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                         'created_at' => '2020-01-02T03:03:03.000Z',
                     ],
-                    $stateResponseData['instance-3']
                 ),
             ],
             'instance-4' => [
@@ -324,7 +285,6 @@ class InstanceListCommandTest extends KernelTestCase
                         ],
                         'created_at' => '2020-01-02T04:04:04.000Z',
                     ],
-                    $stateResponseData['instance-4']
                 ),
             ],
         ];
@@ -366,14 +326,13 @@ class InstanceListCommandTest extends KernelTestCase
                             ],
                         ]),
                     ],
-                    '1-state' => $collectionHttpResponses['1-state'],
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
                     $expectedOutputData['instance-1'],
                 ]),
             ],
-            'many instances, no filter' => [
+            'many instances' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',
                 ],
@@ -385,61 +344,6 @@ class InstanceListCommandTest extends KernelTestCase
                     $expectedOutputData['instance-2'],
                     $expectedOutputData['instance-3'],
                     $expectedOutputData['instance-4'],
-                ]),
-            ],
-            'many instances, filter to idle=true' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--' . InstanceListCommand::OPTION_INCLUDE => (string) json_encode([
-                        [
-                            'idle' => true,
-                        ],
-                    ]),
-                ],
-                'serviceConfiguration' => $serviceConfiguration,
-                'httpResponseDataCollection' => $collectionHttpResponses,
-                'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-3'],
-                ]),
-            ],
-            'many instances, filter to not contains IP matching IP' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--' . InstanceListCommand::OPTION_EXCLUDE => (string) json_encode([
-                        [
-                            'ips' => $matchingIp,
-                        ],
-                    ]),
-                ],
-                'serviceConfiguration' => $serviceConfiguration,
-                'httpResponseDataCollection' => $collectionHttpResponses,
-                'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-2'],
-                    $expectedOutputData['instance-3'],
-                    $expectedOutputData['instance-4'],
-                ]),
-            ],
-            'many instances, filter to idle=true, not contains IP matching IP' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
-                    '--' . InstanceListCommand::OPTION_INCLUDE => (string) json_encode([
-                        [
-                            'idle' => true,
-                        ],
-                    ]),
-                    '--' . InstanceListCommand::OPTION_EXCLUDE => (string) json_encode([
-                        [
-                            'ips' => $matchingIp,
-                        ],
-                    ]),
-                ],
-                'serviceConfiguration' => $serviceConfiguration,
-                'httpResponseDataCollection' => $collectionHttpResponses,
-                'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => (string) json_encode([
-                    $expectedOutputData['instance-3'],
                 ]),
             ],
         ];
@@ -485,7 +389,7 @@ class InstanceListCommandTest extends KernelTestCase
 
         ObjectReflector::setProperty(
             $this->command,
-            AbstractInstanceListCommand::class,
+            InstanceListCommand::class,
             'serviceConfiguration',
             $serviceConfiguration
         );
