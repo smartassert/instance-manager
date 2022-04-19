@@ -6,7 +6,6 @@ namespace App\Command;
 
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
-use App\Services\FilterFactory;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
@@ -31,7 +30,6 @@ class InstanceListCommand extends Command
         private CommandConfigurator $configurator,
         private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
-        protected FilterFactory $filterFactory,
     ) {
         parent::__construct();
     }
