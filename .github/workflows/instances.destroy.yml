@@ -1,10 +1,10 @@
-name: Destroy Inactive Instances
+name: Destroy Expired Instances
 
 on:
   workflow_dispatch:
     inputs:
       service_id:
-        description: Service for which to create an instance
+        description: Service for which to destroy expired instances
         required: true
 
 jobs:
@@ -26,37 +26,5 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
 
-      - name: Get floating IP
-        id: ip
-        run: |
-          echo "::set-output name=value::$(
-            php bin/console app:ip:get \
-            --service-id="${{ github.event.inputs.service_id }}"
-          )"
-
-      - name: Get list of instances to destroy
-        id: instances
-        if: ${{ steps.ip.outputs.value != '' }}
-        run: |
-          INSTANCES=$(
-            php bin/console app:instance:list-destroyable \
-            --excluded-ip="${{ steps.ip.outputs.value }}" \
-            --service-id="${{ github.event.inputs.service_id }}"
-          )
-
-          echo "::set-output name=value::$INSTANCES"
-
-      - name: Destroy matching instances
-        if: ${{ steps.instances.outputs.value != '' }}
-        env:
-          INSTANCES: ${{ steps.instances.outputs.value }}
-        run: |
-          INSTANCE_IDS=$(echo "$INSTANCES" | jq '.instances[] | .id' | sed ':a;N;$!ba;s/\n/ /g')
-
-          echo "$INSTANCES" | jq "."
-          echo "IDs: $INSTANCE_IDS"
-
-          for ID in $INSTANCE_IDS; do
-            echo "Destroying $ID ... "
-            php bin/console app:instance:destroy --id="$ID"
-          done
+      - name: Destroy expired instances
+        run: php bin/console app:instance:destroy-expired --service-id="${{ github.event.inputs.service_id }}"
