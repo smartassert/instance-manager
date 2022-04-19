@@ -131,39 +131,6 @@ class Instance implements \JsonSerializable
         return $this->droplet->createdAt;
     }
 
-    public function isMatchedBy(Filter $filter): bool
-    {
-        $state = $this->getState();
-        $field = $filter->getField();
-        $matchType = $filter->getMatchType();
-
-        if (array_key_exists($field, $state)) {
-            $stateValue = $state[$field];
-
-            if (FilterInterface::MATCH_TYPE_POSITIVE === $matchType && is_scalar($stateValue)) {
-                return $stateValue === $filter->getValue();
-            }
-
-            if (FilterInterface::MATCH_TYPE_NEGATIVE === $matchType && is_scalar($stateValue)) {
-                return $stateValue !== $filter->getValue();
-            }
-
-            if (FilterInterface::MATCH_TYPE_POSITIVE === $matchType && is_array($stateValue)) {
-                return in_array($filter->getValue(), $stateValue);
-            }
-
-            if (FilterInterface::MATCH_TYPE_NEGATIVE === $matchType && is_array($stateValue)) {
-                return !in_array($filter->getValue(), $stateValue);
-            }
-
-            if (FilterInterface::MATCH_TYPE_LESS_THAN === $matchType && is_scalar($stateValue)) {
-                return $stateValue < $filter->getValue();
-            }
-        }
-
-        return FilterInterface::MATCH_TYPE_POSITIVE !== $matchType;
-    }
-
     /**
      * @return array<mixed>
      */
