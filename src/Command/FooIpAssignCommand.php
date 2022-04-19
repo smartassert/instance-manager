@@ -106,15 +106,15 @@ class FooIpAssignCommand extends Command
                     $this->assigmentTimeoutInSeconds * self::MICROSECONDS_PER_SECOND,
                     $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
                 );
+
+                $output->write($this->createAssignmentSuccessOutput('create', $ip, null, $target));
+
+                return Command::SUCCESS;
             } catch (ActionTimeoutException) {
                 $output->write($this->createAssignmentTimeoutOutput('create', $ip, null, $target));
 
                 return self::EXIT_CODE_CREATION_TIMED_OUT;
             }
-
-            $output->write($this->createAssignmentSuccessOutput('create', $ip, null, $target));
-
-            return Command::SUCCESS;
         }
 
         $ip = $assignedIp->getIp();
