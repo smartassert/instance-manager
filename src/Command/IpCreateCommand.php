@@ -109,7 +109,12 @@ class IpCreateCommand extends Command
             $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
         );
 
-        $output->write($this->outputFactory->createSuccessOutput(['ip' => $ip, 'target-instance' => $instanceId]));
+        $output->write($this->outputFactory->createSuccessOutput([
+            'outcome' => 'created',
+            'ip' => $ip,
+            'source-instance' => null,
+            'target-instance' => $instanceId
+        ]));
 
         return Command::SUCCESS;
     }

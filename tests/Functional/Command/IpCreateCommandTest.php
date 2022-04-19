@@ -231,6 +231,8 @@ class IpCreateCommandTest extends KernelTestCase
                     'status' => 'success',
                     'ip' => '127.0.0.100',
                     'target-instance' => 123,
+                    'outcome' => 'created',
+                    'source-instance' => null,
                 ]),
             ],
         ];
