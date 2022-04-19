@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Command;
 
-use App\Command\AbstractInstanceListCommand;
 use App\Command\InstanceListCommand;
 use App\Command\Option;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
@@ -160,7 +159,7 @@ class InstanceListCommandTest extends KernelTestCase
                 'input' => [],
                 'serviceConfiguration' => null,
                 'httpResponseDataCollection' => [],
-                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_EMPTY_SERVICE_ID,
+                'expectedReturnCode' => InstanceListCommand::EXIT_CODE_EMPTY_SERVICE_ID,
                 'expectedOutput' => '"service-id" option empty',
             ],
             'service configuration missing' => [
@@ -169,7 +168,7 @@ class InstanceListCommandTest extends KernelTestCase
                 ],
                 'serviceConfiguration' => null,
                 'httpResponseDataCollection' => [],
-                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_SERVICE_CONFIGURATION_MISSING,
+                'expectedReturnCode' => InstanceListCommand::EXIT_CODE_SERVICE_CONFIGURATION_MISSING,
                 'expectedOutput' => 'No configuration for service "service_id"',
             ],
             'service configuration state_url missing' => [
@@ -182,7 +181,7 @@ class InstanceListCommandTest extends KernelTestCase
                     ''
                 ),
                 'httpResponseDataCollection' => [],
-                'expectedReturnCode' => AbstractInstanceListCommand::EXIT_CODE_SERVICE_STATE_URL_MISSING,
+                'expectedReturnCode' => InstanceListCommand::EXIT_CODE_SERVICE_STATE_URL_MISSING,
                 'expectedOutput' => 'No state_url for service "service_id"',
             ],
         ];
@@ -485,7 +484,7 @@ class InstanceListCommandTest extends KernelTestCase
 
         ObjectReflector::setProperty(
             $this->command,
-            AbstractInstanceListCommand::class,
+            InstanceListCommand::class,
             'serviceConfiguration',
             $serviceConfiguration
         );
