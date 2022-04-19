@@ -4,10 +4,6 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Model\Filter;
-use App\Model\FilterInterface;
-use App\Model\InstanceCollection;
-use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
 use App\Services\FilterFactory;
@@ -18,7 +14,6 @@ use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
@@ -28,8 +23,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 class InstanceListCommand extends Command
 {
     public const NAME = 'app:instance:list';
-    public const OPTION_INCLUDE = 'include';
-    public const OPTION_EXCLUDE = 'exclude';
 
     public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
     public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
@@ -49,21 +42,6 @@ class InstanceListCommand extends Command
     protected function configure(): void
     {
         $this->configurator->addServiceIdOption($this);
-
-        $this
-            ->addOption(
-                self::OPTION_INCLUDE,
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Include instances matching this filter'
-            )
-            ->addOption(
-                self::OPTION_EXCLUDE,
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Exclude instances matching this filter'
-            )
-        ;
     }
 
     /**
@@ -91,54 +69,11 @@ class InstanceListCommand extends Command
             return self::EXIT_CODE_SERVICE_STATE_URL_MISSING;
         }
 
-        $output->write((string) json_encode($this->findInstances(
-            $serviceConfiguration,
-            $this->createFilterCollection($input)
-        )));
-
-        return Command::SUCCESS;
-    }
-
-    /**
-     * @return Filter[]
-     */
-    private function createFilterCollection(InputInterface $input): array
-    {
-        $filters = [];
-
-        $negativeFilterString = $input->getOption(self::OPTION_EXCLUDE);
-        if (is_string($negativeFilterString)) {
-            $filters = array_merge(
-                $filters,
-                $this->filterFactory->createFromString($negativeFilterString, FilterInterface::MATCH_TYPE_NEGATIVE)
-            );
-        }
-
-        $positiveFilterString = $input->getOption(self::OPTION_INCLUDE);
-        if (is_string($positiveFilterString)) {
-            $filters = array_merge(
-                $filters,
-                $this->filterFactory->createFromString($positiveFilterString, FilterInterface::MATCH_TYPE_POSITIVE)
-            );
-        }
-
-        return $filters;
-    }
-
-    /**
-     * @param Filter[] $filters
-     *
-     * @throws ExceptionInterface
-     */
-    private function findInstances(ServiceConfigurationModel $serviceConfiguration, array $filters): InstanceCollection
-    {
         $instances = $this->instanceRepository->findAll($serviceConfiguration->getServiceId());
         $instances = $this->instanceCollectionHydrator->hydrate($serviceConfiguration, $instances);
 
-        foreach ($filters as $filter) {
-            $instances = $instances->filterByFilter($filter);
-        }
+        $output->write((string) json_encode($instances));
 
-        return $instances;
+        return Command::SUCCESS;
     }
 }
