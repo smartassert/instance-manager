@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Model\Filter;
+use App\Model\FilterInterface;
 use App\Model\InstanceCollection;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandConfigurator;
@@ -60,11 +61,6 @@ abstract class AbstractInstanceListCommand extends Command
     }
 
     /**
-     * @return Filter[]
-     */
-    abstract protected function createFilterCollection(InputInterface $input): array;
-
-    /**
      * @throws ExceptionInterface
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -95,6 +91,32 @@ abstract class AbstractInstanceListCommand extends Command
         )));
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * @return Filter[]
+     */
+    private function createFilterCollection(InputInterface $input): array
+    {
+        $filters = [];
+
+        $negativeFilterString = $input->getOption(self::OPTION_EXCLUDE);
+        if (is_string($negativeFilterString)) {
+            $filters = array_merge(
+                $filters,
+                $this->filterFactory->createFromString($negativeFilterString, FilterInterface::MATCH_TYPE_NEGATIVE)
+            );
+        }
+
+        $positiveFilterString = $input->getOption(self::OPTION_INCLUDE);
+        if (is_string($positiveFilterString)) {
+            $filters = array_merge(
+                $filters,
+                $this->filterFactory->createFromString($positiveFilterString, FilterInterface::MATCH_TYPE_POSITIVE)
+            );
+        }
+
+        return $filters;
     }
 
     /**
