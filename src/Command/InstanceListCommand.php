@@ -8,7 +8,6 @@ use App\Model\Filter;
 use App\Model\FilterInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 
 #[AsCommand(
     name: InstanceListCommand::NAME,
@@ -17,28 +16,6 @@ use Symfony\Component\Console\Input\InputOption;
 class InstanceListCommand extends AbstractInstanceListCommand
 {
     public const NAME = 'app:instance:list';
-    public const OPTION_INCLUDE = 'include';
-    public const OPTION_EXCLUDE = 'exclude';
-
-    protected function configure(): void
-    {
-        parent::configure();
-
-        $this
-            ->addOption(
-                self::OPTION_INCLUDE,
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Include instances matching this filter'
-            )
-            ->addOption(
-                self::OPTION_EXCLUDE,
-                null,
-                InputOption::VALUE_OPTIONAL,
-                'Exclude instances matching this filter'
-            )
-        ;
-    }
 
     /**
      * @return Filter[]

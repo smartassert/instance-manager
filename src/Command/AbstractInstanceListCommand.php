@@ -16,10 +16,14 @@ use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class AbstractInstanceListCommand extends Command
 {
+    public const OPTION_INCLUDE = 'include';
+    public const OPTION_EXCLUDE = 'exclude';
+
     public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
     public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
     public const EXIT_CODE_SERVICE_STATE_URL_MISSING = 7;
@@ -38,6 +42,21 @@ abstract class AbstractInstanceListCommand extends Command
     protected function configure(): void
     {
         $this->configurator->addServiceIdOption($this);
+
+        $this
+            ->addOption(
+                self::OPTION_INCLUDE,
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Include instances matching this filter'
+            )
+            ->addOption(
+                self::OPTION_EXCLUDE,
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Exclude instances matching this filter'
+            )
+        ;
     }
 
     /**
