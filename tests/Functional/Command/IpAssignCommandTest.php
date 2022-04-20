@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Command;
 use App\Command\IpAssignCommand;
 use App\Command\Option;
 use App\Exception\ActionTimeoutException;
+use App\Exception\ImageIdMissingException;
 use App\Exception\ServiceIdMissingException;
 use App\Services\ActionRunner;
 use App\Services\ServiceConfiguration;
@@ -85,17 +86,18 @@ class IpAssignCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
 
-        $serviceConfiguration = (new MockServiceConfiguration())
-            ->withExistsCall(self::SERVICE_ID, true)
-            ->withGetImageIdCall(self::SERVICE_ID, null)
-            ->getMock()
-        ;
+        $exception = new ImageIdMissingException(self::SERVICE_ID);
 
-        $this->setCommandServiceConfiguration($serviceConfiguration);
+        $this->setCommandServiceConfiguration(
+            (new MockServiceConfiguration())
+                ->withExistsCall(self::SERVICE_ID, true)
+                ->withGetImageIdCall(self::SERVICE_ID, $exception)
+                ->getMock()
+        );
 
-        $commandReturnCode = $this->command->run($input, $output);
+        $this->expectExceptionObject($exception);
 
-        self::assertSame(IpAssignCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
+        $this->command->run($input, $output);
     }
 
     /**

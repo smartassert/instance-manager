@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ImageIdMissingException;
 use App\Exception\ServiceIdMissingException;
 use App\Services\CommandConfigurator;
 use App\Services\ImageRepository;
@@ -22,8 +23,6 @@ class ImageExistsCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:image:exists';
 
-    public const EXIT_CODE_MISSING_IMAGE_ID = 4;
-
     public function __construct(
         CommandConfigurator $configurator,
         private ServiceConfiguration $serviceConfiguration,
@@ -35,16 +34,12 @@ class ImageExistsCommand extends AbstractServiceCommand
     /**
      * @throws ExceptionInterface
      * @throws ServiceIdMissingException
+     * @throws ImageIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
-        if (null === $imageId) {
-            $output->writeln('image_id missing');
-
-            return self::EXIT_CODE_MISSING_IMAGE_ID;
-        }
 
         return $this->imageRepository->exists($imageId) ? Command::SUCCESS : Command::FAILURE;
     }

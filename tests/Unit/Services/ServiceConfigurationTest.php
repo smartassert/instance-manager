@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Services;
 
+use App\Exception\ImageIdMissingException;
 use App\Model\EnvironmentVariable;
 use App\Services\ConfigurationFactory;
 use App\Services\ServiceConfiguration;
@@ -179,6 +180,8 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
+        $this->expectExceptionObject(new ImageIdMissingException($serviceId));
+
         $this->doTestFileDoesNotExist(
             $serviceId,
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME),
@@ -195,6 +198,8 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
+        $this->expectExceptionObject(new ImageIdMissingException($serviceId));
+
         $this->doTestFileIsNotReadable(
             $serviceId,
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME),
@@ -208,13 +213,52 @@ class ServiceConfigurationTest extends TestCase
     }
 
     /**
-     * @dataProvider getImageIdSuccessDataProvider
+     * @dataProvider getImageIdValueNotPresentDataProvider
      */
-    public function testGetImageIdSuccess(
-        string $serviceId,
-        string $fileContent,
-        ?int $expectedImageId
-    ): void {
+    public function testGetImageIdValueNotPresent(string $serviceId, string $fileContent): void
+    {
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME),
+            $fileContent
+        );
+
+        $this->expectExceptionObject(new ImageIdMissingException($serviceId));
+
+        $this->serviceConfiguration->getImageId($serviceId);
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getImageIdValueNotPresentDataProvider(): array
+    {
+        return [
+            'empty' => [
+                'serviceId' => 'service1',
+                'fileContent' => '{}',
+            ],
+            'content not a json array' => [
+                'serviceId' => 'service1',
+                'fileContent' => 'true',
+            ],
+            'single invalid item, key not a string' => [
+                'serviceId' => 'service2',
+                'fileContent' => '{0:"value1"}',
+            ],
+            'single invalid item, value not a string' => [
+                'serviceId' => 'service2',
+                'fileContent' => '{"key1":true}',
+            ],
+        ];
+    }
+
+    public function testGetImageIdSuccess(): void
+    {
+        $serviceId = 'service2';
+        $fileContent = '{"image_id":"123456"}';
+        $expectedImageId = 123456;
+
         $this->createFileReadSuccessMocks(
             'App\Services',
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME),
@@ -222,40 +266,6 @@ class ServiceConfigurationTest extends TestCase
         );
 
         self::assertEquals($expectedImageId, $this->serviceConfiguration->getImageId($serviceId));
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getImageIdSuccessDataProvider(): array
-    {
-        return [
-            'empty' => [
-                'serviceId' => 'service1',
-                'fileContent' => '{}',
-                'expectedImageId' => null,
-            ],
-            'content not a json array' => [
-                'serviceId' => 'service1',
-                'fileContent' => 'true',
-                'expectedImageId' => null,
-            ],
-            'single invalid item, key not a string' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{0:"value1"}',
-                'expectedImageId' => null,
-            ],
-            'single invalid item, value not a string' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{"key1":true}',
-                'expectedImageId' => null,
-            ],
-            'valid' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{"image_id":"123456"}',
-                'expectedImageId' => 123456,
-            ],
-        ];
     }
 
     public function testGetHealthCheckUrlFileDoesNotExist(): void

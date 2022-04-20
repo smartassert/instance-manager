@@ -6,12 +6,14 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
 use App\Command\Option;
+use App\Exception\ImageIdMissingException;
 use App\Exception\ServiceIdMissingException;
 use App\Model\EnvironmentVariable;
 use App\Services\BootScriptFactory;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
 use App\Services\ServiceEnvironmentVariableRepository;
+use App\Tests\Mock\MockServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
@@ -77,7 +79,12 @@ class InstanceCreateCommandTest extends KernelTestCase
         self::expectExceptionMessage($expectedExceptionMessage);
         self::expectExceptionCode($expectedExceptionCode);
 
-        $this->mockServiceConfiguration(self::IMAGE_ID);
+        $this->setCommandServiceConfiguration(
+            (new MockServiceConfiguration())
+                ->withExistsCall(self::SERVICE_ID, true)
+                ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
+                ->getMock()
+        );
 
         $this->command->run(
             new ArrayInput([
@@ -112,11 +119,18 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
 
-        $this->mockServiceConfiguration(null);
+        $exception = new ImageIdMissingException(self::SERVICE_ID);
 
-        $commandReturnCode = $this->command->run($input, $output);
+        $this->setCommandServiceConfiguration(
+            (new MockServiceConfiguration())
+                ->withExistsCall(self::SERVICE_ID, true)
+                ->withGetImageIdCall(self::SERVICE_ID, $exception)
+                ->getMock()
+        );
 
-        self::assertSame(InstanceCreateCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
+        $this->expectExceptionObject($exception);
+
+        $this->command->run($input, $output);
     }
 
     public function testRunFirstBootScriptInvalid(): void
@@ -136,7 +150,13 @@ class InstanceCreateCommandTest extends KernelTestCase
             ]))
         );
 
-        $this->mockServiceConfiguration(self::IMAGE_ID);
+        $this->setCommandServiceConfiguration(
+            (new MockServiceConfiguration())
+                ->withExistsCall(self::SERVICE_ID, true)
+                ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
+                ->getMock()
+        );
+
         $this->mockEnvironmentVariableRepository(new ArrayCollection());
 
         $invalidFirstBootScript = '#invalid first boot script';
@@ -190,7 +210,12 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
 
-        $this->mockServiceConfiguration(self::IMAGE_ID);
+        $this->setCommandServiceConfiguration(
+            (new MockServiceConfiguration())
+                ->withExistsCall(self::SERVICE_ID, true)
+                ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
+                ->getMock()
+        );
         $this->mockEnvironmentVariableRepository(new ArrayCollection());
 
         $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
@@ -288,7 +313,12 @@ class InstanceCreateCommandTest extends KernelTestCase
             $instanceRepository
         );
 
-        $this->mockServiceConfiguration(self::IMAGE_ID);
+        $this->setCommandServiceConfiguration(
+            (new MockServiceConfiguration())
+                ->withExistsCall(self::SERVICE_ID, true)
+                ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
+                ->getMock()
+        );
         $this->mockEnvironmentVariableRepository($environmentVariableList, $secretsJsonOption);
 
         $commandReturnCode = $this->command->run($input, new NullOutput());
@@ -349,23 +379,6 @@ class InstanceCreateCommandTest extends KernelTestCase
         }
     }
 
-    private function mockServiceConfiguration(?string $imageId): void
-    {
-        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
-        $serviceConfiguration
-            ->shouldReceive('getImageId')
-            ->with(self::SERVICE_ID)
-            ->andReturn($imageId)
-        ;
-
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            $serviceConfiguration
-        );
-    }
-
     /**
      * @param null|Collection<int, EnvironmentVariable> $environmentVariables
      */
@@ -388,6 +401,16 @@ class InstanceCreateCommandTest extends KernelTestCase
             $this->command::class,
             'environmentVariableRepository',
             $environmentVariableRepository
+        );
+    }
+
+    private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
+    {
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            $serviceConfiguration
         );
     }
 }

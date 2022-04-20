@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exception\ImageIdMissingException;
 use App\Model\Configuration;
 use App\Model\EnvironmentVariable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -62,15 +63,22 @@ class ServiceConfiguration
         return $this->environmentVariables;
     }
 
-    public function getImageId(string $serviceId): ?int
+    /**
+     * @throws ImageIdMissingException
+     */
+    public function getImageId(string $serviceId): int
     {
         if (!$this->imageConfiguration instanceof Configuration) {
             $this->imageConfiguration = $this->createConfiguration($serviceId, self::IMAGE_FILENAME);
         }
 
-        return $this->imageConfiguration instanceof Configuration
-            ? $this->imageConfiguration->getInt('image_id')
-            : null;
+        $imageId = $this->imageConfiguration?->getInt('image_id');
+
+        if (!is_int($imageId)) {
+            throw new ImageIdMissingException($serviceId);
+        }
+
+        return $imageId;
     }
 
     public function getDomain(string $serviceId): string

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ImageIdMissingException;
 use App\Exception\ServiceIdMissingException;
 use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
@@ -29,7 +30,6 @@ class InstanceCreateCommand extends AbstractServiceCommand
     public const OPTION_FIRST_BOOT_SCRIPT = 'first-boot-script';
     public const OPTION_SECRETS_JSON = 'secrets-json';
 
-    public const EXIT_CODE_MISSING_IMAGE_ID = 4;
     public const EXIT_CODE_FIRST_BOOT_SCRIPT_INVALID = 5;
 
     public function __construct(
@@ -67,16 +67,12 @@ class InstanceCreateCommand extends AbstractServiceCommand
     /**
      * @throws ExceptionInterface
      * @throws ServiceIdMissingException
+     * @throws ImageIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
-        if (null === $imageId) {
-            $output->writeln('image_id missing');
-
-            return self::EXIT_CODE_MISSING_IMAGE_ID;
-        }
 
         $instance = $this->instanceRepository->findCurrent($serviceId, $imageId);
         if (null === $instance) {

@@ -26,9 +26,9 @@ class MockServiceConfiguration
         return $this->withCall($serviceId, 'exists', $exists);
     }
 
-    public function withGetImageIdCall(string $serviceId, ?string $imageId): self
+    public function withGetImageIdCall(string $serviceId, null|string|\Exception $outcome): self
     {
-        return $this->withCall($serviceId, 'getImageId', $imageId);
+        return $this->withCall($serviceId, 'getImageId', $outcome);
     }
 
     public function withGetHealthCheckUrlCall(string $serviceId, ?string $healthCheckUrl): self
@@ -41,17 +41,22 @@ class MockServiceConfiguration
         return $this->withCall($serviceId, 'getStateUrl', $stateUrl);
     }
 
-    private function withCall(string $serviceId, string $method, mixed $return): self
+    private function withCall(string $serviceId, string $method, mixed $outcome): self
     {
         if (false === $this->mock instanceof MockInterface) {
             return $this;
         }
 
-        $this->mock
+        $expectation = $this->mock
             ->shouldReceive($method)
             ->with($serviceId)
-            ->andReturn($return)
         ;
+
+        if ($outcome instanceof \Exception) {
+            $expectation->andThrow($outcome);
+        } else {
+            $expectation->andReturn($outcome);
+        }
 
         return $this;
     }
