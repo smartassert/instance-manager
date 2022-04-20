@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ServiceIdMissingException;
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
 use App\Services\CommandInstanceRepository;
+use App\Services\CommandServiceIdExtractor;
 use App\Services\InstanceClient;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
@@ -35,12 +36,12 @@ class InstanceIsReadyCommand extends Command
     public const DEFAULT_RETRY_DELAY = 30;
 
     public function __construct(
+        private CommandConfigurator $configurator,
+        private CommandServiceIdExtractor $serviceIdExtractor,
         private InstanceClient $instanceClient,
         private CommandActionRunner $commandActionRunner,
-        private CommandConfigurator $configurator,
         private CommandInstanceRepository $commandInstanceRepository,
         private ServiceConfiguration $serviceConfiguration,
-        private CommandInputReader $inputReader,
     ) {
         parent::__construct();
     }
@@ -59,16 +60,11 @@ class InstanceIsReadyCommand extends Command
 
     /**
      * @throws ExceptionInterface
+     * @throws ServiceIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->write('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_SERVICE_ID;
-        }
-
+        $serviceId = $this->serviceIdExtractor->extract($input);
         $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
         if (null === $serviceConfiguration) {
             $output->write('No configuration for service "' . $serviceId . '"');
