@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Model\Configuration;
 use App\Model\EnvironmentVariable;
-use App\Model\FooConfiguration;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
@@ -20,9 +20,9 @@ class ServiceConfiguration
      * @var Collection<int, EnvironmentVariable>
      */
     private Collection $environmentVariables;
-    private ?FooConfiguration $fooServiceConfiguration = null;
-    private ?FooConfiguration $imageConfiguration = null;
-    private ?FooConfiguration $domainConfiguration = null;
+    private ?Configuration $fooServiceConfiguration = null;
+    private ?Configuration $imageConfiguration = null;
+    private ?Configuration $domainConfiguration = null;
 
     public function __construct(
         private readonly FooConfigurationFactory $fooConfigurationFactory,
@@ -46,7 +46,7 @@ class ServiceConfiguration
 
             $foo = $this->getFooConfiguration($serviceId, self::ENV_VAR_FILENAME);
 
-            if ($foo instanceof FooConfiguration) {
+            if ($foo instanceof Configuration) {
                 $data = $foo->getAll();
 
                 foreach ($data as $key => $value) {
@@ -64,22 +64,22 @@ class ServiceConfiguration
 
     public function getImageId(string $serviceId): ?int
     {
-        if (!$this->imageConfiguration instanceof FooConfiguration) {
+        if (!$this->imageConfiguration instanceof Configuration) {
             $this->imageConfiguration = $this->getFooConfiguration($serviceId, self::IMAGE_FILENAME);
         }
 
-        return $this->imageConfiguration instanceof FooConfiguration
+        return $this->imageConfiguration instanceof Configuration
             ? $this->imageConfiguration->getInt('image_id')
             : null;
     }
 
     public function getDomain(string $serviceId): string
     {
-        if (!$this->domainConfiguration instanceof FooConfiguration) {
+        if (!$this->domainConfiguration instanceof Configuration) {
             $this->domainConfiguration = $this->getFooConfiguration($serviceId, self::DOMAIN_FILENAME);
         }
 
-        $domain = $this->domainConfiguration instanceof FooConfiguration
+        $domain = $this->domainConfiguration instanceof Configuration
             ? $this->domainConfiguration->getString('domain')
             : null;
 
@@ -117,12 +117,12 @@ class ServiceConfiguration
         return is_int($writeResult);
     }
 
-    private function getServiceConfiguration(string $serviceId): ?FooConfiguration
+    private function getServiceConfiguration(string $serviceId): ?Configuration
     {
-        if (!$this->fooServiceConfiguration instanceof FooConfiguration) {
+        if (!$this->fooServiceConfiguration instanceof Configuration) {
             $serviceConfiguration = $this->getFooConfiguration($serviceId, self::CONFIGURATION_FILENAME);
 
-            if ($serviceConfiguration instanceof FooConfiguration) {
+            if ($serviceConfiguration instanceof Configuration) {
                 $this->fooServiceConfiguration = $serviceConfiguration;
             }
         }
@@ -130,7 +130,7 @@ class ServiceConfiguration
         return $this->fooServiceConfiguration;
     }
 
-    private function getFooConfiguration(string $serviceId, string $filename): ?FooConfiguration
+    private function getFooConfiguration(string $serviceId, string $filename): ?Configuration
     {
         return $this->fooConfigurationFactory->foo($this->getFilePath($serviceId, $filename));
     }

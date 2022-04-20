@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Model\FooConfiguration;
+use App\Model\Configuration;
 
 class FooConfigurationFactory
 {
@@ -13,7 +13,7 @@ class FooConfigurationFactory
         return file_exists($path) && is_readable($path);
     }
 
-    public function foo(string $path): ?FooConfiguration
+    public function foo(string $path): ?Configuration
     {
         if (false === (file_exists($path) && is_readable($path))) {
             return null;
@@ -23,6 +23,6 @@ class FooConfigurationFactory
         $data = json_decode($content, true);
         $data = is_array($data) ? $data : [];
 
-        return new FooConfiguration($data);
+        return new Configuration($data);
     }
 }
