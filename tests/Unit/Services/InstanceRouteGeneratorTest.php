@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Services;
 
 use App\Model\Instance;
-use App\Model\ServiceConfiguration;
 use App\Services\InstanceRouteGenerator;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\InstanceFactory;
@@ -25,14 +24,11 @@ class InstanceRouteGeneratorTest extends TestCase
     /**
      * @dataProvider createHealthCheckUrlDataProvider
      */
-    public function testCreateHealthCheckUrl(
-        ServiceConfiguration $serviceConfiguration,
-        Instance $instance,
-        string $expectedUrl
-    ): void {
+    public function testCreateHealthCheckUrl(string $healthCheckPath, Instance $instance, string $expectedUrl): void
+    {
         self::assertSame(
             $expectedUrl,
-            $this->instanceRouteGenerator->createHealthCheckUrl($serviceConfiguration, $instance)
+            $this->instanceRouteGenerator->createHealthCheckUrl($healthCheckPath, $instance)
         );
     }
 
@@ -43,36 +39,28 @@ class InstanceRouteGeneratorTest extends TestCase
     {
         return [
             'no url, no IP address' => [
-                'serviceConfiguration' => new ServiceConfiguration('service_id', '', ''),
+                'healthCheckPath' => '',
                 'instance' => InstanceFactory::create([
                     'id' => 123,
                 ]),
                 'expectedUrl' => '',
             ],
             'has url, no IP address' => [
-                'serviceConfiguration' => new ServiceConfiguration(
-                    'service_id',
-                    'https://{{ host }}/health-check',
-                    ''
-                ),
+                'healthCheckPath' => 'https://{{ host }}/health-check',
                 'instance' => InstanceFactory::create([
                     'id' => 123,
                 ]),
                 'expectedUrl' => '',
             ],
             'no url, has IP address' => [
-                'serviceConfiguration' => new ServiceConfiguration('service_id', '', ''),
+                'healthCheckPath' => '',
                 'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(123, [
                     '127.0.0.1',
                 ])),
                 'expectedUrl' => '',
             ],
             'has url, has IP address' => [
-                'serviceConfiguration' => new ServiceConfiguration(
-                    'service_id',
-                    'https://{{ host }}/health-check',
-                    ''
-                ),
+                'healthCheckPath' => 'https://{{ host }}/health-check',
                 'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(123, [
                     '127.0.0.1',
                 ])),
@@ -84,15 +72,9 @@ class InstanceRouteGeneratorTest extends TestCase
     /**
      * @dataProvider createStateUrlDataProvider
      */
-    public function testCreateStateUrl(
-        ServiceConfiguration $serviceConfiguration,
-        Instance $instance,
-        string $expectedUrl
-    ): void {
-        self::assertSame(
-            $expectedUrl,
-            $this->instanceRouteGenerator->createStateUrl($serviceConfiguration, $instance)
-        );
+    public function testCreateStateUrl(string $stateUrl, Instance $instance, string $expectedUrl): void
+    {
+        self::assertSame($expectedUrl, $this->instanceRouteGenerator->createStateUrl($stateUrl, $instance));
     }
 
     /**
@@ -102,40 +84,28 @@ class InstanceRouteGeneratorTest extends TestCase
     {
         return [
             'no url, no IP address' => [
-                'serviceConfiguration' => new ServiceConfiguration('service_id', '', ''),
+                'stateUrl' => '',
                 'instance' => InstanceFactory::create([
                     'id' => 123,
                 ]),
                 'expectedUrl' => '',
             ],
             'has url, no IP address' => [
-                'serviceConfiguration' => new ServiceConfiguration(
-                    'service_id',
-                    '',
-                    'https://{{ host }}/state'
-                ),
+                'stateUrl' => 'https://{{ host }}/state',
                 'instance' => InstanceFactory::create([
                     'id' => 123,
                 ]),
                 'expectedUrl' => '',
             ],
             'no url, has IP address' => [
-                'serviceConfiguration' => new ServiceConfiguration(
-                    'service_id',
-                    '',
-                    ''
-                ),
+                'stateUrl' => '',
                 'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(123, [
                     '127.0.0.2',
                 ])),
                 'expectedUrl' => '',
             ],
             'has url, has IP address' => [
-                'serviceConfiguration' => new ServiceConfiguration(
-                    'service_id',
-                    '',
-                    'https://{{ host }}/state'
-                ),
+                'stateUrl' => 'https://{{ host }}/state',
                 'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(123, [
                     '127.0.0.2',
                 ])),

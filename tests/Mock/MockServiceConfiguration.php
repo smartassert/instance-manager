@@ -50,4 +50,34 @@ class MockServiceConfiguration
 
         return $this;
     }
+
+    public function withGetHealthCheckUrlCall(string $serviceId, ?string $healthCheckUrl): self
+    {
+        if (false === $this->mock instanceof MockInterface) {
+            return $this;
+        }
+
+        $this->mock
+            ->shouldReceive('getHealthCheckUrl')
+            ->with($serviceId)
+            ->andReturn($healthCheckUrl)
+        ;
+
+        return $this;
+    }
+
+    public function withGetStateUrlCall(string $serviceId, ?string $stateUrl): self
+    {
+        if (false === $this->mock instanceof MockInterface) {
+            return $this;
+        }
+
+        $this->mock
+            ->shouldReceive('getStateUrl')
+            ->with($serviceId)
+            ->andReturn($stateUrl)
+        ;
+
+        return $this;
+    }
 }

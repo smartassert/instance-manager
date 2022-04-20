@@ -10,10 +10,12 @@ use App\Exception\ServiceIdMissingException;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandInstanceRepository;
 use App\Services\ServiceConfiguration;
+use App\Tests\Mock\MockServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\Psr7\Response;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -54,61 +56,28 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
-    /**
-     * @dataProvider runThrowsExceptionDataProvider
-     *
-     * @param array<mixed>             $httpResponseData
-     * @param class-string<\Throwable> $expectedExceptionClass
-     */
-    public function testRunThrowsException(
-        array $httpResponseData,
-        string $expectedExceptionClass,
-        string $expectedExceptionMessage,
-        int $expectedExceptionCode
-    ): void {
+    public function testRunInvalidApiToken(): void
+    {
         $serviceId = 'service_id';
 
-        $this->mockServiceConfiguration(
-            $serviceId,
-            new ServiceConfigurationModel(
-                $serviceId,
-                'https://{{ host }}/health-check',
-                'https://{{ host }}/state'
-            )
-        );
+        $this->setCommandServiceConfiguration((new MockServiceConfiguration())
+            ->withExistsCall($serviceId, true)
+            ->withGetStateUrlCall($serviceId, 'https://{{ host }}/state')
+            ->getMock());
 
-        $this->mockHandler->append(
-            $this->httpResponseFactory->createFromArray($httpResponseData)
-        );
+        $this->mockHandler->append(new Response(401));
 
-        self::expectException($expectedExceptionClass);
-        self::expectExceptionMessage($expectedExceptionMessage);
-        self::expectExceptionCode($expectedExceptionCode);
+        self::expectException(RuntimeException::class);
+        self::expectExceptionMessage('Unauthorized');
+        self::expectExceptionCode(401);
 
         $this->command->run(
             new ArrayInput([
                 '--' . Option::OPTION_SERVICE_ID => $serviceId,
-                '--id' => '123',
+                '--' . Option::OPTION_ID => '123',
             ]),
             new BufferedOutput()
         );
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function runThrowsExceptionDataProvider(): array
-    {
-        return [
-            'invalid api token' => [
-                'httpResponseData' => [
-                    HttpResponseFactory::KEY_STATUS_CODE => 401,
-                ],
-                'expectedExceptionClass' => RuntimeException::class,
-                'expectedExceptionMessage' => 'Unauthorized',
-                'expectedExceptionCode' => 401,
-            ],
-        ];
     }
 
     /**
@@ -119,15 +88,12 @@ class InstanceIsReadyCommandTest extends KernelTestCase
      */
     public function testRun(
         array $input,
-        ?ServiceConfigurationModel $serviceConfiguration,
+        ServiceConfiguration $serviceConfiguration,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
         string $expectedOutput
     ): void {
-        $serviceId = $input['--service-id'] ?? '';
-        $serviceId = is_string($serviceId) ? $serviceId : '';
-
-        $this->mockServiceConfiguration($serviceId, $serviceConfiguration);
+        $this->setCommandServiceConfiguration($serviceConfiguration);
 
         foreach ($httpResponseDataCollection as $fixture) {
             if (is_array($fixture)) {
@@ -165,13 +131,21 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
         ]);
 
+        $validServiceConfiguration = (new MockServiceConfiguration())
+            ->withExistsCall($serviceId, true)
+            ->withGetStateUrlCall($serviceId, 'https://{{ host }}/state')
+            ->getMock()
+        ;
+
         return [
             'service configuration missing' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => (string) $instanceId,
                 ],
-                'serviceConfiguration' => null,
+                'serviceConfiguration' => (new MockServiceConfiguration())
+                    ->withExistsCall($serviceId, false)
+                    ->getMock(),
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                 ],
@@ -183,11 +157,10 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => (string) $instanceId,
                 ],
-                'serviceConfiguration' => new ServiceConfigurationModel(
-                    $serviceId,
-                    'https://{{ host }}/health-check',
-                    ''
-                ),
+                'serviceConfiguration' => (new MockServiceConfiguration())
+                    ->withExistsCall($serviceId, true)
+                    ->withGetStateUrlCall($serviceId, '')
+                    ->getMock(),
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                 ],
@@ -198,7 +171,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [],
                 'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
                 'expectedOutput' => (string) json_encode([
@@ -211,7 +184,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => 'not-numeric',
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [],
                 'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
                 'expectedOutput' => (string) json_encode([
@@ -224,7 +197,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => (string) $instanceId,
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 404,
@@ -242,7 +215,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => (string) $instanceId,
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([]),
@@ -257,7 +230,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--retry-limit' => 1,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -274,7 +247,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -294,7 +267,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -310,7 +283,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => (string) $instanceId,
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -327,7 +300,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -345,7 +318,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => (string) $instanceId,
                 ],
-                'serviceConfiguration' => $serviceConfiguration,
+                'serviceConfiguration' => $validServiceConfiguration,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -358,17 +331,8 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         ];
     }
 
-    private function mockServiceConfiguration(
-        string $serviceId,
-        ?ServiceConfigurationModel $serviceConfigurationModel
-    ): void {
-        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
-        $serviceConfiguration
-            ->shouldReceive('getServiceConfiguration')
-            ->with($serviceId)
-            ->andReturn($serviceConfigurationModel)
-        ;
-
+    private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
+    {
         ObjectReflector::setProperty(
             $this->command,
             $this->command::class,

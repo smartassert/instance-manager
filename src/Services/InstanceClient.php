@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Model\Instance;
-use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
@@ -25,9 +24,9 @@ class InstanceClient
      *
      * @return array<int|string, mixed>
      */
-    public function getState(ServiceConfigurationModel $serviceConfiguration, Instance $instance): array
+    public function getState(string $stateUrl, Instance $instance): array
     {
-        $url = $this->routeGenerator->createStateUrl($serviceConfiguration, $instance);
+        $url = $this->routeGenerator->createStateUrl($stateUrl, $instance);
         $request = $this->requestFactory->createRequest('GET', $url);
         $response = $this->httpClient->sendRequest($request);
 
@@ -43,9 +42,9 @@ class InstanceClient
     /**
      * @throws ClientExceptionInterface
      */
-    public function getHealth(ServiceConfigurationModel $serviceConfiguration, Instance $instance): ResponseInterface
+    public function getHealth(string $healthCheckUrl, Instance $instance): ResponseInterface
     {
-        $url = $this->routeGenerator->createHealthCheckUrl($serviceConfiguration, $instance);
+        $url = $this->routeGenerator->createHealthCheckUrl($healthCheckUrl, $instance);
         $request = $this->requestFactory->createRequest('GET', $url);
 
         return $this->httpClient->sendRequest($request);
