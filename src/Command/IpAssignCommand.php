@@ -6,12 +6,13 @@ namespace App\Command;
 
 use App\ActionHandler\ActionHandler;
 use App\Exception\ActionTimeoutException;
+use App\Exception\ServiceIdMissingException;
 use App\Model\AssignedIp;
 use App\Model\Instance;
 use App\Services\ActionRepository;
 use App\Services\ActionRunner;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
+use App\Services\CommandServiceIdExtractor;
 use App\Services\FloatingIpManager;
 use App\Services\FloatingIpRepository;
 use App\Services\InstanceRepository;
@@ -41,14 +42,14 @@ class IpAssignCommand extends Command
     private const MICROSECONDS_PER_SECOND = 1000000;
 
     public function __construct(
+        private CommandConfigurator $configurator,
+        private CommandServiceIdExtractor $serviceIdExtractor,
         private InstanceRepository $instanceRepository,
         private FloatingIpManager $floatingIpManager,
         private ActionRepository $actionRepository,
         private FloatingIpRepository $floatingIpRepository,
         private ActionRunner $actionRunner,
         private OutputFactory $outputFactory,
-        private CommandConfigurator $configurator,
-        private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
         private int $assigmentTimeoutInSeconds,
         private int $assignmentRetryInSeconds,
@@ -63,15 +64,11 @@ class IpAssignCommand extends Command
 
     /**
      * @throws ExceptionInterface
+     * @throws ServiceIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_SERVICE_ID;
-        }
+        $serviceId = $this->serviceIdExtractor->extract($input);
 
         if (false === $this->serviceConfiguration->exists($serviceId)) {
             $output->write('No configuration for service "' . $serviceId . '"');

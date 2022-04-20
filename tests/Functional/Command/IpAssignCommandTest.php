@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Command;
 use App\Command\IpAssignCommand;
 use App\Command\Option;
 use App\Exception\ActionTimeoutException;
+use App\Exception\ServiceIdMissingException;
 use App\Services\ActionRunner;
 use App\Services\ServiceConfiguration;
 use App\Tests\Mock\MockServiceConfiguration;
@@ -49,29 +50,11 @@ class IpAssignCommandTest extends KernelTestCase
         $this->httpResponseFactory = $httpResponseFactory;
     }
 
-    /**
-     * @dataProvider runEmptyRequiredValueDataProvider
-     *
-     * @param array<mixed> $input
-     */
-    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    public function testRunWithoutServiceIdThrowsException(): void
     {
-        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+        $this->expectExceptionObject(new ServiceIdMissingException());
 
-        self::assertSame($expectedReturnCode, $commandReturnCode);
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function runEmptyRequiredValueDataProvider(): array
-    {
-        return [
-            'empty service id' => [
-                'input' => [],
-                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_SERVICE_ID,
-            ],
-        ];
+        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     public function testRunServiceConfigurationMissing(): void
