@@ -21,7 +21,7 @@ class ServiceConfiguration
      * @var Collection<int, EnvironmentVariable>
      */
     private Collection $environmentVariables;
-    private ?ServiceConfigurationModel $serviceConfiguration = null;
+    private ?FooConfiguration $fooServiceConfiguration = null;
     private ?FooConfiguration $imageConfiguration = null;
     private ?FooConfiguration $domainConfiguration = null;
 
@@ -87,35 +87,14 @@ class ServiceConfiguration
         return is_string($domain) ? $domain : $this->defaultDomain;
     }
 
-    public function getServiceConfiguration(string $serviceId): ?ServiceConfigurationModel
-    {
-        if (!$this->serviceConfiguration instanceof ServiceConfigurationModel) {
-            $foo = $this->getFooConfiguration($serviceId, self::CONFIGURATION_FILENAME);
-
-            if ($foo instanceof FooConfiguration) {
-                $this->serviceConfiguration = ServiceConfigurationModel::create($serviceId, $foo->getAll());
-            }
-        }
-
-        return $this->serviceConfiguration;
-    }
-
     public function getHealthCheckUrl(string $serviceId): ?string
     {
-        $serviceConfiguration = $this->getServiceConfiguration($serviceId);
-
-        return $serviceConfiguration instanceof ServiceConfigurationModel
-            ? $serviceConfiguration->getHealthCheckUrl()
-            : null;
+        return $this->getServiceConfiguration($serviceId)?->getString('health_check_url');
     }
 
     public function getStateUrl(string $serviceId): ?string
     {
-        $serviceConfiguration = $this->getServiceConfiguration($serviceId);
-
-        return $serviceConfiguration instanceof ServiceConfigurationModel
-            ? $serviceConfiguration->getStateUrl()
-            : null;
+        return $this->getServiceConfiguration($serviceId)?->getString('state_url');
     }
 
     public function setServiceConfiguration(ServiceConfigurationModel $serviceConfiguration): bool
@@ -140,6 +119,19 @@ class ServiceConfiguration
         );
 
         return is_int($writeResult);
+    }
+
+    private function getServiceConfiguration(string $serviceId): ?FooConfiguration
+    {
+        if (!$this->fooServiceConfiguration instanceof FooConfiguration) {
+            $serviceConfiguration = $this->getFooConfiguration($serviceId, self::CONFIGURATION_FILENAME);
+
+            if ($serviceConfiguration instanceof FooConfiguration) {
+                $this->fooServiceConfiguration = $serviceConfiguration;
+            }
+        }
+
+        return $this->fooServiceConfiguration;
     }
 
     private function getFooConfiguration(string $serviceId, string $filename): ?FooConfiguration
