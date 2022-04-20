@@ -36,6 +36,7 @@ class IpAssignCommand extends Command
     public const EXIT_CODE_ACTION_TIMED_OUT = 5;
     public const EXIT_CODE_EMPTY_SERVICE_ID = 6;
     public const EXIT_CODE_MISSING_IMAGE_ID = 7;
+    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 8;
 
     private const MICROSECONDS_PER_SECOND = 1000000;
 
@@ -70,6 +71,12 @@ class IpAssignCommand extends Command
             $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
 
             return self::EXIT_CODE_EMPTY_SERVICE_ID;
+        }
+
+        if (false === $this->serviceConfiguration->exists($serviceId)) {
+            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
+
+            return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
         }
 
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
