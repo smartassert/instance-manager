@@ -6,6 +6,8 @@ namespace App\Command;
 
 use App\ActionHandler\ActionHandler;
 use App\Exception\ActionTimeoutException;
+use App\Model\AssignedIp;
+use App\Model\Instance;
 use App\Services\ActionRepository;
 use App\Services\ActionRunner;
 use App\Services\CommandConfigurator;
@@ -24,17 +26,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
     name: IpAssignCommand::NAME,
-    description: 'Assign current floating IP to current instance',
+    description: 'Assign a floating IP to current instance',
 )]
 class IpAssignCommand extends Command
 {
     public const NAME = 'app:ip:assign';
 
     public const EXIT_CODE_NO_CURRENT_INSTANCE = 3;
-    public const EXIT_CODE_NO_IP = 4;
-    public const EXIT_CODE_ASSIGNMENT_TIMED_OUT = 5;
+    public const EXIT_CODE_ACTION_TIMED_OUT = 5;
     public const EXIT_CODE_EMPTY_SERVICE_ID = 6;
     public const EXIT_CODE_MISSING_IMAGE_ID = 7;
+    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 8;
 
     private const MICROSECONDS_PER_SECOND = 1000000;
 
@@ -71,6 +73,12 @@ class IpAssignCommand extends Command
             return self::EXIT_CODE_EMPTY_SERVICE_ID;
         }
 
+        if (false === $this->serviceConfiguration->exists($serviceId)) {
+            $output->write('No configuration for service "' . $serviceId . '"');
+
+            return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
+        }
+
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
         if (null === $imageId) {
             $output->writeln('image_id missing');
@@ -85,64 +93,76 @@ class IpAssignCommand extends Command
             return self::EXIT_CODE_NO_CURRENT_INSTANCE;
         }
 
+        $target = $instance->getId();
+
         $assignedIp = $this->floatingIpRepository->find($serviceId);
-        if (null === $assignedIp) {
-            $output->write($this->outputFactory->createErrorOutput('no-ip'));
 
-            return self::EXIT_CODE_NO_IP;
-        }
-
-        $ip = $assignedIp->getIp();
-        $sourceInstanceId = $assignedIp->getInstance()->getId();
-        $targetInstanceId = $instance->getId();
-
-        if ($instance->hasIp($ip)) {
-            $output->write($this->outputFactory->createSuccessOutput([
-                'outcome' => 'already-assigned',
-                'ip' => $ip,
-                'source-instance' => $targetInstanceId,
-                'target-instance' => $targetInstanceId,
-            ]));
+        if ($assignedIp instanceof AssignedIp && $instance->hasIp($assignedIp->getIp())) {
+            $output->write($this->createAssignmentSuccessOutput('assign', $assignedIp->getIp(), $target, $target));
 
             return Command::SUCCESS;
         }
 
-        $actionEntity = $this->floatingIpManager->reAssign($instance, $ip);
+        if ($assignedIp instanceof AssignedIp) {
+            $action = 'assign';
+            $ip = $assignedIp->getIp();
+            $source = $assignedIp->getInstance()->getId();
+            $actionEntity = $this->floatingIpManager->reAssign($instance, $ip);
+            $actionHandler = new ActionHandler(
+                function (mixed $actionResult): bool {
+                    return $actionResult instanceof ActionEntity && 'completed' === $actionResult->status;
+                },
+                function () use ($actionEntity) {
+                    return $this->actionRepository->update($actionEntity);
+                },
+            );
+        } else {
+            $action = 'create';
+            $assignedIp = $this->floatingIpManager->create($instance);
+            $ip = $assignedIp->getIp();
+            $source = null;
+            $actionHandler = new ActionHandler(
+                function (mixed $actionResult) use ($ip) {
+                    return $actionResult instanceof Instance && $actionResult->hasIp($ip);
+                },
+                function () use ($instance) {
+                    return $this->instanceRepository->find($instance->getId());
+                },
+            );
+        }
 
         try {
             $this->actionRunner->run(
-                new ActionHandler(
-                    function (mixed $actionResult): bool {
-                        return $actionResult instanceof ActionEntity && 'completed' === $actionResult->status;
-                    },
-                    function () use ($actionEntity) {
-                        return $this->actionRepository->update($actionEntity);
-                    },
-                ),
+                $actionHandler,
                 $this->assigmentTimeoutInSeconds * self::MICROSECONDS_PER_SECOND,
                 $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
             );
-
-            $output->write($this->outputFactory->createSuccessOutput([
-                'outcome' => 're-assigned',
-                'ip' => $ip,
-                'source-instance' => $sourceInstanceId,
-                'target-instance' => $targetInstanceId,
-            ]));
-
-            return Command::SUCCESS;
         } catch (ActionTimeoutException) {
             $output->write($this->outputFactory->createErrorOutput(
-                'assignment-timed-out',
+                $action . '-timed-out',
                 [
                     'ip' => $ip,
-                    'source-instance' => $sourceInstanceId,
-                    'target-instance' => $targetInstanceId,
+                    'source-instance' => $source,
+                    'target-instance' => $target,
                     'timeout-in-seconds' => $this->assigmentTimeoutInSeconds,
                 ]
             ));
 
-            return self::EXIT_CODE_ASSIGNMENT_TIMED_OUT;
+            return self::EXIT_CODE_ACTION_TIMED_OUT;
         }
+
+        $output->write($this->createAssignmentSuccessOutput($action, $ip, $source, $target));
+
+        return Command::SUCCESS;
+    }
+
+    private function createAssignmentSuccessOutput(string $outcome, string $ip, ?int $source, int $target): string
+    {
+        return $this->outputFactory->createSuccessOutput([
+            'outcome' => $outcome,
+            'ip' => $ip,
+            'source-instance' => $source,
+            'target-instance' => $target,
+        ]);
     }
 }

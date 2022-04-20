@@ -26,27 +26,5 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist --optimize-autoloader
 
-      - name: Verify service id is valid
-        run: |
-          php bin/console app:service-configuration:exists \
-          --service-id="${{ github.event.inputs.service_id }}"
-
-      - name: Get floating IP
-        id: ip
-        run: |
-          echo "::set-output name=value::$(
-            php bin/console app:ip:get \
-            --service-id="${{ github.event.inputs.service_id }}"
-          )"
-
-      - name: Re-assign IP if found
-        if: ${{ steps.ip.outputs.value != '' }}
-        run: |
-          php bin/console app:ip:assign \
-          --service-id="${{ github.event.inputs.service_id }}"
-
-      - name: Create IP if none found
-        if: ${{ steps.ip.outputs.value == '' }}
-        run: |
-          php bin/console app:ip:create \
-          --service-id="${{ github.event.inputs.service_id }}"
+      - name: Assign IP to current instance
+        run: php bin/console app:ip:assign --service-id="${{ github.event.inputs.service_id }}"

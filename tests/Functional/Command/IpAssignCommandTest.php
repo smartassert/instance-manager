@@ -9,6 +9,7 @@ use App\Command\Option;
 use App\Exception\ActionTimeoutException;
 use App\Services\ActionRunner;
 use App\Services\ServiceConfiguration;
+use App\Tests\Mock\MockServiceConfiguration;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
@@ -73,6 +74,26 @@ class IpAssignCommandTest extends KernelTestCase
         ];
     }
 
+    public function testRunServiceConfigurationMissing(): void
+    {
+        $input = new ArrayInput([
+            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
+        ]);
+
+        $output = new BufferedOutput();
+
+        $serviceConfiguration = (new MockServiceConfiguration())
+            ->withExistsCall(self::SERVICE_ID, false)
+            ->getMock()
+        ;
+
+        $this->setCommandServiceConfiguration($serviceConfiguration);
+
+        $commandReturnCode = $this->command->run($input, $output);
+
+        self::assertSame(IpAssignCommand::EXIT_CODE_SERVICE_CONFIGURATION_MISSING, $commandReturnCode);
+    }
+
     public function testRunImageIdMissing(): void
     {
         $input = new ArrayInput([
@@ -81,7 +102,13 @@ class IpAssignCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
 
-        $this->mockServiceConfigurationGetImageId(null);
+        $serviceConfiguration = (new MockServiceConfiguration())
+            ->withExistsCall(self::SERVICE_ID, true)
+            ->withGetImageIdCall(self::SERVICE_ID, null)
+            ->getMock()
+        ;
+
+        $this->setCommandServiceConfiguration($serviceConfiguration);
 
         $commandReturnCode = $this->command->run($input, $output);
 
@@ -114,7 +141,13 @@ class IpAssignCommandTest extends KernelTestCase
             '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
         ]);
 
-        $this->mockServiceConfigurationGetImageId(self::IMAGE_ID);
+        $serviceConfiguration = (new MockServiceConfiguration())
+            ->withExistsCall(self::SERVICE_ID, true)
+            ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
+            ->getMock()
+        ;
+
+        $this->setCommandServiceConfiguration($serviceConfiguration);
 
         $exitCode = $this->command->run($input, $output);
 
@@ -147,7 +180,7 @@ class IpAssignCommandTest extends KernelTestCase
                     'error-code' => 'no-instance',
                 ]),
             ],
-            'no ip' => [
+            'ip is created' => [
                 'setup' => null,
                 'httpResponseDataCollection' => [
                     'droplets response' => [
@@ -172,11 +205,94 @@ class IpAssignCommandTest extends KernelTestCase
                             'floating_ips' => [],
                         ]),
                     ],
+                    'ip create response' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'floating_ip' => [
+                                'ip' => '127.0.0.100',
+                            ],
+                        ]),
+                    ],
+                    'droplet find response' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplet' => DropletDataFactory::createWithIps(123, ['127.0.0.100']),
+                        ]),
+                    ],
                 ],
-                'expectedExitCode' => IpAssignCommand::EXIT_CODE_NO_IP,
+                'expectedExitCode' => Command::SUCCESS,
+                'expectedOutput' => (string) json_encode([
+                    'status' => 'success',
+                    'ip' => '127.0.0.100',
+                    'target-instance' => 123,
+                    'outcome' => 'create',
+                    'source-instance' => null,
+                ]),
+            ],
+            'creation timed out' => [
+                'setup' => function (IpAssignCommand $command) {
+                    $actionRunner = \Mockery::mock(ActionRunner::class);
+                    $actionRunner
+                        ->shouldReceive('run')
+                        ->andThrow(new ActionTimeoutException())
+                    ;
+
+                    ObjectReflector::setProperty(
+                        $command,
+                        IpAssignCommand::class,
+                        'actionRunner',
+                        $actionRunner
+                    );
+                },
+                'httpResponseDataCollection' => [
+                    'droplets response' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'droplets' => [
+                                [
+                                    'id' => 456,
+                                ],
+                            ],
+                        ]),
+                    ],
+                    'ip find response' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'floating_ips' => [],
+                        ]),
+                    ],
+                    'ip create response' => [
+                        HttpResponseFactory::KEY_STATUS_CODE => 200,
+                        HttpResponseFactory::KEY_HEADERS => [
+                            'content-type' => 'application/json; charset=utf-8',
+                        ],
+                        HttpResponseFactory::KEY_BODY => (string) json_encode([
+                            'floating_ip' => [
+                                'ip' => '127.0.0.100',
+                            ],
+                        ]),
+                    ],
+                ],
+                'expectedExitCode' => IpAssignCommand::EXIT_CODE_ACTION_TIMED_OUT,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
-                    'error-code' => 'no-ip',
+                    'error-code' => 'create-timed-out',
+                    'ip' => '127.0.0.100',
+                    'source-instance' => null,
+                    'target-instance' => 456,
+                    'timeout-in-seconds' => 30,
                 ]),
             ],
             'ip already assigned to current instance' => [
@@ -216,13 +332,13 @@ class IpAssignCommandTest extends KernelTestCase
                 'expectedExitCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'success',
-                    'outcome' => 'already-assigned',
+                    'outcome' => 'assign',
                     'ip' => '127.0.0.200',
                     'source-instance' => 123,
                     'target-instance' => 123,
                 ]),
             ],
-            'ip re-assigned' => [
+            'ip is re-assigned' => [
                 'setup' => null,
                 'httpResponseDataCollection' => [
                     'droplets response' => [
@@ -287,13 +403,13 @@ class IpAssignCommandTest extends KernelTestCase
                 'expectedExitCode' => Command::SUCCESS,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'success',
-                    'outcome' => 're-assigned',
+                    'outcome' => 'assign',
                     'ip' => '127.0.0.200',
                     'source-instance' => 123,
                     'target-instance' => 456,
                 ]),
             ],
-            'assignment timed out' => [
+            're-assignment timed out' => [
                 'setup' => function (IpAssignCommand $command) {
                     $actionRunner = \Mockery::mock(ActionRunner::class);
                     $actionRunner
@@ -368,10 +484,10 @@ class IpAssignCommandTest extends KernelTestCase
                         ]),
                     ],
                 ],
-                'expectedExitCode' => IpAssignCommand::EXIT_CODE_ASSIGNMENT_TIMED_OUT,
+                'expectedExitCode' => IpAssignCommand::EXIT_CODE_ACTION_TIMED_OUT,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
-                    'error-code' => 'assignment-timed-out',
+                    'error-code' => 'assign-timed-out',
                     'ip' => '127.0.0.200',
                     'source-instance' => 123,
                     'target-instance' => 456,
@@ -381,15 +497,8 @@ class IpAssignCommandTest extends KernelTestCase
         ];
     }
 
-    private function mockServiceConfigurationGetImageId(?string $imageId): void
+    private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
     {
-        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
-        $serviceConfiguration
-            ->shouldReceive('getImageId')
-            ->with(self::SERVICE_ID)
-            ->andReturn($imageId)
-        ;
-
         ObjectReflector::setProperty(
             $this->command,
             $this->command::class,
