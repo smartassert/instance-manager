@@ -23,59 +23,34 @@ class MockServiceConfiguration
 
     public function withExistsCall(string $serviceId, bool $exists): self
     {
-        if (false === $this->mock instanceof MockInterface) {
-            return $this;
-        }
-
-        $this->mock
-            ->shouldReceive('exists')
-            ->with($serviceId)
-            ->andReturn($exists)
-        ;
-
-        return $this;
+        return $this->withCall($serviceId, 'exists', $exists);
     }
 
     public function withGetImageIdCall(string $serviceId, ?string $imageId): self
     {
-        if (false === $this->mock instanceof MockInterface) {
-            return $this;
-        }
-
-        $this->mock
-            ->shouldReceive('getImageId')
-            ->with($serviceId)
-            ->andReturn($imageId)
-        ;
-
-        return $this;
+        return $this->withCall($serviceId, 'getImageId', $imageId);
     }
 
     public function withGetHealthCheckUrlCall(string $serviceId, ?string $healthCheckUrl): self
     {
-        if (false === $this->mock instanceof MockInterface) {
-            return $this;
-        }
-
-        $this->mock
-            ->shouldReceive('getHealthCheckUrl')
-            ->with($serviceId)
-            ->andReturn($healthCheckUrl)
-        ;
-
-        return $this;
+        return $this->withCall($serviceId, 'getHealthCheckUrl', $healthCheckUrl);
     }
 
     public function withGetStateUrlCall(string $serviceId, ?string $stateUrl): self
+    {
+        return $this->withCall($serviceId, 'getStateUrl', $stateUrl);
+    }
+
+    private function withCall(string $serviceId, string $method, mixed $return): self
     {
         if (false === $this->mock instanceof MockInterface) {
             return $this;
         }
 
         $this->mock
-            ->shouldReceive('getStateUrl')
+            ->shouldReceive($method)
             ->with($serviceId)
-            ->andReturn($stateUrl)
+            ->andReturn($return)
         ;
 
         return $this;
