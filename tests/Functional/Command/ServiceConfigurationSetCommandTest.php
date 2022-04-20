@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\Option;
 use App\Command\ServiceConfigurationSetCommand;
+use App\Exception\ServiceIdMissingException;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\ServiceConfiguration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -27,6 +28,13 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
         $this->command = $command;
     }
 
+    public function testRunWithoutServiceIdThrowsException(): void
+    {
+        $this->expectExceptionObject(new ServiceIdMissingException());
+
+        $this->command->run(new ArrayInput([]), new NullOutput());
+    }
+
     /**
      * @dataProvider runEmptyRequiredValueDataProvider
      *
@@ -45,10 +53,6 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
     public function runEmptyRequiredValueDataProvider(): array
     {
         return [
-            'empty service id' => [
-                'input' => [],
-                'expectedReturnCode' => ServiceConfigurationSetCommand::EXIT_CODE_EMPTY_SERVICE_ID,
-            ],
             'empty health check url' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => 'service_id',

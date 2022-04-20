@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ServiceIdMissingException;
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
 use App\Services\CommandInstanceRepository;
 use App\Services\InstanceClient;
 use App\Services\ServiceConfiguration;
@@ -20,12 +20,11 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: InstanceIsReadyCommand::NAME,
     description: 'Check if an instance is ready to be used',
 )]
-class InstanceIsReadyCommand extends Command
+class InstanceIsReadyCommand extends AbstractServiceCommand
 {
     use RetryableCommandTrait;
 
     public const NAME = 'app:instance:is-ready';
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
     public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
     public const EXIT_CODE_SERVICE_STATE_URL_MISSING = 7;
 
@@ -35,14 +34,13 @@ class InstanceIsReadyCommand extends Command
     public const DEFAULT_RETRY_DELAY = 30;
 
     public function __construct(
+        CommandConfigurator $configurator,
         private InstanceClient $instanceClient,
         private CommandActionRunner $commandActionRunner,
-        private CommandConfigurator $configurator,
         private CommandInstanceRepository $commandInstanceRepository,
         private ServiceConfiguration $serviceConfiguration,
-        private CommandInputReader $inputReader,
     ) {
-        parent::__construct();
+        parent::__construct($configurator);
     }
 
     protected function configure(): void
@@ -51,7 +49,6 @@ class InstanceIsReadyCommand extends Command
 
         $this->configurator
             ->addId($this)
-            ->addServiceIdOption($this)
             ->addRetryLimitOption($this, self::DEFAULT_RETRY_LIMIT)
             ->addRetryDelayOption($this, self::DEFAULT_RETRY_DELAY)
         ;
@@ -59,16 +56,11 @@ class InstanceIsReadyCommand extends Command
 
     /**
      * @throws ExceptionInterface
+     * @throws ServiceIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->write('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_SERVICE_ID;
-        }
-
+        $serviceId = $this->getServiceId($input);
         $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
         if (null === $serviceConfiguration) {
             $output->write('No configuration for service "' . $serviceId . '"');

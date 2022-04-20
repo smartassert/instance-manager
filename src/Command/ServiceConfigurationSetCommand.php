@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ServiceIdMissingException;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
 use App\Services\ServiceConfiguration;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,23 +18,21 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: ServiceConfigurationSetCommand::NAME,
     description: 'Set configuration values for service',
 )]
-class ServiceConfigurationSetCommand extends Command
+class ServiceConfigurationSetCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:service-configuration:set';
 
     public const OPTION_HEALTH_CHECK_URL = 'health-check-url';
     public const OPTION_STATE_URL = 'state-url';
 
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 3;
     public const EXIT_CODE_EMPTY_HEALTH_CHECK_URL = 4;
     public const EXIT_CODE_EMPTY_STATE_URL = 5;
 
     public function __construct(
-        private CommandConfigurator $configurator,
-        private CommandInputReader $inputReader,
+        CommandConfigurator $configurator,
         private ServiceConfiguration $serviceConfiguration,
     ) {
-        parent::__construct();
+        parent::__construct($configurator);
     }
 
     protected function configure(): void
@@ -59,14 +57,12 @@ class ServiceConfigurationSetCommand extends Command
         ;
     }
 
+    /**
+     * @throws ServiceIdMissingException
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_SERVICE_ID;
-        }
+        $serviceId = $this->getServiceId($input);
 
         $healthCheckUrl = $input->getOption(self::OPTION_HEALTH_CHECK_URL);
         $healthCheckUrl = is_string($healthCheckUrl) ? trim($healthCheckUrl) : '';

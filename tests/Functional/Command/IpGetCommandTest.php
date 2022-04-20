@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\IpGetCommand;
 use App\Command\Option;
+use App\Exception\ServiceIdMissingException;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -39,29 +40,11 @@ class IpGetCommandTest extends KernelTestCase
         $this->httpResponseFactory = $httpResponseFactory;
     }
 
-    /**
-     * @dataProvider runEmptyRequiredValueDataProvider
-     *
-     * @param array<mixed> $input
-     */
-    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
+    public function testRunWithoutServiceIdThrowsException(): void
     {
-        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
+        $this->expectExceptionObject(new ServiceIdMissingException());
 
-        self::assertSame($expectedReturnCode, $commandReturnCode);
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function runEmptyRequiredValueDataProvider(): array
-    {
-        return [
-            'empty service id' => [
-                'input' => [],
-                'expectedReturnCode' => IpGetCommand::EXIT_CODE_EMPTY_COLLECTION_TAG,
-            ],
-        ];
+        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ServiceIdMissingException;
 use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
@@ -22,31 +23,30 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: InstanceCreateCommand::NAME,
     description: 'Create an instance',
 )]
-class InstanceCreateCommand extends Command
+class InstanceCreateCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:instance:create';
     public const OPTION_FIRST_BOOT_SCRIPT = 'first-boot-script';
     public const OPTION_SECRETS_JSON = 'secrets-json';
 
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 3;
     public const EXIT_CODE_MISSING_IMAGE_ID = 4;
     public const EXIT_CODE_FIRST_BOOT_SCRIPT_INVALID = 5;
 
     public function __construct(
+        CommandConfigurator $configurator,
         private InstanceRepository $instanceRepository,
         private OutputFactory $outputFactory,
-        private CommandConfigurator $configurator,
         private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
         private BootScriptFactory $bootScriptFactory,
         private ServiceEnvironmentVariableRepository $environmentVariableRepository,
     ) {
-        parent::__construct();
+        parent::__construct($configurator);
     }
 
     protected function configure(): void
     {
-        $this->configurator->addServiceIdOption($this);
+        parent::configure();
 
         $this
             ->addOption(
@@ -66,16 +66,11 @@ class InstanceCreateCommand extends Command
 
     /**
      * @throws ExceptionInterface
+     * @throws ServiceIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_SERVICE_ID;
-        }
-
+        $serviceId = $this->getServiceId($input);
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
         if (null === $imageId) {
             $output->writeln('image_id missing');

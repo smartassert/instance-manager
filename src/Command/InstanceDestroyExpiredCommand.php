@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ServiceIdMissingException;
 use App\Model\Instance;
 use App\Model\InstanceCollection;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
 use App\Services\FloatingIpRepository;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
@@ -21,38 +21,26 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: InstanceDestroyExpiredCommand::NAME,
     description: 'Destroy all instances that have expired',
 )]
-class InstanceDestroyExpiredCommand extends Command
+class InstanceDestroyExpiredCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:instance:destroy-expired';
-    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
 
     public function __construct(
+        CommandConfigurator $configurator,
         private OutputFactory $outputFactory,
         private FloatingIpRepository $floatingIpRepository,
         private InstanceRepository $instanceRepository,
-        private CommandConfigurator $configurator,
-        private CommandInputReader $inputReader,
     ) {
-        parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        $this->configurator->addServiceIdOption($this);
+        parent::__construct($configurator);
     }
 
     /**
      * @throws ExceptionInterface
+     * @throws ServiceIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
-        }
-
+        $serviceId = $this->getServiceId($input);
         $instances = $this->instanceRepository->findAll($serviceId);
         if (1 >= count($instances)) {
             return Command::SUCCESS;

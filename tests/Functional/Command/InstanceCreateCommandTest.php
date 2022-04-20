@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
 use App\Command\Option;
+use App\Exception\ServiceIdMissingException;
 use App\Model\EnvironmentVariable;
 use App\Services\BootScriptFactory;
 use App\Services\InstanceRepository;
@@ -50,6 +51,13 @@ class InstanceCreateCommandTest extends KernelTestCase
         $this->httpResponseFactory = $httpResponseFactory;
     }
 
+    public function testRunWithoutServiceIdThrowsException(): void
+    {
+        $this->expectExceptionObject(new ServiceIdMissingException());
+
+        $this->command->run(new ArrayInput([]), new NullOutput());
+    }
+
     /**
      * @dataProvider runThrowsExceptionDataProvider
      *
@@ -92,31 +100,6 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'expectedExceptionClass' => RuntimeException::class,
                 'expectedExceptionMessage' => 'Unauthorized',
                 'expectedExceptionCode' => 401,
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider runEmptyRequiredValueDataProvider
-     *
-     * @param array<mixed> $input
-     */
-    public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
-    {
-        $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
-
-        self::assertSame($expectedReturnCode, $commandReturnCode);
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function runEmptyRequiredValueDataProvider(): array
-    {
-        return [
-            'empty service id' => [
-                'input' => [],
-                'expectedReturnCode' => InstanceCreateCommand::EXIT_CODE_EMPTY_SERVICE_ID,
             ],
         ];
     }
