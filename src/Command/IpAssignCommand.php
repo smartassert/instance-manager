@@ -12,7 +12,6 @@ use App\Model\Instance;
 use App\Services\ActionRepository;
 use App\Services\ActionRunner;
 use App\Services\CommandConfigurator;
-use App\Services\CommandServiceIdExtractor;
 use App\Services\FloatingIpManager;
 use App\Services\FloatingIpRepository;
 use App\Services\InstanceRepository;
@@ -29,7 +28,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: IpAssignCommand::NAME,
     description: 'Assign a floating IP to current instance',
 )]
-class IpAssignCommand extends Command
+class IpAssignCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:ip:assign';
 
@@ -41,8 +40,7 @@ class IpAssignCommand extends Command
     private const MICROSECONDS_PER_SECOND = 1000000;
 
     public function __construct(
-        private CommandConfigurator $configurator,
-        private CommandServiceIdExtractor $serviceIdExtractor,
+        CommandConfigurator $configurator,
         private InstanceRepository $instanceRepository,
         private FloatingIpManager $floatingIpManager,
         private ActionRepository $actionRepository,
@@ -53,12 +51,7 @@ class IpAssignCommand extends Command
         private int $assigmentTimeoutInSeconds,
         private int $assignmentRetryInSeconds,
     ) {
-        parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        $this->configurator->addServiceIdOption($this);
+        parent::__construct($configurator);
     }
 
     /**
@@ -67,7 +60,7 @@ class IpAssignCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->serviceIdExtractor->extract($input);
+        $serviceId = $this->getServiceId($input);
 
         if (false === $this->serviceConfiguration->exists($serviceId)) {
             $output->write('No configuration for service "' . $serviceId . '"');

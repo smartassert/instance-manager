@@ -7,7 +7,6 @@ namespace App\Command;
 use App\Exception\ServiceIdMissingException;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandConfigurator;
-use App\Services\CommandServiceIdExtractor;
 use App\Services\ServiceConfiguration;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -19,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: ServiceConfigurationSetCommand::NAME,
     description: 'Set configuration values for service',
 )]
-class ServiceConfigurationSetCommand extends Command
+class ServiceConfigurationSetCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:service-configuration:set';
 
@@ -30,11 +29,10 @@ class ServiceConfigurationSetCommand extends Command
     public const EXIT_CODE_EMPTY_STATE_URL = 5;
 
     public function __construct(
-        private CommandConfigurator $configurator,
-        private CommandServiceIdExtractor $serviceIdExtractor,
+        CommandConfigurator $configurator,
         private ServiceConfiguration $serviceConfiguration,
     ) {
-        parent::__construct();
+        parent::__construct($configurator);
     }
 
     protected function configure(): void
@@ -64,7 +62,7 @@ class ServiceConfigurationSetCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->serviceIdExtractor->extract($input);
+        $serviceId = $this->getServiceId($input);
 
         $healthCheckUrl = $input->getOption(self::OPTION_HEALTH_CHECK_URL);
         $healthCheckUrl = is_string($healthCheckUrl) ? trim($healthCheckUrl) : '';

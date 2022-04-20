@@ -8,7 +8,6 @@ use App\Exception\ServiceIdMissingException;
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInstanceRepository;
-use App\Services\CommandServiceIdExtractor;
 use App\Services\InstanceClient;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
@@ -21,7 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: InstanceIsHealthyCommand::NAME,
     description: 'Perform instance health check',
 )]
-class InstanceIsHealthyCommand extends Command
+class InstanceIsHealthyCommand extends AbstractServiceCommand
 {
     use RetryableCommandTrait;
 
@@ -34,14 +33,13 @@ class InstanceIsHealthyCommand extends Command
     public const DEFAULT_RETRY_DELAY = 30;
 
     public function __construct(
-        private CommandConfigurator $configurator,
-        private CommandServiceIdExtractor $serviceIdExtractor,
+        CommandConfigurator $configurator,
         private InstanceClient $instanceClient,
         private CommandActionRunner $commandActionRunner,
         private CommandInstanceRepository $commandInstanceRepository,
         private ServiceConfiguration $serviceConfiguration,
     ) {
-        parent::__construct();
+        parent::__construct($configurator);
     }
 
     protected function configure(): void
@@ -50,7 +48,6 @@ class InstanceIsHealthyCommand extends Command
 
         $this->configurator
             ->addId($this)
-            ->addServiceIdOption($this)
             ->addRetryLimitOption($this, self::DEFAULT_RETRY_LIMIT)
             ->addRetryDelayOption($this, self::DEFAULT_RETRY_DELAY)
         ;
@@ -62,7 +59,7 @@ class InstanceIsHealthyCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->serviceIdExtractor->extract($input);
+        $serviceId = $this->getServiceId($input);
         $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
         if (null === $serviceConfiguration) {
             $output->write('No configuration for service "' . $serviceId . '"');

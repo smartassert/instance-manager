@@ -6,7 +6,6 @@ namespace App\Command;
 
 use App\Exception\ServiceIdMissingException;
 use App\Services\CommandConfigurator;
-use App\Services\CommandServiceIdExtractor;
 use App\Services\ImageRepository;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
@@ -19,24 +18,18 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: ImageExistsCommand::NAME,
     description: 'Check if an image exists',
 )]
-class ImageExistsCommand extends Command
+class ImageExistsCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:image:exists';
 
     public const EXIT_CODE_MISSING_IMAGE_ID = 4;
 
     public function __construct(
-        private CommandConfigurator $configurator,
-        private CommandServiceIdExtractor $serviceIdExtractor,
+        CommandConfigurator $configurator,
         private ServiceConfiguration $serviceConfiguration,
         private ImageRepository $imageRepository,
     ) {
-        parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        $this->configurator->addServiceIdOption($this);
+        parent::__construct($configurator);
     }
 
     /**
@@ -45,7 +38,7 @@ class ImageExistsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->serviceIdExtractor->extract($input);
+        $serviceId = $this->getServiceId($input);
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
         if (null === $imageId) {
             $output->writeln('image_id missing');

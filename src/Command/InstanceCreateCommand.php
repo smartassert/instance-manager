@@ -8,7 +8,6 @@ use App\Exception\ServiceIdMissingException;
 use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
-use App\Services\CommandServiceIdExtractor;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
 use App\Services\ServiceConfiguration;
@@ -24,7 +23,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: InstanceCreateCommand::NAME,
     description: 'Create an instance',
 )]
-class InstanceCreateCommand extends Command
+class InstanceCreateCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:instance:create';
     public const OPTION_FIRST_BOOT_SCRIPT = 'first-boot-script';
@@ -34,8 +33,7 @@ class InstanceCreateCommand extends Command
     public const EXIT_CODE_FIRST_BOOT_SCRIPT_INVALID = 5;
 
     public function __construct(
-        private CommandConfigurator $configurator,
-        private CommandServiceIdExtractor $serviceIdExtractor,
+        CommandConfigurator $configurator,
         private InstanceRepository $instanceRepository,
         private OutputFactory $outputFactory,
         private CommandInputReader $inputReader,
@@ -43,12 +41,12 @@ class InstanceCreateCommand extends Command
         private BootScriptFactory $bootScriptFactory,
         private ServiceEnvironmentVariableRepository $environmentVariableRepository,
     ) {
-        parent::__construct();
+        parent::__construct($configurator);
     }
 
     protected function configure(): void
     {
-        $this->configurator->addServiceIdOption($this);
+        parent::configure();
 
         $this
             ->addOption(
@@ -72,7 +70,7 @@ class InstanceCreateCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->serviceIdExtractor->extract($input);
+        $serviceId = $this->getServiceId($input);
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
         if (null === $imageId) {
             $output->writeln('image_id missing');

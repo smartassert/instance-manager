@@ -7,7 +7,6 @@ namespace App\Command;
 use App\Exception\ServiceIdMissingException;
 use App\Model\AssignedIp;
 use App\Services\CommandConfigurator;
-use App\Services\CommandServiceIdExtractor;
 use App\Services\FloatingIpRepository;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -19,22 +18,15 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: IpGetCommand::NAME,
     description: 'Get the current floating IP',
 )]
-class IpGetCommand extends Command
+class IpGetCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:ip:get';
-    public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
 
     public function __construct(
-        private CommandConfigurator $configurator,
-        private CommandServiceIdExtractor $serviceIdExtractor,
+        CommandConfigurator $configurator,
         private FloatingIpRepository $floatingIpRepository,
     ) {
-        parent::__construct(null);
-    }
-
-    protected function configure(): void
-    {
-        $this->configurator->addServiceIdOption($this);
+        parent::__construct($configurator);
     }
 
     /**
@@ -43,7 +35,7 @@ class IpGetCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->serviceIdExtractor->extract($input);
+        $serviceId = $this->getServiceId($input);
 
         $assignedIp = $this->floatingIpRepository->find($serviceId);
         if ($assignedIp instanceof AssignedIp) {

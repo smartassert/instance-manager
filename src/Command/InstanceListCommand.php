@@ -6,7 +6,6 @@ namespace App\Command;
 
 use App\Exception\ServiceIdMissingException;
 use App\Services\CommandConfigurator;
-use App\Services\CommandServiceIdExtractor;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
@@ -19,24 +18,18 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: InstanceListCommand::NAME,
     description: 'List instances',
 )]
-class InstanceListCommand extends Command
+class InstanceListCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:instance:list';
 
     public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
 
     public function __construct(
-        private CommandConfigurator $configurator,
-        private CommandServiceIdExtractor $serviceIdExtractor,
+        CommandConfigurator $configurator,
         private InstanceRepository $instanceRepository,
         private ServiceConfiguration $serviceConfiguration,
     ) {
-        parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        $this->configurator->addServiceIdOption($this);
+        parent::__construct($configurator);
     }
 
     /**
@@ -45,7 +38,7 @@ class InstanceListCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->serviceIdExtractor->extract($input);
+        $serviceId = $this->getServiceId($input);
         $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
         if (null === $serviceConfiguration) {
             $output->write('No configuration for service "' . $serviceId . '"');

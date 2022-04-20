@@ -8,7 +8,6 @@ use App\Exception\ServiceIdMissingException;
 use App\Model\Instance;
 use App\Model\InstanceCollection;
 use App\Services\CommandConfigurator;
-use App\Services\CommandServiceIdExtractor;
 use App\Services\FloatingIpRepository;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
@@ -22,23 +21,17 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: InstanceDestroyExpiredCommand::NAME,
     description: 'Destroy all instances that have expired',
 )]
-class InstanceDestroyExpiredCommand extends Command
+class InstanceDestroyExpiredCommand extends AbstractServiceCommand
 {
     public const NAME = 'app:instance:destroy-expired';
 
     public function __construct(
-        private CommandConfigurator $configurator,
-        private CommandServiceIdExtractor $serviceIdExtractor,
+        CommandConfigurator $configurator,
         private OutputFactory $outputFactory,
         private FloatingIpRepository $floatingIpRepository,
         private InstanceRepository $instanceRepository,
     ) {
-        parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        $this->configurator->addServiceIdOption($this);
+        parent::__construct($configurator);
     }
 
     /**
@@ -47,7 +40,7 @@ class InstanceDestroyExpiredCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->serviceIdExtractor->extract($input);
+        $serviceId = $this->getServiceId($input);
         $instances = $this->instanceRepository->findAll($serviceId);
         if (1 >= count($instances)) {
             return Command::SUCCESS;
