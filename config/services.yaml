@@ -25,11 +25,6 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
-    App\Command\IpCreateCommand:
-        arguments:
-            $assigmentTimeoutInSeconds: '%ip_create_assignment_timeout_in_seconds%'
-            $assignmentRetryInSeconds: '%ip_create_assignment_retry_in_seconds%'
-
     App\Command\FooIpAssignCommand:
         arguments:
             $assigmentTimeoutInSeconds: '%ip_create_assignment_timeout_in_seconds%'
