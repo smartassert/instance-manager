@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\ImageExistsCommand;
 use App\Command\Option;
+use App\Exception\ServiceIdMissingException;
 use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
@@ -41,6 +42,13 @@ class ImageExistsCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
+    }
+
+    public function testRunWithoutServiceIdThrowsException(): void
+    {
+        $this->expectExceptionObject(new ServiceIdMissingException());
+
+        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     /**

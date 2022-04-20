@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ServiceIdMissingException;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
+use App\Services\CommandServiceIdExtractor;
 use App\Services\ImageRepository;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
@@ -27,7 +28,7 @@ class ImageExistsCommand extends Command
 
     public function __construct(
         private CommandConfigurator $configurator,
-        private CommandInputReader $inputReader,
+        private CommandServiceIdExtractor $serviceIdExtractor,
         private ServiceConfiguration $serviceConfiguration,
         private ImageRepository $imageRepository,
     ) {
@@ -41,16 +42,11 @@ class ImageExistsCommand extends Command
 
     /**
      * @throws ExceptionInterface
+     * @throws ServiceIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_SERVICE_ID;
-        }
-
+        $serviceId = $this->serviceIdExtractor->extract($input);
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
         if (null === $imageId) {
             $output->writeln('image_id missing');
