@@ -20,12 +20,12 @@ class ServiceConfiguration
      * @var Collection<int, EnvironmentVariable>
      */
     private Collection $environmentVariables;
-    private ?Configuration $fooServiceConfiguration = null;
+    private ?Configuration $serviceConfiguration = null;
     private ?Configuration $imageConfiguration = null;
     private ?Configuration $domainConfiguration = null;
 
     public function __construct(
-        private readonly ConfigurationFactory $fooConfigurationFactory,
+        private readonly ConfigurationFactory $configurationFactory,
         private readonly string $configurationDirectory,
         private readonly string $defaultDomain,
     ) {
@@ -44,10 +44,10 @@ class ServiceConfiguration
         if (!isset($this->environmentVariables)) {
             $collection = new ArrayCollection();
 
-            $foo = $this->getFooConfiguration($serviceId, self::ENV_VAR_FILENAME);
+            $configuration = $this->createConfiguration($serviceId, self::ENV_VAR_FILENAME);
 
-            if ($foo instanceof Configuration) {
-                $data = $foo->getAll();
+            if ($configuration instanceof Configuration) {
+                $data = $configuration->getAll();
 
                 foreach ($data as $key => $value) {
                     if (is_string($key) && is_string($value)) {
@@ -65,7 +65,7 @@ class ServiceConfiguration
     public function getImageId(string $serviceId): ?int
     {
         if (!$this->imageConfiguration instanceof Configuration) {
-            $this->imageConfiguration = $this->getFooConfiguration($serviceId, self::IMAGE_FILENAME);
+            $this->imageConfiguration = $this->createConfiguration($serviceId, self::IMAGE_FILENAME);
         }
 
         return $this->imageConfiguration instanceof Configuration
@@ -76,7 +76,7 @@ class ServiceConfiguration
     public function getDomain(string $serviceId): string
     {
         if (!$this->domainConfiguration instanceof Configuration) {
-            $this->domainConfiguration = $this->getFooConfiguration($serviceId, self::DOMAIN_FILENAME);
+            $this->domainConfiguration = $this->createConfiguration($serviceId, self::DOMAIN_FILENAME);
         }
 
         $domain = $this->domainConfiguration instanceof Configuration
@@ -119,20 +119,20 @@ class ServiceConfiguration
 
     private function getServiceConfiguration(string $serviceId): ?Configuration
     {
-        if (!$this->fooServiceConfiguration instanceof Configuration) {
-            $serviceConfiguration = $this->getFooConfiguration($serviceId, self::CONFIGURATION_FILENAME);
+        if (!$this->serviceConfiguration instanceof Configuration) {
+            $serviceConfiguration = $this->createConfiguration($serviceId, self::CONFIGURATION_FILENAME);
 
             if ($serviceConfiguration instanceof Configuration) {
-                $this->fooServiceConfiguration = $serviceConfiguration;
+                $this->serviceConfiguration = $serviceConfiguration;
             }
         }
 
-        return $this->fooServiceConfiguration;
+        return $this->serviceConfiguration;
     }
 
-    private function getFooConfiguration(string $serviceId, string $filename): ?Configuration
+    private function createConfiguration(string $serviceId, string $filename): ?Configuration
     {
-        return $this->fooConfigurationFactory->create($this->getFilePath($serviceId, $filename));
+        return $this->configurationFactory->create($this->getFilePath($serviceId, $filename));
     }
 
     private function jsonFileExists(string $serviceId, string $filename): bool
