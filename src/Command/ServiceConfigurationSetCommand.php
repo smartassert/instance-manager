@@ -26,7 +26,6 @@ class ServiceConfigurationSetCommand extends Command
     public const OPTION_HEALTH_CHECK_URL = 'health-check-url';
     public const OPTION_STATE_URL = 'state-url';
 
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 3;
     public const EXIT_CODE_EMPTY_HEALTH_CHECK_URL = 4;
     public const EXIT_CODE_EMPTY_STATE_URL = 5;
 

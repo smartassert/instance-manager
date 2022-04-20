@@ -23,7 +23,6 @@ class ImageExistsCommand extends Command
 {
     public const NAME = 'app:image:exists';
 
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 3;
     public const EXIT_CODE_MISSING_IMAGE_ID = 4;
 
     public function __construct(

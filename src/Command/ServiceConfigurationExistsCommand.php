@@ -21,8 +21,6 @@ class ServiceConfigurationExistsCommand extends Command
 {
     public const NAME = 'app:service-configuration:exists';
 
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 3;
-
     public function __construct(
         private CommandConfigurator $configurator,
         private CommandServiceIdExtractor $serviceIdExtractor,

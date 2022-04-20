@@ -23,7 +23,6 @@ class InstanceListCommand extends Command
 {
     public const NAME = 'app:instance:list';
 
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
     public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
 
     public function __construct(

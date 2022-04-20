@@ -26,7 +26,6 @@ class InstanceIsReadyCommand extends Command
     use RetryableCommandTrait;
 
     public const NAME = 'app:instance:is-ready';
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 5;
     public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
     public const EXIT_CODE_SERVICE_STATE_URL_MISSING = 7;
 

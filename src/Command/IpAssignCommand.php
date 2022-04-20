@@ -35,7 +35,6 @@ class IpAssignCommand extends Command
 
     public const EXIT_CODE_NO_CURRENT_INSTANCE = 3;
     public const EXIT_CODE_ACTION_TIMED_OUT = 5;
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 6;
     public const EXIT_CODE_MISSING_IMAGE_ID = 7;
     public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 8;
 
