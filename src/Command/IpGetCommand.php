@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ServiceIdMissingException;
 use App\Model\AssignedIp;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
+use App\Services\CommandServiceIdExtractor;
 use App\Services\FloatingIpRepository;
+use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,9 +25,9 @@ class IpGetCommand extends Command
     public const EXIT_CODE_EMPTY_COLLECTION_TAG = 3;
 
     public function __construct(
-        private FloatingIpRepository $floatingIpRepository,
         private CommandConfigurator $configurator,
-        private CommandInputReader $inputReader,
+        private CommandServiceIdExtractor $serviceIdExtractor,
+        private FloatingIpRepository $floatingIpRepository,
     ) {
         parent::__construct(null);
     }
@@ -35,14 +37,13 @@ class IpGetCommand extends Command
         $this->configurator->addServiceIdOption($this);
     }
 
+    /**
+     * @throws ExceptionInterface
+     * @throws ServiceIdMissingException
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_COLLECTION_TAG;
-        }
+        $serviceId = $this->serviceIdExtractor->extract($input);
 
         $assignedIp = $this->floatingIpRepository->find($serviceId);
         if ($assignedIp instanceof AssignedIp) {
