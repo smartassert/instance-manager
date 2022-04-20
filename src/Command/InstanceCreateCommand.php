@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ServiceIdMissingException;
 use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInputReader;
+use App\Services\CommandServiceIdExtractor;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
 use App\Services\ServiceConfiguration;
@@ -28,14 +30,14 @@ class InstanceCreateCommand extends Command
     public const OPTION_FIRST_BOOT_SCRIPT = 'first-boot-script';
     public const OPTION_SECRETS_JSON = 'secrets-json';
 
-    public const EXIT_CODE_EMPTY_SERVICE_ID = 3;
     public const EXIT_CODE_MISSING_IMAGE_ID = 4;
     public const EXIT_CODE_FIRST_BOOT_SCRIPT_INVALID = 5;
 
     public function __construct(
+        private CommandConfigurator $configurator,
+        private CommandServiceIdExtractor $serviceIdExtractor,
         private InstanceRepository $instanceRepository,
         private OutputFactory $outputFactory,
-        private CommandConfigurator $configurator,
         private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
         private BootScriptFactory $bootScriptFactory,
@@ -66,16 +68,11 @@ class InstanceCreateCommand extends Command
 
     /**
      * @throws ExceptionInterface
+     * @throws ServiceIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_SERVICE_ID;
-        }
-
+        $serviceId = $this->serviceIdExtractor->extract($input);
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
         if (null === $imageId) {
             $output->writeln('image_id missing');
