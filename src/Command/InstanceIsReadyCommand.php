@@ -61,14 +61,15 @@ class InstanceIsReadyCommand extends AbstractServiceCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
-        $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
-        if (null === $serviceConfiguration) {
+
+        if (false === $this->serviceConfiguration->exists($serviceId)) {
             $output->write('No configuration for service "' . $serviceId . '"');
 
             return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
         }
 
-        if ('' === $serviceConfiguration->getStateUrl()) {
+        $stateUrl = $this->serviceConfiguration->getStateUrl($serviceId);
+        if (null === $stateUrl || '' === $stateUrl) {
             $output->write('No state_url for service "' . $serviceId . '"');
 
             return self::EXIT_CODE_SERVICE_STATE_URL_MISSING;
@@ -85,8 +86,8 @@ class InstanceIsReadyCommand extends AbstractServiceCommand
             $this->getRetryLimit($input),
             $this->getRetryDelay($input),
             $output,
-            function (bool $isLastAttempt) use ($serviceConfiguration, $instance, $output): bool {
-                $state = $this->instanceClient->getState($serviceConfiguration, $instance);
+            function (bool $isLastAttempt) use ($stateUrl, $instance, $output): bool {
+                $state = $this->instanceClient->getState($stateUrl, $instance);
 
                 $isReady = $state['ready'] ?? null;
                 $isReady = is_bool($isReady) ? $isReady : true;

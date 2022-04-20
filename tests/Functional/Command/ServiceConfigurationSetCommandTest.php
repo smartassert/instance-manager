@@ -7,7 +7,6 @@ namespace App\Tests\Functional\Command;
 use App\Command\Option;
 use App\Command\ServiceConfigurationSetCommand;
 use App\Exception\ServiceIdMissingException;
-use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\ServiceConfiguration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -77,14 +76,26 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
     public function testRunSuccess(
         array $input,
         bool $setServiceConfigurationFixture,
-        ServiceConfigurationModel $expectedConfiguration,
+        string $expectedServiceId,
+        string $expectedHealthCheckUrl,
+        string $expectedStateUrl,
         int $expectedReturnCode
     ): void {
         $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
         $serviceConfiguration
             ->shouldReceive('setServiceConfiguration')
-            ->withArgs(function (ServiceConfigurationModel $configuration) use ($expectedConfiguration) {
-                self::assertEquals($expectedConfiguration, $configuration);
+            ->withArgs(function (
+                string $serviceId,
+                string $healthCheckUrl,
+                string $stateUrl
+            ) use (
+                $expectedServiceId,
+                $expectedHealthCheckUrl,
+                $expectedStateUrl
+            ) {
+                self::assertSame($expectedServiceId, $serviceId);
+                self::assertSame($expectedHealthCheckUrl, $healthCheckUrl);
+                self::assertSame($expectedStateUrl, $stateUrl);
 
                 return true;
             })
@@ -116,11 +127,9 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
                     '--' . ServiceConfigurationSetCommand::OPTION_STATE_URL => '/state-1',
                 ],
                 'setServiceConfigurationFixture' => false,
-                'expectedConfiguration' => new ServiceConfigurationModel(
-                    'service_id_1',
-                    '/health-check-1',
-                    '/state-1'
-                ),
+                'expectedServiceId' => 'service_id_1',
+                'expectedHealthCheckUrl' => '/health-check-1',
+                'expectedStateUrl' => '/state-1',
                 'expectedReturnCode' => Command::FAILURE,
             ],
             'exists' => [
@@ -130,11 +139,9 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
                     '--' . ServiceConfigurationSetCommand::OPTION_STATE_URL => '/state-2',
                 ],
                 'setServiceConfigurationFixture' => true,
-                'expectedConfiguration' => new ServiceConfigurationModel(
-                    'service_id_2',
-                    '/health-check-2',
-                    '/state-2'
-                ),
+                'expectedServiceId' => 'service_id_2',
+                'expectedHealthCheckUrl' => '/health-check-2',
+                'expectedStateUrl' => '/state-2',
                 'expectedReturnCode' => Command::SUCCESS,
             ],
         ];

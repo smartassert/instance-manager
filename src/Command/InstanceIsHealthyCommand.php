@@ -60,8 +60,8 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
-        $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
-        if (null === $serviceConfiguration) {
+
+        if (false === $this->serviceConfiguration->exists($serviceId)) {
             $output->write('No configuration for service "' . $serviceId . '"');
 
             return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
@@ -74,7 +74,8 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
             return $this->commandInstanceRepository->getErrorCode();
         }
 
-        if ('' === $serviceConfiguration->getHealthCheckUrl()) {
+        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($serviceId);
+        if (null === $healthCheckUrl || '' === $healthCheckUrl) {
             return Command::SUCCESS;
         }
 
@@ -82,8 +83,8 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
             $this->getRetryLimit($input),
             $this->getRetryDelay($input),
             $output,
-            function (bool $isLastAttempt) use ($serviceConfiguration, $output, $instance): bool {
-                $response = $this->instanceClient->getHealth($serviceConfiguration, $instance);
+            function (bool $isLastAttempt) use ($healthCheckUrl, $output, $instance): bool {
+                $response = $this->instanceClient->getHealth($healthCheckUrl, $instance);
                 $isHealthy = 200 === $response->getStatusCode();
 
                 $output->write($response->getBody()->getContents());

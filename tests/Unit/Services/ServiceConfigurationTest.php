@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Services;
 
 use App\Model\EnvironmentVariable;
-use App\Model\ServiceConfiguration as ServiceConfigurationModel;
+use App\Services\ConfigurationFactory;
 use App\Services\ServiceConfiguration;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,6 +27,7 @@ class ServiceConfigurationTest extends TestCase
         parent::setUp();
 
         $this->serviceConfiguration = new ServiceConfiguration(
+            new ConfigurationFactory(),
             self::SERVICE_CONFIGURATION_DIRECTORY,
             self::DEFAULT_DOMAIN
         );
@@ -257,7 +258,7 @@ class ServiceConfigurationTest extends TestCase
         ];
     }
 
-    public function testGetServiceConfigurationFileDoesNotExist(): void
+    public function testGetHealthCheckUrlFileDoesNotExist(): void
     {
         $serviceId = 'service_id';
 
@@ -265,7 +266,7 @@ class ServiceConfigurationTest extends TestCase
             $serviceId,
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
             function (string $serviceId) {
-                return $this->serviceConfiguration->getServiceConfiguration($serviceId);
+                return $this->serviceConfiguration->getHealthCheckUrl($serviceId);
             },
             function ($result) {
                 self::assertNull($result);
@@ -273,7 +274,23 @@ class ServiceConfigurationTest extends TestCase
         );
     }
 
-    public function testGetServiceConfigurationFileIsNotReadable(): void
+    public function testGetStateUrlFileDoesNotExist(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileDoesNotExist(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getStateUrl($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
+    }
+
+    public function testGetHealthCheckUrlFileIsNotReadable(): void
     {
         $serviceId = 'service_id';
 
@@ -281,7 +298,23 @@ class ServiceConfigurationTest extends TestCase
             $serviceId,
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
             function (string $serviceId) {
-                return $this->serviceConfiguration->getServiceConfiguration($serviceId);
+                return $this->serviceConfiguration->getHealthCheckUrl($serviceId);
+            },
+            function ($result) {
+                self::assertNull($result);
+            }
+        );
+    }
+
+    public function testGetStateUrlFileIsNotReadable(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->doTestFileIsNotReadable(
+            $serviceId,
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            function (string $serviceId) {
+                return $this->serviceConfiguration->getStateUrl($serviceId);
             },
             function ($result) {
                 self::assertNull($result);
@@ -290,12 +323,12 @@ class ServiceConfigurationTest extends TestCase
     }
 
     /**
-     * @dataProvider getServiceConfigurationSuccessDataProvider
+     * @dataProvider getHealthCheckUrlSuccessDataProvider
      */
-    public function testGetServiceConfigurationSuccess(
+    public function testGetHealthCheckUrlSuccess(
         string $serviceId,
         string $fileContent,
-        ServiceConfigurationModel $expectedServiceConfiguration
+        ?string $expectedHealthCheckUrl
     ): void {
         $this->createFileReadSuccessMocks(
             'App\Services',
@@ -303,16 +336,13 @@ class ServiceConfigurationTest extends TestCase
             $fileContent
         );
 
-        self::assertEquals(
-            $expectedServiceConfiguration,
-            $this->serviceConfiguration->getServiceConfiguration($serviceId)
-        );
+        self::assertSame($expectedHealthCheckUrl, $this->serviceConfiguration->getHealthCheckUrl($serviceId));
     }
 
     /**
      * @return array<mixed>
      */
-    public function getServiceConfigurationSuccessDataProvider(): array
+    public function getHealthCheckUrlSuccessDataProvider(): array
     {
         $serviceId = 'service_id';
 
@@ -320,37 +350,87 @@ class ServiceConfigurationTest extends TestCase
             'empty' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', ''),
+                'expectedHealthCheckUrl' => null,
             ],
             'content not a json array' => [
                 'serviceId' => $serviceId,
                 'fileContent' => 'true',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', ''),
+                'expectedHealthCheckUrl' => null,
             ],
             'single invalid item, key not a string' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{0:"value1"}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', ''),
+                'expectedHealthCheckUrl' => null,
             ],
             'single invalid item, value not a string' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{"key1":true}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', ''),
+                'expectedHealthCheckUrl' => null,
             ],
-            'state_url invalid, not a string' => [
+            'file content health_check_url invalid, not a string' => [
                 'serviceId' => $serviceId,
-                'fileContent' => '{"state_url":true,"health_check_url":"/health-check"}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '/health-check', ''),
-            ],
-            'health_check_url invalid, not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"state_url":"/state","health_check_url":true}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '', '/state'),
+                'fileContent' => '{"health_check_url":true}',
+                'expectedHealthCheckUrl' => null,
             ],
             'valid' => [
                 'serviceId' => $serviceId,
-                'fileContent' => '{"state_url":"/state","health_check_url":"/health-check"}',
-                'expectedServiceConfiguration' => new ServiceConfigurationModel($serviceId, '/health-check', '/state'),
+                'fileContent' => '{"health_check_url":"/health-check"}',
+                'expectedHealthCheckUrl' => '/health-check',
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider getStateUrlSuccessDataProvider
+     */
+    public function testGetStateUrlSuccess(string $serviceId, string $fileContent, ?string $expectedStateUrl): void
+    {
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            $fileContent
+        );
+
+        self::assertSame($expectedStateUrl, $this->serviceConfiguration->getStateUrl($serviceId));
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getStateUrlSuccessDataProvider(): array
+    {
+        $serviceId = 'service_id';
+
+        return [
+            'empty' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{}',
+                'expectedStateUrl' => null,
+            ],
+            'content not a json array' => [
+                'serviceId' => $serviceId,
+                'fileContent' => 'true',
+                'expectedStateUrl' => null,
+            ],
+            'single invalid item, key not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{0:"value1"}',
+                'expectedStateUrl' => null,
+            ],
+            'single invalid item, value not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"key1":true}',
+                'expectedStateUrl' => null,
+            ],
+            'state_url invalid, not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"state_url":true}',
+                'expectedStateUrl' => null,
+            ],
+            'valid' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"state_url":"/state"}',
+                'expectedStateUrl' => '/state',
             ],
         ];
     }
@@ -358,13 +438,12 @@ class ServiceConfigurationTest extends TestCase
     public function testSetConfigurationWriteFailureUnableToCreateDirectory(): void
     {
         $serviceId = 'service_id';
-        $serviceConfiguration = new ServiceConfigurationModel($serviceId, '', '');
         $dataDirectoryPath = $this->createExpectedDataDirectoryPath($serviceId);
 
         $this->mockFileExistsDoesNotExist($dataDirectoryPath);
         $this->mockMkdir($dataDirectoryPath, false);
 
-        $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceId, '', '');
 
         self::assertFalse($result);
     }
@@ -375,7 +454,6 @@ class ServiceConfigurationTest extends TestCase
         $healthCheckUrl = '/health-check';
         $stateUrl = '/state';
 
-        $serviceConfiguration = new ServiceConfigurationModel($serviceId, $healthCheckUrl, $stateUrl);
         $dataDirectoryPath = $this->createExpectedDataDirectoryPath($serviceId);
         $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
 
@@ -383,7 +461,7 @@ class ServiceConfigurationTest extends TestCase
         $this->mockMkdir($dataDirectoryPath, true);
         $this->mockFilePutContents($expectedFilePath, $healthCheckUrl, $stateUrl, false);
 
-        $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceId, $healthCheckUrl, $stateUrl);
 
         self::assertFalse($result);
     }
@@ -394,7 +472,6 @@ class ServiceConfigurationTest extends TestCase
         $healthCheckUrl = '/health-check';
         $stateUrl = '/state';
 
-        $serviceConfiguration = new ServiceConfigurationModel($serviceId, $healthCheckUrl, $stateUrl);
         $dataDirectoryPath = $this->createExpectedDataDirectoryPath($serviceId);
         $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
 
@@ -402,7 +479,7 @@ class ServiceConfigurationTest extends TestCase
         $this->mockMkdir($dataDirectoryPath, true);
         $this->mockFilePutContents($expectedFilePath, $healthCheckUrl, $stateUrl, 123);
 
-        $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceId, $healthCheckUrl, $stateUrl);
 
         self::assertTrue($result);
     }
