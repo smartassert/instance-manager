@@ -25,12 +25,12 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: FooIpAssignCommand::NAME,
+    name: IpAssignCommand::NAME,
     description: 'Assign a floating IP to current instance',
 )]
-class FooIpAssignCommand extends Command
+class IpAssignCommand extends Command
 {
-    public const NAME = 'foo:ip:assign';
+    public const NAME = 'app:ip:assign';
 
     public const EXIT_CODE_NO_CURRENT_INSTANCE = 3;
     public const EXIT_CODE_ACTION_TIMED_OUT = 5;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Command;
 
-use App\Command\FooIpAssignCommand;
+use App\Command\IpAssignCommand;
 use App\Command\Option;
 use App\Exception\ActionTimeoutException;
 use App\Services\ActionRunner;
@@ -20,14 +20,14 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 use webignition\ObjectReflector\ObjectReflector;
 
-class FooIpAssignCommandTest extends KernelTestCase
+class IpAssignCommandTest extends KernelTestCase
 {
     use MockeryPHPUnitIntegration;
 
     private const SERVICE_ID = 'service_id';
     private const IMAGE_ID = '123456';
 
-    private FooIpAssignCommand $command;
+    private IpAssignCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
 
@@ -35,8 +35,8 @@ class FooIpAssignCommandTest extends KernelTestCase
     {
         parent::setUp();
 
-        $command = self::getContainer()->get(FooIpAssignCommand::class);
-        \assert($command instanceof FooIpAssignCommand);
+        $command = self::getContainer()->get(IpAssignCommand::class);
+        \assert($command instanceof IpAssignCommand);
         $this->command = $command;
 
         $mockHandler = self::getContainer()->get(MockHandler::class);
@@ -68,7 +68,7 @@ class FooIpAssignCommandTest extends KernelTestCase
         return [
             'empty service id' => [
                 'input' => [],
-                'expectedReturnCode' => FooIpAssignCommand::EXIT_CODE_EMPTY_SERVICE_ID,
+                'expectedReturnCode' => IpAssignCommand::EXIT_CODE_EMPTY_SERVICE_ID,
             ],
         ];
     }
@@ -85,7 +85,7 @@ class FooIpAssignCommandTest extends KernelTestCase
 
         $commandReturnCode = $this->command->run($input, $output);
 
-        self::assertSame(FooIpAssignCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
+        self::assertSame(IpAssignCommand::EXIT_CODE_MISSING_IMAGE_ID, $commandReturnCode);
     }
 
     /**
@@ -141,7 +141,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                         ])
                     ],
                 ],
-                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_NO_CURRENT_INSTANCE,
+                'expectedExitCode' => IpAssignCommand::EXIT_CODE_NO_CURRENT_INSTANCE,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'no-instance',
@@ -203,7 +203,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                 ]),
             ],
             'creation timed out' => [
-                'setup' => function (FooIpAssignCommand $command) {
+                'setup' => function (IpAssignCommand $command) {
                     $actionRunner = \Mockery::mock(ActionRunner::class);
                     $actionRunner
                         ->shouldReceive('run')
@@ -212,7 +212,7 @@ class FooIpAssignCommandTest extends KernelTestCase
 
                     ObjectReflector::setProperty(
                         $command,
-                        FooIpAssignCommand::class,
+                        IpAssignCommand::class,
                         'actionRunner',
                         $actionRunner
                     );
@@ -252,7 +252,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                         ]),
                     ],
                 ],
-                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_ACTION_TIMED_OUT,
+                'expectedExitCode' => IpAssignCommand::EXIT_CODE_ACTION_TIMED_OUT,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'create-timed-out',
@@ -377,7 +377,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                 ]),
             ],
             're-assignment timed out' => [
-                'setup' => function (FooIpAssignCommand $command) {
+                'setup' => function (IpAssignCommand $command) {
                     $actionRunner = \Mockery::mock(ActionRunner::class);
                     $actionRunner
                         ->shouldReceive('run')
@@ -386,7 +386,7 @@ class FooIpAssignCommandTest extends KernelTestCase
 
                     ObjectReflector::setProperty(
                         $command,
-                        FooIpAssignCommand::class,
+                        IpAssignCommand::class,
                         'actionRunner',
                         $actionRunner
                     );
@@ -451,7 +451,7 @@ class FooIpAssignCommandTest extends KernelTestCase
                         ]),
                     ],
                 ],
-                'expectedExitCode' => FooIpAssignCommand::EXIT_CODE_ACTION_TIMED_OUT,
+                'expectedExitCode' => IpAssignCommand::EXIT_CODE_ACTION_TIMED_OUT,
                 'expectedOutput' => (string) json_encode([
                     'status' => 'error',
                     'error-code' => 'assign-timed-out',
