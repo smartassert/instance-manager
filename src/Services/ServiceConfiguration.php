@@ -100,6 +100,24 @@ class ServiceConfiguration
         return $this->serviceConfiguration;
     }
 
+    public function getHealthCheckUrl(string $serviceId): ?string
+    {
+        $serviceConfiguration = $this->getServiceConfiguration($serviceId);
+
+        return $serviceConfiguration instanceof ServiceConfigurationModel
+            ? $serviceConfiguration->getHealthCheckUrl()
+            : null;
+    }
+
+    public function getStateUrl(string $serviceId): ?string
+    {
+        $serviceConfiguration = $this->getServiceConfiguration($serviceId);
+
+        return $serviceConfiguration instanceof ServiceConfigurationModel
+            ? $serviceConfiguration->getStateUrl()
+            : null;
+    }
+
     public function setServiceConfiguration(ServiceConfigurationModel $serviceConfiguration): bool
     {
         $data = [
