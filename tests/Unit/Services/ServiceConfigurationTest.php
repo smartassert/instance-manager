@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Services;
 
 use App\Model\EnvironmentVariable;
-use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\FooConfigurationFactory;
 use App\Services\ServiceConfiguration;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -439,13 +438,12 @@ class ServiceConfigurationTest extends TestCase
     public function testSetConfigurationWriteFailureUnableToCreateDirectory(): void
     {
         $serviceId = 'service_id';
-        $serviceConfiguration = new ServiceConfigurationModel($serviceId, '', '');
         $dataDirectoryPath = $this->createExpectedDataDirectoryPath($serviceId);
 
         $this->mockFileExistsDoesNotExist($dataDirectoryPath);
         $this->mockMkdir($dataDirectoryPath, false);
 
-        $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceId, '', '');
 
         self::assertFalse($result);
     }
@@ -456,7 +454,6 @@ class ServiceConfigurationTest extends TestCase
         $healthCheckUrl = '/health-check';
         $stateUrl = '/state';
 
-        $serviceConfiguration = new ServiceConfigurationModel($serviceId, $healthCheckUrl, $stateUrl);
         $dataDirectoryPath = $this->createExpectedDataDirectoryPath($serviceId);
         $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
 
@@ -464,7 +461,7 @@ class ServiceConfigurationTest extends TestCase
         $this->mockMkdir($dataDirectoryPath, true);
         $this->mockFilePutContents($expectedFilePath, $healthCheckUrl, $stateUrl, false);
 
-        $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceId, $healthCheckUrl, $stateUrl);
 
         self::assertFalse($result);
     }
@@ -475,7 +472,6 @@ class ServiceConfigurationTest extends TestCase
         $healthCheckUrl = '/health-check';
         $stateUrl = '/state';
 
-        $serviceConfiguration = new ServiceConfigurationModel($serviceId, $healthCheckUrl, $stateUrl);
         $dataDirectoryPath = $this->createExpectedDataDirectoryPath($serviceId);
         $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
 
@@ -483,7 +479,7 @@ class ServiceConfigurationTest extends TestCase
         $this->mockMkdir($dataDirectoryPath, true);
         $this->mockFilePutContents($expectedFilePath, $healthCheckUrl, $stateUrl, 123);
 
-        $result = $this->serviceConfiguration->setServiceConfiguration($serviceConfiguration);
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceId, $healthCheckUrl, $stateUrl);
 
         self::assertTrue($result);
     }

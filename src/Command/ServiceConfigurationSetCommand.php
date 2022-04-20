@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Exception\ServiceIdMissingException;
-use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandConfigurator;
 use App\Services\ServiceConfiguration;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -80,8 +79,7 @@ class ServiceConfigurationSetCommand extends AbstractServiceCommand
             return self::EXIT_CODE_EMPTY_STATE_URL;
         }
 
-        $configuration = new ServiceConfigurationModel($serviceId, $healthCheckUrl, $stateUrl);
-        $result = $this->serviceConfiguration->setServiceConfiguration($configuration);
+        $result = $this->serviceConfiguration->setServiceConfiguration($serviceId, $healthCheckUrl, $stateUrl);
 
         return $result ? Command::SUCCESS : Command::FAILURE;
     }

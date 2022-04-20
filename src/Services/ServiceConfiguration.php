@@ -6,7 +6,6 @@ namespace App\Services;
 
 use App\Model\EnvironmentVariable;
 use App\Model\FooConfiguration;
-use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
@@ -97,14 +96,11 @@ class ServiceConfiguration
         return $this->getServiceConfiguration($serviceId)?->getString('state_url');
     }
 
-    public function setServiceConfiguration(ServiceConfigurationModel $serviceConfiguration): bool
+    public function setServiceConfiguration(string $serviceId, string $healthCheckUrl, string $stateUrl): bool
     {
-        $data = [
-            ServiceConfigurationModel::KEY_HEALTH_CHECK_URL => $serviceConfiguration->getHealthCheckUrl(),
-            ServiceConfigurationModel::KEY_STATE_URL => $serviceConfiguration->getStateUrl(),
-        ];
+        $data = ['health_check_url' => $healthCheckUrl, 'state_url' => $stateUrl];
 
-        $serviceConfigurationDirectory = $this->getServiceConfigurationDirectory($serviceConfiguration->getServiceId());
+        $serviceConfigurationDirectory = $this->getServiceConfigurationDirectory($serviceId);
         if (!file_exists($serviceConfigurationDirectory)) {
             $makeDirectoryResult = mkdir(directory: $serviceConfigurationDirectory, recursive: true);
             if (false === $makeDirectoryResult) {
@@ -112,7 +108,7 @@ class ServiceConfiguration
             }
         }
 
-        $filePath = $this->getFilePath($serviceConfiguration->getServiceId(), self::CONFIGURATION_FILENAME);
+        $filePath = $this->getFilePath($serviceId, self::CONFIGURATION_FILENAME);
         $writeResult = file_put_contents(
             $filePath,
             (string) json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
