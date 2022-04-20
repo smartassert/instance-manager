@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceListCommand;
 use App\Command\Option;
+use App\Exception\ServiceIdMissingException;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
@@ -43,6 +44,13 @@ class InstanceListCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
+    }
+
+    public function testRunWithoutServiceIdThrowsException(): void
+    {
+        $this->expectExceptionObject(new ServiceIdMissingException());
+
+        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     /**
@@ -155,13 +163,6 @@ class InstanceListCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         return [
-            'service id invalid, missing' => [
-                'input' => [],
-                'serviceConfiguration' => null,
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => InstanceListCommand::EXIT_CODE_EMPTY_SERVICE_ID,
-                'expectedOutput' => '"service-id" option empty',
-            ],
             'service configuration missing' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,

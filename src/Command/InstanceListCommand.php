@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ServiceIdMissingException;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
+use App\Services\CommandServiceIdExtractor;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
@@ -26,9 +27,9 @@ class InstanceListCommand extends Command
     public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
 
     public function __construct(
-        private InstanceRepository $instanceRepository,
         private CommandConfigurator $configurator,
-        private CommandInputReader $inputReader,
+        private CommandServiceIdExtractor $serviceIdExtractor,
+        private InstanceRepository $instanceRepository,
         private ServiceConfiguration $serviceConfiguration,
     ) {
         parent::__construct();
@@ -41,16 +42,11 @@ class InstanceListCommand extends Command
 
     /**
      * @throws ExceptionInterface
+     * @throws ServiceIdMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $serviceId = $this->inputReader->getTrimmedStringOption(Option::OPTION_SERVICE_ID, $input);
-        if ('' === $serviceId) {
-            $output->write('"' . Option::OPTION_SERVICE_ID . '" option empty');
-
-            return self::EXIT_CODE_EMPTY_SERVICE_ID;
-        }
-
+        $serviceId = $this->serviceIdExtractor->extract($input);
         $serviceConfiguration = $this->serviceConfiguration->getServiceConfiguration($serviceId);
         if (null === $serviceConfiguration) {
             $output->write('No configuration for service "' . $serviceId . '"');
