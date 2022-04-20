@@ -74,7 +74,7 @@ class IpAssignCommand extends Command
         }
 
         if (false === $this->serviceConfiguration->exists($serviceId)) {
-            $output->writeln('"' . Option::OPTION_SERVICE_ID . '" option empty');
+            $output->write('No configuration for service "' . $serviceId . '"');
 
             return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
         }
