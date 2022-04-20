@@ -7,7 +7,6 @@ namespace App\Tests\Functional\Command;
 use App\Command\InstanceIsReadyCommand;
 use App\Command\Option;
 use App\Exception\ServiceIdMissingException;
-use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandInstanceRepository;
 use App\Services\ServiceConfiguration;
 use App\Tests\Mock\MockServiceConfiguration;
@@ -117,13 +116,6 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     public function runDataProvider(): array
     {
         $serviceId = 'service_id';
-
-        $serviceConfiguration = new ServiceConfigurationModel(
-            $serviceId,
-            'https://{{ host }}/health-check',
-            'https://{{ host }}/state'
-        );
-
         $instanceId = 123;
         $dropletHttpResponseData = HttpResponseDataFactory::createJsonResponseData([
             'droplet' => [
