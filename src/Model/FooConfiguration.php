@@ -28,17 +28,25 @@ class FooConfiguration
         return $this->data[$key] ?? $default;
     }
 
-    public function getInt(string $key, ?int $default = null): ?int
+    public function getInt(string $key): ?int
     {
         $value = $this->get($key);
 
-        return is_int($value) || is_numeric($value) ? (int) $value : $default;
+        return is_int($value) || is_numeric($value) ? (int) $value : null;
     }
 
-    public function getString(string $key, ?string $default = null): ?string
+    public function getString(string $key): ?string
     {
         $value = $this->get($key);
 
-        return is_string($value) ? $value : $default;
+        return is_string($value) ? $value : null;
+    }
+
+    /**
+     * @return array<int|string, mixed>
+     */
+    public function getAll(): array
+    {
+        return $this->data;
     }
 }

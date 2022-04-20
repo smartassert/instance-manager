@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Services;
 
 use App\Model\EnvironmentVariable;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
+use App\Services\FooConfigurationFactory;
 use App\Services\ServiceConfiguration;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,6 +28,7 @@ class ServiceConfigurationTest extends TestCase
         parent::setUp();
 
         $this->serviceConfiguration = new ServiceConfiguration(
+            new FooConfigurationFactory(),
             self::SERVICE_CONFIGURATION_DIRECTORY,
             self::DEFAULT_DOMAIN
         );

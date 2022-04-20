@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Model\EnvironmentVariable;
+use App\Model\FooConfiguration;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -16,9 +17,18 @@ class ServiceConfiguration
     public const IMAGE_FILENAME = 'image.json';
     public const DOMAIN_FILENAME = 'domain.json';
 
+    /**
+     * @var Collection<int, EnvironmentVariable>
+     */
+    private Collection $environmentVariables;
+    private ?ServiceConfigurationModel $serviceConfiguration = null;
+    private ?FooConfiguration $imageConfiguration = null;
+    private ?FooConfiguration $domainConfiguration = null;
+
     public function __construct(
-        private string $configurationDirectory,
-        private string $defaultDomain,
+        private readonly FooConfigurationFactory $fooConfigurationFactory,
+        private readonly string $configurationDirectory,
+        private readonly string $defaultDomain,
     ) {
     }
 
@@ -32,44 +42,62 @@ class ServiceConfiguration
      */
     public function getEnvironmentVariables(string $serviceId): Collection
     {
-        $collection = new ArrayCollection();
+        if (!isset($this->environmentVariables)) {
+            $collection = new ArrayCollection();
 
-        $data = $this->readJsonFileToArray($serviceId, self::ENV_VAR_FILENAME);
-        if (is_array($data)) {
-            foreach ($data as $key => $value) {
-                if (is_string($key) && is_string($value)) {
-                    $collection[] = new EnvironmentVariable($key, $value);
+            $foo = $this->getFooConfiguration($serviceId, self::ENV_VAR_FILENAME);
+
+            if ($foo instanceof FooConfiguration) {
+                $data = $foo->getAll();
+
+                foreach ($data as $key => $value) {
+                    if (is_string($key) && is_string($value)) {
+                        $collection[] = new EnvironmentVariable($key, $value);
+                    }
                 }
             }
+
+            $this->environmentVariables = $collection;
         }
 
-        return $collection;
+        return $this->environmentVariables;
     }
 
     public function getImageId(string $serviceId): ?int
     {
-        $data = $this->readJsonFileToArray($serviceId, self::IMAGE_FILENAME);
-        $imageId = $data['image_id'] ?? null;
+        if (!$this->imageConfiguration instanceof FooConfiguration) {
+            $this->imageConfiguration = $this->getFooConfiguration($serviceId, self::IMAGE_FILENAME);
+        }
 
-        return is_int($imageId) || is_numeric($imageId) ? (int) $imageId : null;
+        return $this->imageConfiguration instanceof FooConfiguration
+            ? $this->imageConfiguration->getInt('image_id')
+            : null;
     }
 
     public function getDomain(string $serviceId): string
     {
-        $data = $this->readJsonFileToArray($serviceId, self::DOMAIN_FILENAME);
-        $domain = $data['domain'] ?? null;
+        if (!$this->domainConfiguration instanceof FooConfiguration) {
+            $this->domainConfiguration = $this->getFooConfiguration($serviceId, self::DOMAIN_FILENAME);
+        }
+
+        $domain = $this->domainConfiguration instanceof FooConfiguration
+            ? $this->domainConfiguration->getString('domain')
+            : null;
 
         return is_string($domain) ? $domain : $this->defaultDomain;
     }
 
     public function getServiceConfiguration(string $serviceId): ?ServiceConfigurationModel
     {
-        $data = $this->readJsonFileToArray($serviceId, self::CONFIGURATION_FILENAME);
-        if (null === $data) {
-            return null;
+        if (!$this->serviceConfiguration instanceof ServiceConfigurationModel) {
+            $foo = $this->getFooConfiguration($serviceId, self::CONFIGURATION_FILENAME);
+
+            if ($foo instanceof FooConfiguration) {
+                $this->serviceConfiguration = ServiceConfigurationModel::create($serviceId, $foo->getAll());
+            }
         }
 
-        return ServiceConfigurationModel::create($serviceId, $data);
+        return $this->serviceConfiguration;
     }
 
     public function setServiceConfiguration(ServiceConfigurationModel $serviceConfiguration): bool
@@ -96,32 +124,16 @@ class ServiceConfiguration
         return is_int($writeResult);
     }
 
+    private function getFooConfiguration(string $serviceId, string $filename): ?FooConfiguration
+    {
+        return $this->fooConfigurationFactory->foo($this->getFilePath($serviceId, $filename));
+    }
+
     private function jsonFileExists(string $serviceId, string $filename): bool
     {
         $filePath = $this->getFilePath($serviceId, $filename);
 
         return file_exists($filePath) && is_readable($filePath);
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    private function readJsonFileToArray(string $serviceId, string $filename): ?array
-    {
-        if (false === $this->jsonFileExists($serviceId, $filename)) {
-            return null;
-        }
-
-        $filePath = $this->getFilePath($serviceId, $filename);
-
-        $content = (string) file_get_contents($filePath);
-        $data = json_decode($content, true);
-
-        if (false === is_array($data)) {
-            return [];
-        }
-
-        return $data;
     }
 
     private function getServiceConfigurationDirectory(string $serviceId): string

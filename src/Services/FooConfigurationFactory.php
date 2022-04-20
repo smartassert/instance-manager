@@ -13,10 +13,10 @@ class FooConfigurationFactory
         return file_exists($path) && is_readable($path);
     }
 
-    public function foo(string $path): FooConfiguration
+    public function foo(string $path): ?FooConfiguration
     {
         if (false === (file_exists($path) && is_readable($path))) {
-            return new FooConfiguration([]);
+            return null;
         }
 
         $content = (string) file_get_contents($path);
