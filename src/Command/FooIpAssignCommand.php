@@ -131,7 +131,15 @@ class FooIpAssignCommand extends Command
                 $this->assignmentRetryInSeconds * self::MICROSECONDS_PER_SECOND
             );
         } catch (ActionTimeoutException) {
-            $output->write($this->createAssignmentTimeoutOutput($action, $ip, $source, $target));
+            $output->write($this->outputFactory->createErrorOutput(
+                $action . '-timed-out',
+                [
+                    'ip' => $ip,
+                    'source-instance' => $source,
+                    'target-instance' => $target,
+                    'timeout-in-seconds' => $this->assigmentTimeoutInSeconds,
+                ]
+            ));
 
             return self::EXIT_CODE_ACTION_TIMED_OUT;
         }
@@ -149,18 +157,5 @@ class FooIpAssignCommand extends Command
             'source-instance' => $source,
             'target-instance' => $target,
         ]);
-    }
-
-    private function createAssignmentTimeoutOutput(string $action, string $ip, ?int $source, int $target): string
-    {
-        return $this->outputFactory->createErrorOutput(
-            $action . '-timed-out',
-            [
-                'ip' => $ip,
-                'source-instance' => $source,
-                'target-instance' => $target,
-                'timeout-in-seconds' => $this->assigmentTimeoutInSeconds,
-            ]
-        );
     }
 }
