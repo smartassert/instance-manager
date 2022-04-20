@@ -7,12 +7,12 @@ namespace App\Model;
 class FooConfiguration
 {
     /**
-     * @var array<string, scalar>
+     * @var array<int|string, scalar>
      */
     private array $data = [];
 
     /**
-     * @param array<mixed> $data
+     * @param array<int|string, mixed> $data
      */
     public function __construct(array $data)
     {
