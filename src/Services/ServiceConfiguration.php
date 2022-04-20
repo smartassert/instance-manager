@@ -25,7 +25,7 @@ class ServiceConfiguration
     private ?Configuration $domainConfiguration = null;
 
     public function __construct(
-        private readonly FooConfigurationFactory $fooConfigurationFactory,
+        private readonly ConfigurationFactory $fooConfigurationFactory,
         private readonly string $configurationDirectory,
         private readonly string $defaultDomain,
     ) {

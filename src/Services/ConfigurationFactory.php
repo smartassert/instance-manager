@@ -6,7 +6,7 @@ namespace App\Services;
 
 use App\Model\Configuration;
 
-class FooConfigurationFactory
+class ConfigurationFactory
 {
     public function exists(string $path): bool
     {
