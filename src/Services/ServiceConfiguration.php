@@ -132,7 +132,7 @@ class ServiceConfiguration
 
     private function getFooConfiguration(string $serviceId, string $filename): ?Configuration
     {
-        return $this->fooConfigurationFactory->foo($this->getFilePath($serviceId, $filename));
+        return $this->fooConfigurationFactory->create($this->getFilePath($serviceId, $filename));
     }
 
     private function jsonFileExists(string $serviceId, string $filename): bool

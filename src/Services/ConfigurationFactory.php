@@ -13,7 +13,7 @@ class ConfigurationFactory
         return file_exists($path) && is_readable($path);
     }
 
-    public function foo(string $path): ?Configuration
+    public function create(string $path): ?Configuration
     {
         if (false === (file_exists($path) && is_readable($path))) {
             return null;
