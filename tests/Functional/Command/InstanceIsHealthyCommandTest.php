@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsHealthyCommand;
 use App\Command\Option;
+use App\Exception\ServiceIdMissingException;
 use App\Model\ServiceConfiguration as ServiceConfigurationModel;
 use App\Services\CommandInstanceRepository;
 use App\Services\ServiceConfiguration;
@@ -17,6 +18,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceIsHealthyCommandTest extends KernelTestCase
@@ -40,6 +42,13 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
+    }
+
+    public function testRunWithoutServiceIdThrowsException(): void
+    {
+        $this->expectExceptionObject(new ServiceIdMissingException());
+
+        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     /**
@@ -147,13 +156,6 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         $instanceId = 123;
 
         return [
-            'service id invalid, missing' => [
-                'input' => [],
-                'serviceConfiguration' => null,
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_EMPTY_SERVICE_ID,
-                'expectedOutput' => '"service-id" option empty',
-            ],
             'service configuration missing' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
