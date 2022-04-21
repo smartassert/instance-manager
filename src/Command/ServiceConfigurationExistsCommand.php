@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\ServiceIdMissingException;
+use App\Exception\RequiredOptionMissingException;
 use App\Services\CommandConfigurator;
 use App\Services\ServiceConfiguration;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -28,7 +28,7 @@ class ServiceConfigurationExistsCommand extends AbstractServiceCommand
     }
 
     /**
-     * @throws ServiceIdMissingException
+     * @throws RequiredOptionMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

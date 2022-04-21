@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\ServiceIdMissingException;
+use App\Exception\RequiredOptionMissingException;
 use App\Model\AssignedIp;
 use App\Services\CommandConfigurator;
 use App\Services\FloatingIpRepository;
@@ -31,7 +31,7 @@ class IpGetCommand extends AbstractServiceCommand
 
     /**
      * @throws ExceptionInterface
-     * @throws ServiceIdMissingException
+     * @throws RequiredOptionMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

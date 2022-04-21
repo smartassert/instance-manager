@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\ServiceIdMissingException;
+use App\Exception\RequiredOptionMissingException;
 use App\Model\Instance;
 use App\Model\InstanceCollection;
 use App\Services\CommandConfigurator;
@@ -36,7 +36,7 @@ class InstanceDestroyExpiredCommand extends AbstractServiceCommand
 
     /**
      * @throws ExceptionInterface
-     * @throws ServiceIdMissingException
+     * @throws RequiredOptionMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

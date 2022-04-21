@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Exception\ServiceIdMissingException;
 use App\Services\CommandConfigurator;
 use App\Services\ImageRepository;
 use App\Services\ServiceConfiguration;
@@ -34,7 +34,7 @@ class ImageExistsCommand extends AbstractServiceCommand
 
     /**
      * @throws ExceptionInterface
-     * @throws ServiceIdMissingException
+     * @throws RequiredOptionMissingException
      * @throws ConfigurationFileValueMissingException
      * @throws ServiceConfigurationMissingException
      */

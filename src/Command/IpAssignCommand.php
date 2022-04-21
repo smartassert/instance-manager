@@ -7,8 +7,8 @@ namespace App\Command;
 use App\ActionHandler\ActionHandler;
 use App\Exception\ActionTimeoutException;
 use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Exception\ServiceIdMissingException;
 use App\Model\AssignedIp;
 use App\Model\Instance;
 use App\Services\ActionRepository;
@@ -56,7 +56,7 @@ class IpAssignCommand extends AbstractServiceCommand
 
     /**
      * @throws ExceptionInterface
-     * @throws ServiceIdMissingException
+     * @throws RequiredOptionMissingException
      * @throws ConfigurationFileValueMissingException
      * @throws ServiceConfigurationMissingException
      */
