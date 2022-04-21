@@ -20,7 +20,6 @@ class CommandInstanceRepository
 
     public function __construct(
         private InstanceRepository $instanceRepository,
-        private CommandInputReader $commandInputReader,
         private OutputFactory $outputFactory,
     ) {
     }
@@ -34,7 +33,9 @@ class CommandInstanceRepository
         $this->errorMessage = '';
         $this->id = null;
 
-        $id = $this->commandInputReader->getIntegerOption(Option::OPTION_ID, $input);
+        $id = $input->getOption(Option::OPTION_ID);
+        $id = is_int($id) || is_string($id) && ctype_digit($id) ? (int) $id : null;
+
         if (null === $id) {
             $this->errorMessage = $this->outputFactory->createErrorOutput('id-invalid');
             $this->errorCode = self::EXIT_CODE_ID_INVALID;
