@@ -8,7 +8,6 @@ use App\Command\InstanceIsHealthyCommand;
 use App\Command\Option;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Services\CommandInstanceRepository;
 use App\Services\ServiceConfiguration;
 use App\Tests\Mock\MockServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
@@ -26,6 +25,8 @@ use webignition\ObjectReflector\ObjectReflector;
 class InstanceIsHealthyCommandTest extends KernelTestCase
 {
     use MissingServiceIdTestTrait;
+    use MissingInstanceIdTestTrait;
+    use MissingInstanceTestTrait;
 
     private InstanceIsHealthyCommand $command;
     private MockHandler $mockHandler;
@@ -120,96 +121,6 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ]),
             new BufferedOutput()
         );
-    }
-
-    /**
-     * @dataProvider runInvalidInputDataProvider
-     *
-     * @param array<mixed>             $input
-     * @param array<int, array<mixed>> $httpResponseDataCollection
-     */
-    public function testRunInvalidInput(
-        array $input,
-        ServiceConfiguration $serviceConfiguration,
-        array $httpResponseDataCollection,
-        int $expectedReturnCode,
-        string $expectedOutput
-    ): void {
-        $this->setCommandServiceConfiguration($serviceConfiguration);
-
-        foreach ($httpResponseDataCollection as $httpResponseData) {
-            $this->mockHandler->append(
-                $this->httpResponseFactory->createFromArray($httpResponseData)
-            );
-        }
-
-        $output = new BufferedOutput();
-
-        $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
-
-        self::assertSame($expectedReturnCode, $commandReturnCode);
-        self::assertSame($expectedOutput, $output->fetch());
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function runInvalidInputDataProvider(): array
-    {
-        $serviceId = 'service_id';
-        $instanceId = 123;
-
-        $serviceConfiguration = (new MockServiceConfiguration())
-            ->withExistsCall($serviceId, true)
-            ->withGetHealthCheckUrlCall($serviceId, '/health-check')
-            ->getMock()
-        ;
-
-        return [
-            'instance id invalid, missing' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
-                ],
-                'serviceConfiguration' => $serviceConfiguration,
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'id-invalid',
-                ]),
-            ],
-            'instance id invalid, not numeric' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
-                    '--' . Option::OPTION_ID => 'not-numeric',
-                ],
-                'serviceConfiguration' => $serviceConfiguration,
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'id-invalid',
-                ]),
-            ],
-            'instance not found' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
-                    '--' . Option::OPTION_ID => (string) $instanceId,
-                ],
-                'serviceConfiguration' => $serviceConfiguration,
-                'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 404,
-                    ],
-                ],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_NOT_FOUND,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'not-found',
-                    'id' => 123,
-                ]),
-            ],
-        ];
     }
 
     /**
@@ -392,6 +303,16 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     'service3' => 'available',
                 ]),
             ],
+        ];
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    protected static function getInputExcludingInstanceId(): array
+    {
+        return [
+            '--' . Option::OPTION_SERVICE_ID => 'service_id',
         ];
     }
 

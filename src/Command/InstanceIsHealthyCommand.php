@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\InstanceNotFoundException;
+use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Exception\ServiceIdMissingException;
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInstanceRepository;
@@ -56,9 +57,10 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
 
     /**
      * @throws ExceptionInterface
-     * @throws ServiceIdMissingException
+     * @throws RequiredOptionMissingException
      * @throws ServiceConfigurationMissingException
      * @throws ConfigurationFileValueMissingException
+     * @throws InstanceNotFoundException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -69,11 +71,6 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
         }
 
         $instance = $this->commandInstanceRepository->get($input);
-        if (null === $instance) {
-            $output->write($this->commandInstanceRepository->getErrorMessage());
-
-            return $this->commandInstanceRepository->getErrorCode();
-        }
 
         $result = $this->commandActionRunner->run(
             $this->getRetryLimit($input),

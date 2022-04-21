@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\ServiceIdMissingException;
+use App\Exception\RequiredOptionMissingException;
 use App\Services\CommandConfigurator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,7 +23,7 @@ abstract class AbstractServiceCommand extends Command
     }
 
     /**
-     * @throws ServiceIdMissingException
+     * @throws RequiredOptionMissingException
      */
     protected function getServiceId(InputInterface $input): string
     {
@@ -31,7 +31,7 @@ abstract class AbstractServiceCommand extends Command
         $serviceId = is_string($serviceId) ? $serviceId : '';
 
         if ('' === $serviceId) {
-            throw new ServiceIdMissingException();
+            throw new RequiredOptionMissingException(Option::OPTION_SERVICE_ID);
         }
 
         return $serviceId;
