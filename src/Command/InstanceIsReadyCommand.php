@@ -27,8 +27,6 @@ class InstanceIsReadyCommand extends AbstractServiceCommand
     use RetryableCommandTrait;
 
     public const NAME = 'app:instance:is-ready';
-    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
-    public const EXIT_CODE_SERVICE_STATE_URL_MISSING = 7;
 
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
@@ -66,11 +64,6 @@ class InstanceIsReadyCommand extends AbstractServiceCommand
     {
         $serviceId = $this->getServiceId($input);
         $stateUrl = $this->serviceConfiguration->getStateUrl($serviceId);
-        if ('' === $stateUrl) {
-            $output->write('No state_url for service "' . $serviceId . '"');
-
-            return self::EXIT_CODE_SERVICE_STATE_URL_MISSING;
-        }
 
         $instance = $this->commandInstanceRepository->get($input);
         if (null === $instance) {

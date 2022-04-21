@@ -36,7 +36,6 @@ class IpAssignCommand extends AbstractServiceCommand
 
     public const EXIT_CODE_NO_CURRENT_INSTANCE = 3;
     public const EXIT_CODE_ACTION_TIMED_OUT = 5;
-    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 8;
 
     private const MICROSECONDS_PER_SECOND = 1000000;
 
