@@ -70,12 +70,12 @@ class ServiceConfigurationTest extends TestCase
     /**
      * @dataProvider getEnvironmentVariablesSuccessDataProvider
      *
-     * @param Collection<int, EnvironmentVariable> $expectedEnvironmentVariables
+     * @param Collection<int, EnvironmentVariable> $expected
      */
     public function testGetEnvironmentVariablesSuccess(
         string $serviceId,
         string $fileContent,
-        Collection $expectedEnvironmentVariables
+        Collection $expected
     ): void {
         $this->createFileReadSuccessMocks(
             'App\Services',
@@ -85,7 +85,7 @@ class ServiceConfigurationTest extends TestCase
 
         $environmentVariableList = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
 
-        self::assertEquals($expectedEnvironmentVariables, $environmentVariableList);
+        self::assertEquals($expected, $environmentVariableList);
     }
 
     /**
@@ -93,43 +93,26 @@ class ServiceConfigurationTest extends TestCase
      */
     public function getEnvironmentVariablesSuccessDataProvider(): array
     {
-        return [
-            'empty' => [
-                'serviceId' => 'service1',
-                'fileContent' => '{}',
-                'expectedEnvironmentVariables' => new ArrayCollection(),
-            ],
-            'content not a json array' => [
-                'serviceId' => 'service1',
-                'fileContent' => 'true',
-                'expectedEnvironmentVariables' => new ArrayCollection(),
-            ],
-            'single invalid item, key not a string' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{0:"value1"}',
-                'expectedEnvironmentVariables' => new ArrayCollection(),
-            ],
-            'single invalid item, value not a string' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{"key1":true}',
-                'expectedEnvironmentVariables' => new ArrayCollection(),
-            ],
-            'single' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{"key1":"value1"}',
-                'expectedEnvironmentVariables' => new ArrayCollection([
-                    new EnvironmentVariable('key1', 'value1'),
-                ]),
-            ],
-            'multiple' => [
-                'serviceId' => 'service3',
-                'fileContent' => '{"key1":"value1", "key2":"value2"}',
-                'expectedEnvironmentVariables' => new ArrayCollection([
-                    new EnvironmentVariable('key1', 'value1'),
-                    new EnvironmentVariable('key2', 'value2'),
-                ]),
-            ],
-        ];
+        return array_merge(
+            $this->createValueMissingDataProvider('key', new ArrayCollection()),
+            [
+                'single' => [
+                    'serviceId' => 'service2',
+                    'fileContent' => '{"key1":"value1"}',
+                    'expected' => new ArrayCollection([
+                        new EnvironmentVariable('key1', 'value1'),
+                    ]),
+                ],
+                'multiple' => [
+                    'serviceId' => 'service3',
+                    'fileContent' => '{"key1":"value1", "key2":"value2"}',
+                    'expected' => new ArrayCollection([
+                        new EnvironmentVariable('key1', 'value1'),
+                        new EnvironmentVariable('key2', 'value2'),
+                    ]),
+                ]
+            ]
+        );
     }
 
     public function testExistsDoesNotExist(): void
@@ -218,9 +201,9 @@ class ServiceConfigurationTest extends TestCase
     }
 
     /**
-     * @dataProvider getImageIdValueNotPresentDataProvider
+     * @dataProvider getImageIdValueMissingDataProvider
      */
-    public function testGetImageIdValueNotPresent(string $serviceId, string $fileContent): void
+    public function testGetImageIdValueMissing(string $serviceId, string $fileContent): void
     {
         $this->createFileReadSuccessMocks(
             'App\Services',
@@ -240,26 +223,9 @@ class ServiceConfigurationTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function getImageIdValueNotPresentDataProvider(): array
+    public function getImageIdValueMissingDataProvider(): array
     {
-        return [
-            'empty' => [
-                'serviceId' => 'service1',
-                'fileContent' => '{}',
-            ],
-            'content not a json array' => [
-                'serviceId' => 'service1',
-                'fileContent' => 'true',
-            ],
-            'single invalid item, key not a string' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{0:"value1"}',
-            ],
-            'single invalid item, value not a string' => [
-                'serviceId' => 'service2',
-                'fileContent' => '{"key1":true}',
-            ],
-        ];
+        return $this->createValueMissingDataProvider('image_id', null);
     }
 
     public function testGetImageIdSuccess(): void
@@ -385,68 +351,20 @@ class ServiceConfigurationTest extends TestCase
      */
     public function getHealthCheckUrlValueMissingDataProvider(): array
     {
-        $serviceId = 'service_id';
-
-        return [
-            'empty' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{}',
-                'expectedHealthCheckUrl' => null,
-            ],
-            'content not a json array' => [
-                'serviceId' => $serviceId,
-                'fileContent' => 'true',
-                'expectedHealthCheckUrl' => null,
-            ],
-            'single invalid item, key not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{0:"value1"}',
-                'expectedHealthCheckUrl' => null,
-            ],
-            'single invalid item, value not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"key1":true}',
-                'expectedHealthCheckUrl' => null,
-            ],
-            'file content health_check_url invalid, not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"health_check_url":true}',
-                'expectedHealthCheckUrl' => null,
-            ],
-        ];
+        return $this->createValueMissingDataProvider('health_check_url', null);
     }
 
-    /**
-     * @dataProvider getHealthCheckUrlSuccessDataProvider
-     */
-    public function testGetHealthCheckUrlSuccess(
-        string $serviceId,
-        string $fileContent,
-        ?string $expectedHealthCheckUrl
-    ): void {
-        $this->createFileReadSuccessMocks(
-            'App\Services',
-            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
-            $fileContent
-        );
-
-        self::assertSame($expectedHealthCheckUrl, $this->serviceConfiguration->getHealthCheckUrl($serviceId));
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getHealthCheckUrlSuccessDataProvider(): array
+    public function testGetHealthCheckUrlSuccess(): void
     {
         $serviceId = 'service_id';
 
-        return [
-            'valid' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"health_check_url":"/health-check"}',
-                'expectedHealthCheckUrl' => '/health-check',
-            ],
-        ];
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            '{"health_check_url":"/health-check"}'
+        );
+
+        self::assertSame('/health-check', $this->serviceConfiguration->getHealthCheckUrl($serviceId));
     }
 
     /**
@@ -474,65 +392,20 @@ class ServiceConfigurationTest extends TestCase
      */
     public function getStateUrlValueMissingDataProvider(): array
     {
-        $serviceId = 'service_id';
-
-        return [
-            'empty' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{}',
-                'expectedStateUrl' => null,
-            ],
-            'content not a json array' => [
-                'serviceId' => $serviceId,
-                'fileContent' => 'true',
-                'expectedStateUrl' => null,
-            ],
-            'single invalid item, key not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{0:"value1"}',
-                'expectedStateUrl' => null,
-            ],
-            'single invalid item, value not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"key1":true}',
-                'expectedStateUrl' => null,
-            ],
-            'state_url invalid, not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"state_url":true}',
-                'expectedStateUrl' => null,
-            ],
-        ];
+        return $this->createValueMissingDataProvider('state_url', null);
     }
 
-    /**
-     * @dataProvider getStateUrlSuccessDataProvider
-     */
-    public function testGetStateUrlSuccess(string $serviceId, string $fileContent, ?string $expectedStateUrl): void
+    public function testGetStateUrlSuccess(): void
     {
+        $serviceId = 'service_id';
+
         $this->createFileReadSuccessMocks(
             'App\Services',
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
-            $fileContent
+            '{"state_url":"/state"}'
         );
 
-        self::assertSame($expectedStateUrl, $this->serviceConfiguration->getStateUrl($serviceId));
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getStateUrlSuccessDataProvider(): array
-    {
-        $serviceId = 'service_id';
-
-        return [
-            'valid' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"state_url":"/state"}',
-                'expectedStateUrl' => '/state',
-            ],
-        ];
+        self::assertSame('/state', $this->serviceConfiguration->getStateUrl($serviceId));
     }
 
     public function testSetConfigurationWriteFailureUnableToCreateDirectory(): void
@@ -649,40 +522,16 @@ class ServiceConfigurationTest extends TestCase
      */
     public function getDomainSuccessDataProvider(): array
     {
-        $serviceId = 'service_id';
-
-        return [
-            'empty' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{}',
-                'expectedDomain' => self::DEFAULT_DOMAIN,
-            ],
-            'content not a json array' => [
-                'serviceId' => $serviceId,
-                'fileContent' => 'true',
-                'expectedDomain' => self::DEFAULT_DOMAIN,
-            ],
-            'single invalid item, key not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{0:"value1"}',
-                'expectedDomain' => self::DEFAULT_DOMAIN,
-            ],
-            'single invalid item, value not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"key1":true}',
-                'expectedDomain' => self::DEFAULT_DOMAIN,
-            ],
-            'invalid, not a string' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"domain":true}',
-                'expectedDomain' => self::DEFAULT_DOMAIN,
-            ],
-            'valid' => [
-                'serviceId' => $serviceId,
-                'fileContent' => '{"domain":"example.com"}',
-                'expectedDomain' => 'example.com',
-            ],
-        ];
+        return array_merge(
+            $this->createValueMissingDataProvider('domain', self::DEFAULT_DOMAIN),
+            [
+                'valid' => [
+                    'serviceId' => 'service_id',
+                    'fileContent' => '{"domain":"example.com"}',
+                    'expectedDomain' => 'example.com',
+                ]
+            ]
+        );
     }
 
     private function createFileReadSuccessMocks(string $namespace, string $filePath, string $content): void
@@ -817,5 +666,41 @@ class ServiceConfigurationTest extends TestCase
             })
             ->andReturn($return)
         ;
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    private function createValueMissingDataProvider(string $key, mixed $expected): array
+    {
+        $serviceId = 'service_id';
+
+        return [
+            'empty' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{}',
+                'expected' => $expected,
+            ],
+            'content not a json array' => [
+                'serviceId' => $serviceId,
+                'fileContent' => 'true',
+                'expected' => $expected,
+            ],
+            'single invalid item, key not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{0:"value1"}',
+                'expected' => $expected,
+            ],
+            'single invalid item, value not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"key1":true}',
+                'expected' => $expected,
+            ],
+            'file content $key invalid, not a string' => [
+                'serviceId' => $serviceId,
+                'fileContent' => '{"' . $key . '":true}',
+                'expected' => $expected,
+            ],
+        ];
     }
 }
