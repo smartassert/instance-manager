@@ -29,7 +29,9 @@
         "phpstan/phpstan-symfony": "^1.1",
         "phpunit/phpunit": "^9.5",
         "squizlabs/php_codesniffer": "^3.6",
+        "symfony/finder": "6.0.*",
         "symfony/phpunit-bridge": "6.0.*",
+        "symfony/process": "6.0.*",
         "webignition/object-reflector": "^1.0"
     },
     "config": {
@@ -82,7 +84,8 @@
         "test-functional": "./vendor/bin/phpunit tests/Functional",
         "test": [
             "@test-unit",
-            "@test-functional"
+            "@test-functional",
+            "./vendor/bin/phpunit tests/Integration/CommandsAreRegisteredTest.php"
         ]
     },
     "conflict": {
