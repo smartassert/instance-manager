@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Exception\ServiceIdMissingException;
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
@@ -25,7 +27,6 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
     use RetryableCommandTrait;
 
     public const NAME = 'app:instance:is-healthy';
-    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
 
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
@@ -56,15 +57,15 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
     /**
      * @throws ExceptionInterface
      * @throws ServiceIdMissingException
+     * @throws ServiceConfigurationMissingException
+     * @throws ConfigurationFileValueMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
-
-        if (false === $this->serviceConfiguration->exists($serviceId)) {
-            $output->write('No configuration for service "' . $serviceId . '"');
-
-            return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
+        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($serviceId);
+        if ('' === $healthCheckUrl) {
+            return Command::SUCCESS;
         }
 
         $instance = $this->commandInstanceRepository->get($input);
@@ -72,11 +73,6 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
             $output->write($this->commandInstanceRepository->getErrorMessage());
 
             return $this->commandInstanceRepository->getErrorCode();
-        }
-
-        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($serviceId);
-        if (null === $healthCheckUrl || '' === $healthCheckUrl) {
-            return Command::SUCCESS;
         }
 
         $result = $this->commandActionRunner->run(

@@ -6,7 +6,6 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\Option;
 use App\Command\ServiceConfigurationSetCommand;
-use App\Exception\ServiceIdMissingException;
 use App\Services\ServiceConfiguration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -16,6 +15,8 @@ use webignition\ObjectReflector\ObjectReflector;
 
 class ServiceConfigurationSetCommandTest extends KernelTestCase
 {
+    use MissingServiceIdTestTrait;
+
     private ServiceConfigurationSetCommand $command;
 
     protected function setUp(): void
@@ -25,13 +26,6 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
         $command = self::getContainer()->get(ServiceConfigurationSetCommand::class);
         \assert($command instanceof ServiceConfigurationSetCommand);
         $this->command = $command;
-    }
-
-    public function testRunWithoutServiceIdThrowsException(): void
-    {
-        $this->expectExceptionObject(new ServiceIdMissingException());
-
-        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     /**

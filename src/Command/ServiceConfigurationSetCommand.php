@@ -36,9 +36,7 @@ class ServiceConfigurationSetCommand extends AbstractServiceCommand
 
     protected function configure(): void
     {
-        $this->configurator
-            ->addServiceIdOption($this)
-        ;
+        parent::configure();
 
         $this
             ->addOption(

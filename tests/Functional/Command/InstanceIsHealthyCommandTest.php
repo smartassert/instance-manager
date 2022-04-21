@@ -6,7 +6,8 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsHealthyCommand;
 use App\Command\Option;
-use App\Exception\ServiceIdMissingException;
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Services\CommandInstanceRepository;
 use App\Services\ServiceConfiguration;
 use App\Tests\Mock\MockServiceConfiguration;
@@ -24,6 +25,8 @@ use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceIsHealthyCommandTest extends KernelTestCase
 {
+    use MissingServiceIdTestTrait;
+
     private InstanceIsHealthyCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
@@ -45,11 +48,54 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         $this->httpResponseFactory = $httpResponseFactory;
     }
 
-    public function testRunWithoutServiceIdThrowsException(): void
+    public function testRunWithoutServiceConfigurationFileThrowsException(): void
     {
-        $this->expectExceptionObject(new ServiceIdMissingException());
+        $serviceId = 'service_id';
+        $instanceId = '123';
 
-        $this->command->run(new ArrayInput([]), new NullOutput());
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME)
+        );
+
+        $this->command->run(
+            new ArrayInput([
+                '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                '--' . Option::OPTION_ID => $instanceId,
+            ]),
+            new NullOutput()
+        );
+    }
+
+    public function testRunWithoutHealthCheckUrlThrowsException(): void
+    {
+        $serviceId = 'service_id';
+        $instanceId = '123';
+
+        $exception = new ConfigurationFileValueMissingException(
+            ServiceConfiguration::CONFIGURATION_FILENAME,
+            'health_check_url',
+            'service_id'
+        );
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            (new MockServiceConfiguration())
+                ->withExistsCall($serviceId, true)
+                ->withGetHealthCheckUrlCall($serviceId, $exception)
+                ->getMock()
+        );
+
+        $this->expectExceptionObject($exception);
+
+        $this->command->run(
+            new ArrayInput([
+                '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                '--' . Option::OPTION_ID => $instanceId,
+            ]),
+            new NullOutput()
+        );
     }
 
     public function testRunInvalidApiToken(): void
@@ -58,6 +104,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
 
         $this->setCommandServiceConfiguration((new MockServiceConfiguration())
             ->withExistsCall($serviceId, true)
+            ->withGetHealthCheckUrlCall($serviceId, '/health-check')
             ->getMock());
 
         $this->mockHandler->append(new Response(401));
@@ -112,26 +159,18 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         $serviceId = 'service_id';
         $instanceId = 123;
 
+        $serviceConfiguration = (new MockServiceConfiguration())
+            ->withExistsCall($serviceId, true)
+            ->withGetHealthCheckUrlCall($serviceId, '/health-check')
+            ->getMock()
+        ;
+
         return [
-            'service configuration missing' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
-                    '--' . Option::OPTION_ID => (string) $instanceId,
-                ],
-                'serviceConfiguration' => (new MockServiceConfiguration())
-                    ->withExistsCall($serviceId, false)
-                    ->getMock(),
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => InstanceIsHealthyCommand::EXIT_CODE_SERVICE_CONFIGURATION_MISSING,
-                'expectedOutput' => 'No configuration for service "service_id"',
-            ],
             'instance id invalid, missing' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                 ],
-                'serviceConfiguration' => (new MockServiceConfiguration())
-                    ->withExistsCall($serviceId, true)
-                    ->getMock(),
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [],
                 'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
                 'expectedOutput' => (string) json_encode([
@@ -144,9 +183,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--' . Option::OPTION_ID => 'not-numeric',
                 ],
-                'serviceConfiguration' => (new MockServiceConfiguration())
-                    ->withExistsCall($serviceId, true)
-                    ->getMock(),
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [],
                 'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
                 'expectedOutput' => (string) json_encode([
@@ -159,9 +196,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--' . Option::OPTION_ID => (string) $instanceId,
                 ],
-                'serviceConfiguration' => (new MockServiceConfiguration())
-                    ->withExistsCall($serviceId, true)
-                    ->getMock(),
+                'serviceConfiguration' => $serviceConfiguration,
                 'httpResponseDataCollection' => [
                     [
                         HttpResponseFactory::KEY_STATUS_CODE => 404,

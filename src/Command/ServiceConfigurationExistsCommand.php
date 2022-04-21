@@ -27,13 +27,6 @@ class ServiceConfigurationExistsCommand extends AbstractServiceCommand
         parent::__construct($configurator);
     }
 
-    protected function configure(): void
-    {
-        $this->configurator
-            ->addServiceIdOption($this)
-        ;
-    }
-
     /**
      * @throws ServiceIdMissingException
      */

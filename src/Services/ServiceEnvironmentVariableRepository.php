@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Exception\MissingSecretException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
 use Doctrine\Common\Collections\Collection;
 
@@ -20,6 +21,7 @@ class ServiceEnvironmentVariableRepository
     }
 
     /**
+     * @throws ServiceConfigurationMissingException
      * @throws MissingSecretException
      *
      * @return Collection<int, EnvironmentVariable>

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Exception\ServiceIdMissingException;
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
@@ -25,8 +27,6 @@ class InstanceIsReadyCommand extends AbstractServiceCommand
     use RetryableCommandTrait;
 
     public const NAME = 'app:instance:is-ready';
-    public const EXIT_CODE_SERVICE_CONFIGURATION_MISSING = 6;
-    public const EXIT_CODE_SERVICE_STATE_URL_MISSING = 7;
 
     public const OPTION_RETRY_LIMIT = 'retry-limit';
     public const OPTION_RETRY_DELAY = 'retry-delay';
@@ -57,23 +57,13 @@ class InstanceIsReadyCommand extends AbstractServiceCommand
     /**
      * @throws ExceptionInterface
      * @throws ServiceIdMissingException
+     * @throws ServiceConfigurationMissingException
+     * @throws ConfigurationFileValueMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
-
-        if (false === $this->serviceConfiguration->exists($serviceId)) {
-            $output->write('No configuration for service "' . $serviceId . '"');
-
-            return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
-        }
-
         $stateUrl = $this->serviceConfiguration->getStateUrl($serviceId);
-        if (null === $stateUrl || '' === $stateUrl) {
-            $output->write('No state_url for service "' . $serviceId . '"');
-
-            return self::EXIT_CODE_SERVICE_STATE_URL_MISSING;
-        }
 
         $instance = $this->commandInstanceRepository->get($input);
         if (null === $instance) {
