@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Exception\ImageIdMissingException;
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Model\Configuration;
 use App\Model\EnvironmentVariable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -21,9 +22,9 @@ class ServiceConfiguration
      * @var Collection<int, EnvironmentVariable>
      */
     private Collection $environmentVariables;
-    private ?Configuration $serviceConfiguration = null;
-    private ?Configuration $imageConfiguration = null;
-    private ?Configuration $domainConfiguration = null;
+    private Configuration $serviceConfiguration;
+    private Configuration $imageConfiguration;
+    private Configuration $domainConfiguration;
 
     public function __construct(
         private readonly ConfigurationFactory $configurationFactory,
@@ -64,44 +65,89 @@ class ServiceConfiguration
     }
 
     /**
-     * @throws ImageIdMissingException
+     * @throws ConfigurationFileValueMissingException
+     * @throws ServiceConfigurationMissingException
      */
     public function getImageId(string $serviceId): int
     {
-        if (!$this->imageConfiguration instanceof Configuration) {
-            $this->imageConfiguration = $this->createConfiguration($serviceId, self::IMAGE_FILENAME);
+        if (!isset($this->imageConfiguration)) {
+            $this->imageConfiguration = $this->createConfigurationThrowingExceptionIfMissing(
+                $serviceId,
+                self::IMAGE_FILENAME
+            );
         }
 
-        $imageId = $this->imageConfiguration?->getInt('image_id');
+        $key = 'image_id';
+        $imageId = $this->imageConfiguration->getInt($key);
 
         if (!is_int($imageId)) {
-            throw new ImageIdMissingException($serviceId);
+            throw new ConfigurationFileValueMissingException(self::IMAGE_FILENAME, $key, $serviceId);
         }
 
         return $imageId;
     }
 
+    /**
+     * @throws ServiceConfigurationMissingException
+     */
     public function getDomain(string $serviceId): string
     {
-        if (!$this->domainConfiguration instanceof Configuration) {
-            $this->domainConfiguration = $this->createConfiguration($serviceId, self::DOMAIN_FILENAME);
+        if (!isset($this->domainConfiguration)) {
+            $this->domainConfiguration = $this->createConfigurationThrowingExceptionIfMissing(
+                $serviceId,
+                self::DOMAIN_FILENAME
+            );
         }
 
-        $domain = $this->domainConfiguration instanceof Configuration
-            ? $this->domainConfiguration->getString('domain')
-            : null;
+        $domain = $this->domainConfiguration->getString('domain');
 
         return is_string($domain) ? $domain : $this->defaultDomain;
     }
 
-    public function getHealthCheckUrl(string $serviceId): ?string
+    /**
+     * @throws ServiceConfigurationMissingException
+     * @throws ConfigurationFileValueMissingException
+     */
+    public function getHealthCheckUrl(string $serviceId): string
     {
-        return $this->getServiceConfiguration($serviceId)?->getString('health_check_url');
+        if (!isset($this->serviceConfiguration)) {
+            $this->serviceConfiguration = $this->createConfigurationThrowingExceptionIfMissing(
+                $serviceId,
+                self::CONFIGURATION_FILENAME
+            );
+        }
+
+        $key = 'health_check_url';
+        $healthCheckUrl = $this->serviceConfiguration->getString($key);
+
+        if (null === $healthCheckUrl) {
+            throw new ConfigurationFileValueMissingException(self::CONFIGURATION_FILENAME, $key, $serviceId);
+        }
+
+        return $healthCheckUrl;
     }
 
-    public function getStateUrl(string $serviceId): ?string
+    /**
+     * @throws ServiceConfigurationMissingException
+     * @throws ConfigurationFileValueMissingException
+     */
+    public function getStateUrl(string $serviceId): string
     {
-        return $this->getServiceConfiguration($serviceId)?->getString('state_url');
+        if (!isset($this->serviceConfiguration)) {
+            $this->serviceConfiguration = $this->createConfigurationThrowingExceptionIfMissing(
+                $serviceId,
+                self::CONFIGURATION_FILENAME
+            );
+        }
+
+        $key = 'state_url';
+        $stateUrl = $this->serviceConfiguration->getString('state_url');
+
+        if (null === $stateUrl) {
+            throw new ConfigurationFileValueMissingException(self::CONFIGURATION_FILENAME, $key, $serviceId);
+        }
+
+        return $stateUrl;
     }
 
     public function setServiceConfiguration(string $serviceId, string $healthCheckUrl, string $stateUrl): bool
@@ -125,17 +171,17 @@ class ServiceConfiguration
         return is_int($writeResult);
     }
 
-    private function getServiceConfiguration(string $serviceId): ?Configuration
+    /**
+     * @throws ServiceConfigurationMissingException
+     */
+    private function createConfigurationThrowingExceptionIfMissing(string $serviceId, string $filename): Configuration
     {
-        if (!$this->serviceConfiguration instanceof Configuration) {
-            $serviceConfiguration = $this->createConfiguration($serviceId, self::CONFIGURATION_FILENAME);
-
-            if ($serviceConfiguration instanceof Configuration) {
-                $this->serviceConfiguration = $serviceConfiguration;
-            }
+        $configuration = $this->createConfiguration($serviceId, $filename);
+        if (null === $configuration) {
+            throw new ServiceConfigurationMissingException($serviceId, $filename);
         }
 
-        return $this->serviceConfiguration;
+        return $configuration;
     }
 
     private function createConfiguration(string $serviceId, string $filename): ?Configuration

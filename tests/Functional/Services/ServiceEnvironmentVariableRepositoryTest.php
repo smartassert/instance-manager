@@ -8,6 +8,7 @@ use App\Exception\MissingSecretException;
 use App\Model\EnvironmentVariable;
 use App\Services\ServiceConfiguration;
 use App\Services\ServiceEnvironmentVariableRepository;
+use App\Tests\Mock\MockServiceConfiguration;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -44,11 +45,11 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
         string $serviceConfigurationDomain,
         Collection $expectedEnvironmentVariables,
     ): void {
-        $this->mockServiceConfiguration(
-            self::IMAGE_ID,
-            $serviceConfigurationEnvironmentVariables,
-            $serviceConfigurationDomain
-        );
+        $this->setServiceConfiguration((new MockServiceConfiguration())
+            ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
+            ->withGetEnvironmentVariablesCall(self::SERVICE_ID, $serviceConfigurationEnvironmentVariables)
+            ->withGetDomainCall(self::SERVICE_ID, $serviceConfigurationDomain)
+            ->getMock());
 
         $environmentVariables = $this->repository->getCollection(self::SERVICE_ID, $secretsJson);
 
@@ -117,7 +118,10 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
         Collection $environmentVariables,
         string $expectedExceptionMessage
     ): void {
-        $this->mockServiceConfiguration(self::IMAGE_ID, $environmentVariables);
+        $this->setServiceConfiguration((new MockServiceConfiguration())
+            ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
+            ->withGetEnvironmentVariablesCall(self::SERVICE_ID, $environmentVariables)
+            ->getMock());
 
         self::expectException(MissingSecretException::class);
         self::expectExceptionMessage($expectedExceptionMessage);
@@ -149,36 +153,8 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
         ];
     }
 
-    /**
-     * @param null|Collection<int, EnvironmentVariable> $environmentVariables
-     */
-    private function mockServiceConfiguration(
-        ?string $imageId,
-        ?Collection $environmentVariables = null,
-        ?string $domain = null,
-    ): void {
-        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
-        $serviceConfiguration
-            ->shouldReceive('getImageId')
-            ->with(self::SERVICE_ID)
-            ->andReturn($imageId)
-        ;
-
-        if ($environmentVariables instanceof Collection) {
-            $serviceConfiguration
-                ->shouldReceive('getEnvironmentVariables')
-                ->with(self::SERVICE_ID)
-                ->andReturn($environmentVariables)
-            ;
-        }
-
-        if (is_string($domain)) {
-            $serviceConfiguration
-                ->shouldReceive('getDomain')
-                ->andReturn($domain)
-            ;
-        }
-
+    private function setServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
+    {
         ObjectReflector::setProperty(
             $this->repository,
             $this->repository::class,

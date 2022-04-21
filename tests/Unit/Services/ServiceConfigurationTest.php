@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Services;
 
-use App\Exception\ImageIdMissingException;
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
 use App\Services\ConfigurationFactory;
 use App\Services\ServiceConfiguration;
@@ -180,7 +181,9 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
-        $this->expectExceptionObject(new ImageIdMissingException($serviceId));
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::IMAGE_FILENAME)
+        );
 
         $this->doTestFileDoesNotExist(
             $serviceId,
@@ -198,7 +201,9 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
-        $this->expectExceptionObject(new ImageIdMissingException($serviceId));
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::IMAGE_FILENAME)
+        );
 
         $this->doTestFileIsNotReadable(
             $serviceId,
@@ -223,7 +228,11 @@ class ServiceConfigurationTest extends TestCase
             $fileContent
         );
 
-        $this->expectExceptionObject(new ImageIdMissingException($serviceId));
+        $this->expectExceptionObject(new ConfigurationFileValueMissingException(
+            ServiceConfiguration::IMAGE_FILENAME,
+            'image_id',
+            $serviceId
+        ));
 
         $this->serviceConfiguration->getImageId($serviceId);
     }
@@ -272,6 +281,10 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME)
+        );
+
         $this->doTestFileDoesNotExist(
             $serviceId,
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
@@ -287,6 +300,10 @@ class ServiceConfigurationTest extends TestCase
     public function testGetStateUrlFileDoesNotExist(): void
     {
         $serviceId = 'service_id';
+
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME)
+        );
 
         $this->doTestFileDoesNotExist(
             $serviceId,
@@ -304,6 +321,10 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME)
+        );
+
         $this->doTestFileIsNotReadable(
             $serviceId,
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
@@ -320,6 +341,10 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME)
+        );
+
         $this->doTestFileIsNotReadable(
             $serviceId,
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
@@ -333,13 +358,19 @@ class ServiceConfigurationTest extends TestCase
     }
 
     /**
-     * @dataProvider getHealthCheckUrlSuccessDataProvider
+     * @dataProvider getHealthCheckUrlValueMissingDataProvider
      */
-    public function testGetHealthCheckUrlSuccess(
+    public function testGetHealthCheckValueMissing(
         string $serviceId,
         string $fileContent,
         ?string $expectedHealthCheckUrl
     ): void {
+        $this->expectExceptionObject(new ConfigurationFileValueMissingException(
+            ServiceConfiguration::CONFIGURATION_FILENAME,
+            'health_check_url',
+            $serviceId
+        ));
+
         $this->createFileReadSuccessMocks(
             'App\Services',
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
@@ -352,7 +383,7 @@ class ServiceConfigurationTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function getHealthCheckUrlSuccessDataProvider(): array
+    public function getHealthCheckUrlValueMissingDataProvider(): array
     {
         $serviceId = 'service_id';
 
@@ -382,6 +413,34 @@ class ServiceConfigurationTest extends TestCase
                 'fileContent' => '{"health_check_url":true}',
                 'expectedHealthCheckUrl' => null,
             ],
+        ];
+    }
+
+    /**
+     * @dataProvider getHealthCheckUrlSuccessDataProvider
+     */
+    public function testGetHealthCheckUrlSuccess(
+        string $serviceId,
+        string $fileContent,
+        ?string $expectedHealthCheckUrl
+    ): void {
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            $fileContent
+        );
+
+        self::assertSame($expectedHealthCheckUrl, $this->serviceConfiguration->getHealthCheckUrl($serviceId));
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getHealthCheckUrlSuccessDataProvider(): array
+    {
+        $serviceId = 'service_id';
+
+        return [
             'valid' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{"health_check_url":"/health-check"}',
@@ -391,10 +450,16 @@ class ServiceConfigurationTest extends TestCase
     }
 
     /**
-     * @dataProvider getStateUrlSuccessDataProvider
+     * @dataProvider getStateUrlValueMissingDataProvider
      */
-    public function testGetStateUrlSuccess(string $serviceId, string $fileContent, ?string $expectedStateUrl): void
+    public function testGetStateUrlValueMissing(string $serviceId, string $fileContent, ?string $expectedStateUrl): void
     {
+        $this->expectExceptionObject(new ConfigurationFileValueMissingException(
+            ServiceConfiguration::CONFIGURATION_FILENAME,
+            'state_url',
+            $serviceId
+        ));
+
         $this->createFileReadSuccessMocks(
             'App\Services',
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
@@ -407,7 +472,7 @@ class ServiceConfigurationTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function getStateUrlSuccessDataProvider(): array
+    public function getStateUrlValueMissingDataProvider(): array
     {
         $serviceId = 'service_id';
 
@@ -437,6 +502,31 @@ class ServiceConfigurationTest extends TestCase
                 'fileContent' => '{"state_url":true}',
                 'expectedStateUrl' => null,
             ],
+        ];
+    }
+
+    /**
+     * @dataProvider getStateUrlSuccessDataProvider
+     */
+    public function testGetStateUrlSuccess(string $serviceId, string $fileContent, ?string $expectedStateUrl): void
+    {
+        $this->createFileReadSuccessMocks(
+            'App\Services',
+            $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME),
+            $fileContent
+        );
+
+        self::assertSame($expectedStateUrl, $this->serviceConfiguration->getStateUrl($serviceId));
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    public function getStateUrlSuccessDataProvider(): array
+    {
+        $serviceId = 'service_id';
+
+        return [
             'valid' => [
                 'serviceId' => $serviceId,
                 'fileContent' => '{"state_url":"/state"}',
@@ -498,6 +588,10 @@ class ServiceConfigurationTest extends TestCase
     {
         $serviceId = 'service_id';
 
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::DOMAIN_FILENAME)
+        );
+
         $this->doTestFileDoesNotExist(
             $serviceId,
             $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::DOMAIN_FILENAME),
@@ -513,6 +607,10 @@ class ServiceConfigurationTest extends TestCase
     public function testGetDomainFileIsNotReadable(): void
     {
         $serviceId = 'service_id';
+
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::DOMAIN_FILENAME)
+        );
 
         $this->doTestFileIsNotReadable(
             $serviceId,

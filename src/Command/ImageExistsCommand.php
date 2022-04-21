@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
-use App\Exception\ImageIdMissingException;
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Exception\ServiceIdMissingException;
 use App\Services\CommandConfigurator;
 use App\Services\ImageRepository;
@@ -34,7 +35,8 @@ class ImageExistsCommand extends AbstractServiceCommand
     /**
      * @throws ExceptionInterface
      * @throws ServiceIdMissingException
-     * @throws ImageIdMissingException
+     * @throws ConfigurationFileValueMissingException
+     * @throws ServiceConfigurationMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

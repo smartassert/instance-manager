@@ -6,13 +6,11 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\ImageExistsCommand;
 use App\Command\Option;
-use App\Exception\ServiceIdMissingException;
 use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -23,7 +21,8 @@ use webignition\ObjectReflector\ObjectReflector;
 
 class ImageExistsCommandTest extends KernelTestCase
 {
-    use MockeryPHPUnitIntegration;
+    use MissingServiceIdTestTrait;
+    use MissingImageIdTestTrait;
 
     private const SERVICE_ID = 'service_id';
     private const IMAGE_ID = '12345';
@@ -42,13 +41,6 @@ class ImageExistsCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
-    }
-
-    public function testRunWithoutServiceIdThrowsException(): void
-    {
-        $this->expectExceptionObject(new ServiceIdMissingException());
-
-        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     /**

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Mock;
 
+use App\Model\EnvironmentVariable;
 use App\Services\ServiceConfiguration;
+use Doctrine\Common\Collections\Collection;
 use Mockery\MockInterface;
 
 class MockServiceConfiguration
@@ -31,14 +33,27 @@ class MockServiceConfiguration
         return $this->withCall($serviceId, 'getImageId', $outcome);
     }
 
-    public function withGetHealthCheckUrlCall(string $serviceId, ?string $healthCheckUrl): self
+    public function withGetHealthCheckUrlCall(string $serviceId, null|string|\Exception $outcome): self
     {
-        return $this->withCall($serviceId, 'getHealthCheckUrl', $healthCheckUrl);
+        return $this->withCall($serviceId, 'getHealthCheckUrl', $outcome);
     }
 
-    public function withGetStateUrlCall(string $serviceId, ?string $stateUrl): self
+    public function withGetStateUrlCall(string $serviceId, null|string|\Exception $outcome): self
     {
-        return $this->withCall($serviceId, 'getStateUrl', $stateUrl);
+        return $this->withCall($serviceId, 'getStateUrl', $outcome);
+    }
+
+    public function withGetDomainCall(string $serviceId, null|string|\Exception $outcome): self
+    {
+        return $this->withCall($serviceId, 'getDomain', $outcome);
+    }
+
+    /**
+     * @param Collection<int, EnvironmentVariable>|\Exception $outcome
+     */
+    public function withGetEnvironmentVariablesCall(string $serviceId, Collection|\Exception $outcome): self
+    {
+        return $this->withCall($serviceId, 'getEnvironmentVariables', $outcome);
     }
 
     private function withCall(string $serviceId, string $method, mixed $outcome): self

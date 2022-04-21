@@ -6,7 +6,6 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceListCommand;
 use App\Command\Option;
-use App\Exception\ServiceIdMissingException;
 use App\Services\ServiceConfiguration;
 use App\Tests\Mock\MockServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
@@ -19,12 +18,12 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\Console\Output\NullOutput;
 use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceListCommandTest extends KernelTestCase
 {
     use MockeryPHPUnitIntegration;
+    use MissingServiceIdTestTrait;
 
     private InstanceListCommand $command;
     private MockHandler $mockHandler;
@@ -45,13 +44,6 @@ class InstanceListCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
-    }
-
-    public function testRunWithoutServiceIdThrowsException(): void
-    {
-        $this->expectExceptionObject(new ServiceIdMissingException());
-
-        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     public function testRunInvalidApiToken(): void

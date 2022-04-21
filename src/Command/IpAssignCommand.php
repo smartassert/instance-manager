@@ -6,7 +6,8 @@ namespace App\Command;
 
 use App\ActionHandler\ActionHandler;
 use App\Exception\ActionTimeoutException;
-use App\Exception\ImageIdMissingException;
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Exception\ServiceIdMissingException;
 use App\Model\AssignedIp;
 use App\Model\Instance;
@@ -57,17 +58,12 @@ class IpAssignCommand extends AbstractServiceCommand
     /**
      * @throws ExceptionInterface
      * @throws ServiceIdMissingException
-     * @throws ImageIdMissingException
+     * @throws ConfigurationFileValueMissingException
+     * @throws ServiceConfigurationMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
-        if (false === $this->serviceConfiguration->exists($serviceId)) {
-            $output->write('No configuration for service "' . $serviceId . '"');
-
-            return self::EXIT_CODE_SERVICE_CONFIGURATION_MISSING;
-        }
-
         $imageId = $this->serviceConfiguration->getImageId($serviceId);
 
         $instance = $this->instanceRepository->findCurrent($serviceId, $imageId);

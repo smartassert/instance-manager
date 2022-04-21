@@ -7,8 +7,6 @@ namespace App\Tests\Functional\Command;
 use App\Command\IpAssignCommand;
 use App\Command\Option;
 use App\Exception\ActionTimeoutException;
-use App\Exception\ImageIdMissingException;
-use App\Exception\ServiceIdMissingException;
 use App\Services\ActionRunner;
 use App\Services\ServiceConfiguration;
 use App\Tests\Mock\MockServiceConfiguration;
@@ -20,12 +18,13 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\Console\Output\NullOutput;
 use webignition\ObjectReflector\ObjectReflector;
 
 class IpAssignCommandTest extends KernelTestCase
 {
     use MockeryPHPUnitIntegration;
+    use MissingServiceIdTestTrait;
+    use MissingImageIdTestTrait;
 
     private const SERVICE_ID = 'service_id';
     private const IMAGE_ID = '123456';
@@ -49,55 +48,6 @@ class IpAssignCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
-    }
-
-    public function testRunWithoutServiceIdThrowsException(): void
-    {
-        $this->expectExceptionObject(new ServiceIdMissingException());
-
-        $this->command->run(new ArrayInput([]), new NullOutput());
-    }
-
-    public function testRunServiceConfigurationMissing(): void
-    {
-        $input = new ArrayInput([
-            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
-        ]);
-
-        $output = new BufferedOutput();
-
-        $serviceConfiguration = (new MockServiceConfiguration())
-            ->withExistsCall(self::SERVICE_ID, false)
-            ->getMock()
-        ;
-
-        $this->setCommandServiceConfiguration($serviceConfiguration);
-
-        $commandReturnCode = $this->command->run($input, $output);
-
-        self::assertSame(IpAssignCommand::EXIT_CODE_SERVICE_CONFIGURATION_MISSING, $commandReturnCode);
-    }
-
-    public function testRunImageIdMissing(): void
-    {
-        $input = new ArrayInput([
-            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
-        ]);
-
-        $output = new BufferedOutput();
-
-        $exception = new ImageIdMissingException(self::SERVICE_ID);
-
-        $this->setCommandServiceConfiguration(
-            (new MockServiceConfiguration())
-                ->withExistsCall(self::SERVICE_ID, true)
-                ->withGetImageIdCall(self::SERVICE_ID, $exception)
-                ->getMock()
-        );
-
-        $this->expectExceptionObject($exception);
-
-        $this->command->run($input, $output);
     }
 
     /**

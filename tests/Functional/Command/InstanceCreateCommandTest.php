@@ -6,8 +6,6 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
 use App\Command\Option;
-use App\Exception\ImageIdMissingException;
-use App\Exception\ServiceIdMissingException;
 use App\Model\EnvironmentVariable;
 use App\Services\BootScriptFactory;
 use App\Services\InstanceRepository;
@@ -21,7 +19,6 @@ use DigitalOceanV2\Exception\RuntimeException;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use GuzzleHttp\Handler\MockHandler;
-use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -32,7 +29,8 @@ use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceCreateCommandTest extends KernelTestCase
 {
-    use MockeryPHPUnitIntegration;
+    use MissingServiceIdTestTrait;
+    use MissingImageIdTestTrait;
 
     private const SERVICE_ID = 'service_id';
     private const IMAGE_ID = '12345';
@@ -51,13 +49,6 @@ class InstanceCreateCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
-    }
-
-    public function testRunWithoutServiceIdThrowsException(): void
-    {
-        $this->expectExceptionObject(new ServiceIdMissingException());
-
-        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     /**
@@ -109,28 +100,6 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'expectedExceptionCode' => 401,
             ],
         ];
-    }
-
-    public function testRunImageIdMissing(): void
-    {
-        $input = new ArrayInput([
-            '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
-        ]);
-
-        $output = new BufferedOutput();
-
-        $exception = new ImageIdMissingException(self::SERVICE_ID);
-
-        $this->setCommandServiceConfiguration(
-            (new MockServiceConfiguration())
-                ->withExistsCall(self::SERVICE_ID, true)
-                ->withGetImageIdCall(self::SERVICE_ID, $exception)
-                ->getMock()
-        );
-
-        $this->expectExceptionObject($exception);
-
-        $this->command->run($input, $output);
     }
 
     public function testRunFirstBootScriptInvalid(): void

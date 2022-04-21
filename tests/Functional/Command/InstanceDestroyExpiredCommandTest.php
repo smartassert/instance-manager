@@ -6,17 +6,17 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceDestroyExpiredCommand;
 use App\Command\Option;
-use App\Exception\ServiceIdMissingException;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use Symfony\Component\Console\Output\NullOutput;
 
 class InstanceDestroyExpiredCommandTest extends KernelTestCase
 {
+    use MissingServiceIdTestTrait;
+
     private const COLLECTION_TAG = 'service_id';
 
     private InstanceDestroyExpiredCommand $command;
@@ -38,13 +38,6 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
         $httpResponseFactory = self::getContainer()->get(HttpResponseFactory::class);
         \assert($httpResponseFactory instanceof HttpResponseFactory);
         $this->httpResponseFactory = $httpResponseFactory;
-    }
-
-    public function testRunWithoutServiceIdThrowsException(): void
-    {
-        $this->expectExceptionObject(new ServiceIdMissingException());
-
-        $this->command->run(new ArrayInput([]), new NullOutput());
     }
 
     /**
