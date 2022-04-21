@@ -9,7 +9,7 @@ use App\Services\CommandConfigurator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 
-class AbstractServiceCommand extends Command
+abstract class AbstractServiceCommand extends Command
 {
     public function __construct(
         protected CommandConfigurator $configurator,
