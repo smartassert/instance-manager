@@ -13,8 +13,6 @@ use Symfony\Component\Console\Input\InputInterface;
 
 class CommandInstanceRepository
 {
-    private ?int $id = null;
-
     public function __construct(
         private readonly InstanceRepository $instanceRepository,
     ) {
@@ -27,8 +25,6 @@ class CommandInstanceRepository
      */
     public function get(InputInterface $input): Instance
     {
-        $this->id = null;
-
         $id = $input->getOption(Option::OPTION_ID);
         $id = is_int($id) || is_string($id) && ctype_digit($id) ? (int) $id : null;
 
@@ -36,18 +32,11 @@ class CommandInstanceRepository
             throw new RequiredOptionMissingException(Option::OPTION_ID);
         }
 
-        $this->id = $id;
-
-        $instance = $this->instanceRepository->find((int) $this->id);
+        $instance = $this->instanceRepository->find($id);
         if (null === $instance) {
             throw new InstanceNotFoundException($id);
         }
 
         return $instance;
-    }
-
-    public function getId(): ?int
-    {
-        return $this->id;
     }
 }

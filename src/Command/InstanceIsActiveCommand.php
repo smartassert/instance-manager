@@ -52,18 +52,24 @@ class InstanceIsActiveCommand extends Command
 
     /**
      * @throws ExceptionInterface
-     * @throws InstanceNotFoundException
      * @throws RequiredOptionMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $instance = $this->commandInstanceRepository->get($input);
+        try {
+            $instance = $this->commandInstanceRepository->get($input);
+            $instanceId = $instance->getId();
+        } catch (InstanceNotFoundException) {
+            $instance = null;
+            $instanceId = $input->getOption(Option::OPTION_ID);
+            $instanceId = is_int($instanceId) || is_numeric($instanceId) ? (int) $instanceId : 0;
+        }
 
         $result = $this->commandActionRunner->run(
             $this->getRetryLimit($input),
             $this->getRetryDelay($input),
             $output,
-            function (bool $isLastAttempt) use ($output, &$instance): bool {
+            function (bool $isLastAttempt) use ($output, &$instance, $instanceId): bool {
                 $dropletStatus = $instance instanceof Instance
                     ? $instance->getDropletStatus()
                     : Instance::DROPLET_STATUS_UNKNOWN;
@@ -74,7 +80,7 @@ class InstanceIsActiveCommand extends Command
 
                 if (false === $isActive && false === $isLastAttempt) {
                     $output->writeln('');
-                    $instance = $this->instanceRepository->find((int) $this->commandInstanceRepository->getId());
+                    $instance = $this->instanceRepository->find($instanceId);
                 }
 
                 return $isActive;

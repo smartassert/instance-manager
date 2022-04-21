@@ -18,7 +18,6 @@ use Symfony\Component\Console\Output\BufferedOutput;
 class InstanceIsActiveCommandTest extends KernelTestCase
 {
     use MissingInstanceIdTestTrait;
-    use MissingInstanceTestTrait;
 
     private InstanceIsActiveCommand $command;
     private MockHandler $mockHandler;
