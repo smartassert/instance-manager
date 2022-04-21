@@ -9,7 +9,6 @@ use App\Exception\ServiceConfigurationMissingException;
 use App\Exception\ServiceIdMissingException;
 use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
-use App\Services\CommandInputReader;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
 use App\Services\ServiceConfiguration;
@@ -37,7 +36,6 @@ class InstanceCreateCommand extends AbstractServiceCommand
         CommandConfigurator $configurator,
         private InstanceRepository $instanceRepository,
         private OutputFactory $outputFactory,
-        private CommandInputReader $inputReader,
         private ServiceConfiguration $serviceConfiguration,
         private BootScriptFactory $bootScriptFactory,
         private ServiceEnvironmentVariableRepository $environmentVariableRepository,
@@ -82,10 +80,10 @@ class InstanceCreateCommand extends AbstractServiceCommand
             $secretsOption = is_string($secretsOption) ? $secretsOption : '';
             $environmentVariables = $this->environmentVariableRepository->getCollection($serviceId, $secretsOption);
 
-            $firstBootScript = $this->bootScriptFactory->create(
-                $environmentVariables,
-                $this->inputReader->getTrimmedStringOption(self::OPTION_FIRST_BOOT_SCRIPT, $input)
-            );
+            $firstBootScriptOption = $input->getOption(self::OPTION_FIRST_BOOT_SCRIPT);
+            $firstBootScriptOption = is_string($firstBootScriptOption) ? trim($firstBootScriptOption) : '';
+
+            $firstBootScript = $this->bootScriptFactory->create($environmentVariables, $firstBootScriptOption);
 
             if (false === $this->bootScriptFactory->validate($firstBootScript)) {
                 $output->writeln('First boot script is invalid:');
