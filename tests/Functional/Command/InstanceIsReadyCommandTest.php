@@ -8,7 +8,6 @@ use App\Command\InstanceIsReadyCommand;
 use App\Command\Option;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Services\CommandInstanceRepository;
 use App\Services\ServiceConfiguration;
 use App\Tests\Mock\MockServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
@@ -27,6 +26,8 @@ use webignition\ObjectReflector\ObjectReflector;
 class InstanceIsReadyCommandTest extends KernelTestCase
 {
     use MissingServiceIdTestTrait;
+    use MissingInstanceIdTestTrait;
+    use MissingInstanceTestTrait;
     use MockeryPHPUnitIntegration;
 
     private InstanceIsReadyCommand $command;
@@ -161,49 +162,6 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         ;
 
         return [
-            'instance id invalid, missing' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
-                ],
-                'serviceConfiguration' => $validServiceConfiguration,
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'id-invalid',
-                ]),
-            ],
-            'instance id invalid, not numeric' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
-                    '--id' => 'not-numeric',
-                ],
-                'serviceConfiguration' => $validServiceConfiguration,
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'id-invalid',
-                ]),
-            ],
-            'instance not found' => [
-                'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
-                    '--id' => (string) $instanceId,
-                ],
-                'serviceConfiguration' => $validServiceConfiguration,
-                'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 404,
-                    ],
-                ],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_NOT_FOUND,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'not-found',
-                    'id' => 123,
-                ]),
-            ],
             'no explicit readiness state' => [
                 'input' => [
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
@@ -322,6 +280,16 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                 'expectedReturnCode' => Command::SUCCESS,
                 'expectedOutput' => 'ready',
             ],
+        ];
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    protected static function getInputExcludingInstanceId(): array
+    {
+        return [
+            '--' . Option::OPTION_SERVICE_ID => 'service_id',
         ];
     }
 

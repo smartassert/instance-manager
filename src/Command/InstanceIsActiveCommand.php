@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Exception\InstanceNotFoundException;
+use App\Exception\RequiredOptionMissingException;
 use App\Model\Instance;
 use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
@@ -50,15 +52,12 @@ class InstanceIsActiveCommand extends Command
 
     /**
      * @throws ExceptionInterface
+     * @throws InstanceNotFoundException
+     * @throws RequiredOptionMissingException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $instance = $this->commandInstanceRepository->get($input);
-        if (null === $instance) {
-            $output->write($this->commandInstanceRepository->getErrorMessage());
-
-            return $this->commandInstanceRepository->getErrorCode();
-        }
 
         $result = $this->commandActionRunner->run(
             $this->getRetryLimit($input),

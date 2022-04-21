@@ -6,7 +6,6 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsActiveCommand;
 use App\Model\Instance;
-use App\Services\CommandInstanceRepository;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -18,6 +17,9 @@ use Symfony\Component\Console\Output\BufferedOutput;
 
 class InstanceIsActiveCommandTest extends KernelTestCase
 {
+    use MissingInstanceIdTestTrait;
+    use MissingInstanceTestTrait;
+
     private InstanceIsActiveCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
@@ -80,66 +82,6 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                 'expectedExceptionClass' => RuntimeException::class,
                 'expectedExceptionMessage' => 'Unauthorized',
                 'expectedExceptionCode' => 401,
-            ],
-        ];
-    }
-
-    /**
-     * @dataProvider runInvalidInputDataProvider
-     *
-     * @param array<mixed>             $input
-     * @param array<int, array<mixed>> $httpResponseDataCollection
-     */
-    public function testRunInvalidInput(
-        array $input,
-        array $httpResponseDataCollection,
-        int $expectedReturnCode,
-        string $expectedOutput
-    ): void {
-        foreach ($httpResponseDataCollection as $httpResponseData) {
-            $this->mockHandler->append(
-                $this->httpResponseFactory->createFromArray($httpResponseData)
-            );
-        }
-
-        $output = new BufferedOutput();
-
-        $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
-
-        self::assertSame($expectedReturnCode, $commandReturnCode);
-        self::assertSame($expectedOutput, $output->fetch());
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function runInvalidInputDataProvider(): array
-    {
-        return [
-            'id invalid, missing' => [
-                'input' => [],
-                'httpResponseDataCollection' => [],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_ID_INVALID,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'id-invalid',
-                ]),
-            ],
-            'not found' => [
-                'input' => [
-                    '--id' => '123',
-                ],
-                'httpResponseDataCollection' => [
-                    [
-                        HttpResponseFactory::KEY_STATUS_CODE => 404,
-                    ],
-                ],
-                'expectedReturnCode' => CommandInstanceRepository::EXIT_CODE_NOT_FOUND,
-                'expectedOutput' => (string) json_encode([
-                    'status' => 'error',
-                    'error-code' => 'not-found',
-                    'id' => 123,
-                ]),
             ],
         ];
     }
@@ -330,5 +272,13 @@ class InstanceIsActiveCommandTest extends KernelTestCase
                 'expectedOutput' => 'new' . "\n" . 'active',
             ],
         ];
+    }
+
+    /**
+     * @return array<mixed>
+     */
+    protected static function getInputExcludingInstanceId(): array
+    {
+        return [];
     }
 }
