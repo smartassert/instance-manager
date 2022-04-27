@@ -12,6 +12,7 @@ use Doctrine\Common\Collections\Collection;
 class ServiceEnvironmentVariableRepository
 {
     public const NAME_DOMAIN = 'DOMAIN';
+    public const SECRET_PREFIX_COMMON = 'COMMON';
 
     public function __construct(
         private ServiceConfiguration $serviceConfiguration,
@@ -31,7 +32,10 @@ class ServiceEnvironmentVariableRepository
         $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
 
         $secrets = $this->keyValueCollectionFactory->createFromJsonForKeysMatchingPrefix(
-            strtoupper($serviceId),
+            [
+                strtoupper($serviceId),
+                self::SECRET_PREFIX_COMMON,
+            ],
             $secretsJson
         );
 

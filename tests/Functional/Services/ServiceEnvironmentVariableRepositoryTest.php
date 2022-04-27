@@ -89,7 +89,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                     )
                 ]),
             ],
-            'service configuration env vars with secret placeholders, has matching secrets' => [
+            'service-prefixed matching secrets' => [
                 'serviceConfigurationEnvironmentVariables' => new ArrayCollection([
                     new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}'),
                     new EnvironmentVariable('key2', 'value2'),
@@ -99,6 +99,24 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                 'expectedEnvironmentVariables' => new ArrayCollection([
                     new EnvironmentVariable('key1', 'secret 001 value'),
                     new EnvironmentVariable('key2', 'value2'),
+                    new EnvironmentVariable(
+                        ServiceEnvironmentVariableRepository::NAME_DOMAIN,
+                        'example.com',
+                    )
+                ]),
+            ],
+            'service- and common-prefixed matching secrets' => [
+                'serviceConfigurationEnvironmentVariables' => new ArrayCollection([
+                    new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}'),
+                    new EnvironmentVariable('key2', 'value2'),
+                    new EnvironmentVariable('key3', '{{ secrets.COMMON_VALUE }}'),
+                ]),
+                'secretsJson' => '{"SERVICE_ID_SECRET_001":"secret 001 value", "COMMON_VALUE":"common secret value"}',
+                'serviceConfigurationDomain' => 'example.com',
+                'expectedEnvironmentVariables' => new ArrayCollection([
+                    new EnvironmentVariable('key1', 'secret 001 value'),
+                    new EnvironmentVariable('key2', 'value2'),
+                    new EnvironmentVariable('key3', 'common secret value'),
                     new EnvironmentVariable(
                         ServiceEnvironmentVariableRepository::NAME_DOMAIN,
                         'example.com',
