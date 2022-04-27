@@ -11,14 +11,22 @@ use Doctrine\Common\Collections\Collection;
 class KeyValueCollectionFactory
 {
     /**
+     * @param string[] $prefixes
+     *
      * @return Collection<int, KeyValue>
      */
-    public function createFromJsonForKeysMatchingPrefix(string $prefix, string $json): Collection
+    public function createFromJsonForKeysMatchingPrefix(array $prefixes, string $json): Collection
     {
         $collection = $this->create($json);
 
-        return $collection->filter(function (KeyValue $element) use ($prefix) {
-            return str_starts_with($element->getKey(), $prefix);
+        return $collection->filter(function (KeyValue $element) use ($prefixes): bool {
+            foreach ($prefixes as $prefix) {
+                if (str_starts_with($element->getKey(), $prefix)) {
+                    return true;
+                }
+            }
+
+            return false;
         });
     }
 
