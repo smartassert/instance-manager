@@ -13,7 +13,7 @@ class EnvironmentVariableSecretHydrator
 {
     /**
      * @param Collection<int, EnvironmentVariable> $environmentVariables
-     * @param Collection<int, Secret>            $secrets
+     * @param Collection<int, Secret>              $secrets
      *
      * @return Collection<int, EnvironmentVariable>
      */

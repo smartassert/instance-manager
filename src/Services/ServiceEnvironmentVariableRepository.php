@@ -16,8 +16,8 @@ class ServiceEnvironmentVariableRepository
 
     public function __construct(
         private ServiceConfiguration $serviceConfiguration,
-        private KeyValueCollectionFactory $keyValueCollectionFactory,
-        private EnvironmentVariableSecretHydrator $secretHydrator,
+        private readonly SecretFactory $secretFactory,
+        private readonly EnvironmentVariableSecretHydrator $secretHydrator,
     ) {
     }
 
@@ -31,7 +31,7 @@ class ServiceEnvironmentVariableRepository
     {
         $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
 
-        $secrets = $this->keyValueCollectionFactory->createFromJsonForKeysMatchingPrefix(
+        $secrets = $this->secretFactory->createFromJsonForKeysMatchingPrefix(
             [
                 strtoupper($serviceId),
                 self::SECRET_PREFIX_COMMON,

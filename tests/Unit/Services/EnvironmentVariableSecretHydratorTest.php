@@ -17,7 +17,7 @@ class EnvironmentVariableSecretHydratorTest extends TestCase
      * @dataProvider hydrateDataProvider
      *
      * @param Collection<int, EnvironmentVariable> $environmentVariables
-     * @param Collection<int, Secret>            $secrets
+     * @param Collection<int, Secret>              $secrets
      * @param Collection<int, EnvironmentVariable> $expected
      */
     public function testHydrateCollection(

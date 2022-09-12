@@ -8,7 +8,7 @@ use App\Model\Secret;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
-class KeyValueCollectionFactory
+class SecretFactory
 {
     /**
      * @param string[] $prefixes
