@@ -22,10 +22,10 @@ class ServiceEnvironmentVariableRepository
     }
 
     /**
+     * @return Collection<int, EnvironmentVariable>
+     *
      * @throws ServiceConfigurationMissingException
      * @throws MissingSecretException
-     *
-     * @return Collection<int, EnvironmentVariable>
      */
     public function getCollection(string $serviceId, string $secretsJson): Collection
     {

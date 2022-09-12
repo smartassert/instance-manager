@@ -78,7 +78,7 @@ class FloatingIpManagerTest extends KernelTestCase
                 'expectedAssignedIp' => new AssignedIp(
                     new FloatingIpEntity([
                         'ip' => '127.0.0.100',
-                        'droplet' => (InstanceFactory::create(['id' => 123]))->getDroplet(),
+                        'droplet' => InstanceFactory::create(['id' => 123])->getDroplet(),
                     ])
                 ),
             ],

@@ -20,9 +20,9 @@ class InstanceClient
     }
 
     /**
-     * @throws ClientExceptionInterface
-     *
      * @return array<int|string, mixed>
+     *
+     * @throws ClientExceptionInterface
      */
     public function getState(string $stateUrl, Instance $instance): array
     {
