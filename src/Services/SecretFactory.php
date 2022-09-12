@@ -4,22 +4,22 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Model\KeyValue;
+use App\Model\Secret;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 
-class KeyValueCollectionFactory
+class SecretFactory
 {
     /**
      * @param string[] $prefixes
      *
-     * @return Collection<int, KeyValue>
+     * @return Collection<int, Secret>
      */
     public function createFromJsonForKeysMatchingPrefix(array $prefixes, string $json): Collection
     {
         $collection = $this->create($json);
 
-        return $collection->filter(function (KeyValue $element) use ($prefixes): bool {
+        return $collection->filter(function (Secret $element) use ($prefixes): bool {
             foreach ($prefixes as $prefix) {
                 if (str_starts_with($element->getKey(), $prefix)) {
                     return true;
@@ -31,7 +31,7 @@ class KeyValueCollectionFactory
     }
 
     /**
-     * @return Collection<int, KeyValue>
+     * @return Collection<int, Secret>
      */
     private function create(string $json): Collection
     {
@@ -41,7 +41,7 @@ class KeyValueCollectionFactory
         if (is_array($itemsData)) {
             foreach ($itemsData as $key => $value) {
                 if (is_string($key) && is_string($value)) {
-                    $collection->add(new KeyValue($key, $value));
+                    $collection->add(new Secret($key, $value));
                 }
             }
         }

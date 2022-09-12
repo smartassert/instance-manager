@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-class KeyValue
+class Secret
 {
     public function __construct(
-        private string $key,
-        private string $value,
+        private readonly string $key,
+        private readonly string $value,
     ) {
     }
 
