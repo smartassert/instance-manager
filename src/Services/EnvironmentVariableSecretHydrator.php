@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Model\EnvironmentVariable;
-use App\Model\KeyValue;
+use App\Model\Secret;
 use App\Model\SecretPlaceholder;
 use Doctrine\Common\Collections\Collection;
 
@@ -13,7 +13,7 @@ class EnvironmentVariableSecretHydrator
 {
     /**
      * @param Collection<int, EnvironmentVariable> $environmentVariables
-     * @param Collection<int, KeyValue>            $secrets
+     * @param Collection<int, Secret>            $secrets
      *
      * @return Collection<int, EnvironmentVariable>
      */
@@ -27,7 +27,7 @@ class EnvironmentVariableSecretHydrator
     }
 
     /**
-     * @param Collection<int, KeyValue> $secrets
+     * @param Collection<int, Secret> $secrets
      */
     public function hydrate(EnvironmentVariable $environmentVariable, Collection $secrets): EnvironmentVariable
     {
@@ -48,7 +48,7 @@ class EnvironmentVariableSecretHydrator
     }
 
     /**
-     * @param Collection<int, KeyValue> $secrets
+     * @param Collection<int, Secret> $secrets
      */
     private function hydrateValue(string $value, Collection $secrets): string
     {
@@ -65,9 +65,9 @@ class EnvironmentVariableSecretHydrator
     }
 
     /**
-     * @param Collection<int, KeyValue> $secrets
+     * @param Collection<int, Secret> $secrets
      */
-    private function getSecretByKey(string $key, Collection $secrets): ?KeyValue
+    private function getSecretByKey(string $key, Collection $secrets): ?Secret
     {
         foreach ($secrets as $secret) {
             if ($key === $secret->getKey()) {

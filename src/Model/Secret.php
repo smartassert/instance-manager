@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-class KeyValue
+class Secret
 {
     public function __construct(
         private readonly string $key,

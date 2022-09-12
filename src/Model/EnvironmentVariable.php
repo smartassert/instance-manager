@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Model;
 
-class EnvironmentVariable extends KeyValue implements SecretPlaceholderContainerInterface
+class EnvironmentVariable extends Secret implements SecretPlaceholderContainerInterface
 {
     public function __toString(): string
     {

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Services;
 
 use App\Model\EnvironmentVariable;
-use App\Model\KeyValue;
+use App\Model\Secret;
 use App\Services\EnvironmentVariableSecretHydrator;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -17,7 +17,7 @@ class EnvironmentVariableSecretHydratorTest extends TestCase
      * @dataProvider hydrateDataProvider
      *
      * @param Collection<int, EnvironmentVariable> $environmentVariables
-     * @param Collection<int, KeyValue>            $secrets
+     * @param Collection<int, Secret>            $secrets
      * @param Collection<int, EnvironmentVariable> $expected
      */
     public function testHydrateCollection(
@@ -67,7 +67,7 @@ class EnvironmentVariableSecretHydratorTest extends TestCase
                     new EnvironmentVariable('env-var-name', '{{ secrets.SECRET_NAME }}'),
                 ]),
                 'secrets' => new ArrayCollection([
-                    new KeyValue('KEY1', 'value1'),
+                    new Secret('KEY1', 'value1'),
                 ]),
                 'expected' => new ArrayCollection([
                     new EnvironmentVariable('env-var-name', '{{ secrets.SECRET_NAME }}'),
@@ -78,7 +78,7 @@ class EnvironmentVariableSecretHydratorTest extends TestCase
                     new EnvironmentVariable('env-var-name', '{{ secrets.SECRET_NAME }}'),
                 ]),
                 'secrets' => new ArrayCollection([
-                    new KeyValue('SECRET_NAME', 'secret content'),
+                    new Secret('SECRET_NAME', 'secret content'),
                 ]),
                 'expected' => new ArrayCollection([
                     new EnvironmentVariable('env-var-name', 'secret content'),
@@ -92,9 +92,9 @@ class EnvironmentVariableSecretHydratorTest extends TestCase
                     new EnvironmentVariable('env-var-name-4', '{{ secrets.SECRET_3 }}'),
                 ]),
                 'secrets' => new ArrayCollection([
-                    new KeyValue('SECRET_1', 'secret content 1'),
-                    new KeyValue('SECRET_2', 'secret content 2'),
-                    new KeyValue('SECRET_3', 'secret content 3'),
+                    new Secret('SECRET_1', 'secret content 1'),
+                    new Secret('SECRET_2', 'secret content 2'),
+                    new Secret('SECRET_3', 'secret content 3'),
                 ]),
                 'expected' => new ArrayCollection([
                     new EnvironmentVariable('env-var-name-1', 'secret content 1'),
