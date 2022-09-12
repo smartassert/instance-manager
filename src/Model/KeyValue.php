@@ -7,8 +7,8 @@ namespace App\Model;
 class KeyValue
 {
     public function __construct(
-        private string $key,
-        private string $value,
+        private readonly string $key,
+        private readonly string $value,
     ) {
     }
 
