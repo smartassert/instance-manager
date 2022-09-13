@@ -24,4 +24,24 @@ class SecretCollection implements \IteratorAggregate
     {
         return new \ArrayIterator($this->secrets);
     }
+
+    /**
+     * @param string[] $prefixes
+     */
+    public function filterByKeyPrefixes(array $prefixes): SecretCollection
+    {
+        $collection = [];
+
+        foreach ($this->secrets as $secret) {
+            if ($secret instanceof Secret) {
+                foreach ($prefixes as $prefix) {
+                    if (is_string($prefix) && str_starts_with($secret->getKey(), $prefix)) {
+                        $collection[] = $secret;
+                    }
+                }
+            }
+        }
+
+        return new SecretCollection($collection);
+    }
 }

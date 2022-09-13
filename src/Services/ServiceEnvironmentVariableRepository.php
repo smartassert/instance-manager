@@ -29,13 +29,9 @@ class ServiceEnvironmentVariableRepository
     {
         $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
 
-        $secrets = $this->secretFactory->createFromJsonForKeysMatchingPrefix(
-            [
-                strtoupper($serviceId),
-                self::SECRET_PREFIX_COMMON,
-            ],
-            $secretsJson
-        );
+        $secrets = $this->secretFactory
+            ->create($secretsJson)
+            ->filterByKeyPrefixes([strtoupper($serviceId), self::SECRET_PREFIX_COMMON]);
 
         $environmentVariables = $this->secretHydrator->hydrateCollection($environmentVariables, $secrets);
 

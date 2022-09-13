@@ -9,24 +9,7 @@ use App\Model\SecretCollection;
 
 class SecretFactory
 {
-    /**
-     * @param string[] $prefixes
-     */
-    public function createFromJsonForKeysMatchingPrefix(array $prefixes, string $json): SecretCollection
-    {
-        return $this->create($json);
-//        return $collection->filter(function (Secret $element) use ($prefixes): bool {
-//            foreach ($prefixes as $prefix) {
-//                if (str_starts_with($element->getKey(), $prefix)) {
-//                    return true;
-//                }
-//            }
-//
-//            return false;
-//        });
-    }
-
-    private function create(string $json): SecretCollection
+    public function create(string $json): SecretCollection
     {
         $itemsData = json_decode($json, true);
         $collection = [];
