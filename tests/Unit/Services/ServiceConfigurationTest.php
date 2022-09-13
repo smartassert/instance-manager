@@ -68,8 +68,6 @@ class ServiceConfigurationTest extends TestCase
 
     /**
      * @dataProvider getEnvironmentVariablesSuccessDataProvider
-     *
-     * @param Collection<int, EnvironmentVariable> $expected
      */
     public function testGetEnvironmentVariablesSuccess(
         string $serviceId,
