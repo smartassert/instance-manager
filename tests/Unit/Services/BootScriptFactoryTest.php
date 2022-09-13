@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Services;
 
 use App\Model\EnvironmentVariable;
+use App\Model\EnvironmentVariableCollection;
 use App\Services\BootScriptFactory;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use PHPUnit\Framework\TestCase;
 
 class BootScriptFactoryTest extends TestCase
@@ -23,11 +22,12 @@ class BootScriptFactoryTest extends TestCase
 
     /**
      * @dataProvider createDataProvider
-     *
-     * @param Collection<int, EnvironmentVariable> $environmentVariables
      */
-    public function testCreate(Collection $environmentVariables, string $serviceBootScript, string $expected): void
-    {
+    public function testCreate(
+        EnvironmentVariableCollection $environmentVariables,
+        string $serviceBootScript,
+        string $expected
+    ): void {
         self::assertSame(
             $expected,
             $this->bootScriptFactory->create($environmentVariables, $serviceBootScript)
@@ -41,12 +41,12 @@ class BootScriptFactoryTest extends TestCase
     {
         return [
             'empty environment variables, empty service boot script' => [
-                'environmentVariables' => new ArrayCollection(),
+                'environmentVariables' => new EnvironmentVariableCollection(),
                 'serviceBootScript' => '',
                 'expected' => '',
             ],
             'single environment variable, empty service boot script' => [
-                'environmentVariables' => new ArrayCollection([
+                'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key', 'value'),
                 ]),
                 'serviceBootScript' => '',
@@ -54,7 +54,7 @@ class BootScriptFactoryTest extends TestCase
                     'export key="value"',
             ],
             'multiple environment variables, empty service boot script' => [
-                'environmentVariables' => new ArrayCollection([
+                'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'value1'),
                     new EnvironmentVariable('key2', 'value2'),
                     new EnvironmentVariable('key3', 'value3'),
@@ -66,13 +66,13 @@ class BootScriptFactoryTest extends TestCase
                     'export key3="value3"',
             ],
             'empty environment variables, has service boot script' => [
-                'environmentVariables' => new ArrayCollection(),
+                'environmentVariables' => new EnvironmentVariableCollection(),
                 'serviceBootScript' => './first-boot.sh',
                 'expected' => '#!/usr/bin/env bash' . "\n" .
                     './first-boot.sh',
             ],
             'multiple environment variables, has service boot script' => [
-                'environmentVariables' => new ArrayCollection([
+                'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'value1'),
                     new EnvironmentVariable('key2', 'value2'),
                     new EnvironmentVariable('key3', 'value3'),

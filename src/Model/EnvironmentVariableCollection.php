@@ -37,4 +37,9 @@ class EnvironmentVariableCollection implements \IteratorAggregate
 
         return new EnvironmentVariableCollection($newCollection);
     }
+
+    public function isEmpty(): bool
+    {
+        return 0 === count($this->environmentVariables);
+    }
 }
