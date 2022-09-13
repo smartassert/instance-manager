@@ -6,8 +6,6 @@ namespace App\Services;
 
 use App\Model\Secret;
 use App\Model\SecretCollection;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 
 class SecretFactory
 {
@@ -16,10 +14,7 @@ class SecretFactory
      */
     public function createFromJsonForKeysMatchingPrefix(array $prefixes, string $json): SecretCollection
     {
-        $collection = $this->create($json);
-
-        return $collection;
-
+        return $this->create($json);
 //        return $collection->filter(function (Secret $element) use ($prefixes): bool {
 //            foreach ($prefixes as $prefix) {
 //                if (str_starts_with($element->getKey(), $prefix)) {

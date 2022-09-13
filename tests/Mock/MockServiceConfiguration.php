@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Mock;
 
-use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
 use App\Services\ServiceConfiguration;
-use Doctrine\Common\Collections\Collection;
 use Mockery\MockInterface;
 
 class MockServiceConfiguration

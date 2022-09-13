@@ -8,7 +8,6 @@ use App\Exception\MissingSecretException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
-use Doctrine\Common\Collections\Collection;
 
 class ServiceEnvironmentVariableRepository
 {
