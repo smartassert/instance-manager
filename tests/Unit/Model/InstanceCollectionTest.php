@@ -25,9 +25,40 @@ class InstanceCollectionTest extends TestCase
      */
     public function getNewestDataProvider(): array
     {
-        $sortedCollection = $this->createSortedCollection();
-        $reverseSortedCollection = $this->createReverseSortedCollection();
-        $expectedNewest = $sortedCollection->first();
+        $sortedCollection = new InstanceCollection([
+            InstanceFactory::create([
+                'id' => 123,
+                'created_at' => '2021-07-30T16:36:31Z'
+            ]),
+            InstanceFactory::create([
+                'id' => 465,
+                'created_at' => '2021-07-29T16:36:31Z'
+            ]),
+            InstanceFactory::create([
+                'id' => 789,
+                'created_at' => '2021-07-28T16:36:31Z'
+            ]),
+        ]);
+
+        $reverseSortedCollection = new InstanceCollection([
+            InstanceFactory::create([
+                'id' => 789,
+                'created_at' => '2021-07-28T16:36:31Z'
+            ]),
+            InstanceFactory::create([
+                'id' => 465,
+                'created_at' => '2021-07-29T16:36:31Z'
+            ]),
+            InstanceFactory::create([
+                'id' => 123,
+                'created_at' => '2021-07-30T16:36:31Z'
+            ]),
+        ]);
+
+        $expectedNewest = InstanceFactory::create([
+            'id' => 123,
+            'created_at' => '2021-07-30T16:36:31Z'
+        ]);
 
         return [
             'empty' => [
@@ -249,41 +280,5 @@ class InstanceCollectionTest extends TestCase
                 'expected' => $instanceWithMatchingIPWithSingleIP,
             ],
         ];
-    }
-
-    private function createSortedCollection(): InstanceCollection
-    {
-        return new InstanceCollection([
-            InstanceFactory::create([
-                'id' => 123,
-                'created_at' => '2021-07-30T16:36:31Z'
-            ]),
-            InstanceFactory::create([
-                'id' => 465,
-                'created_at' => '2021-07-29T16:36:31Z'
-            ]),
-            InstanceFactory::create([
-                'id' => 789,
-                'created_at' => '2021-07-28T16:36:31Z'
-            ]),
-        ]);
-    }
-
-    private function createReverseSortedCollection(): InstanceCollection
-    {
-        return new InstanceCollection([
-            InstanceFactory::create([
-                'id' => 789,
-                'created_at' => '2021-07-28T16:36:31Z'
-            ]),
-            InstanceFactory::create([
-                'id' => 465,
-                'created_at' => '2021-07-29T16:36:31Z'
-            ]),
-            InstanceFactory::create([
-                'id' => 123,
-                'created_at' => '2021-07-30T16:36:31Z'
-            ]),
-        ]);
     }
 }

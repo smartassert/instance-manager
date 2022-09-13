@@ -6,13 +6,20 @@ namespace App\Model;
 
 use App\Model\InstanceSorter\InstanceCreatedDateSorter;
 use App\Model\InstanceSorter\InstanceSorterInterface;
-use Doctrine\Common\Collections\ArrayCollection;
 
 /**
- * @extends ArrayCollection<int|string, Instance>
+ * @implements \IteratorAggregate<int, Instance>
  */
-class InstanceCollection extends ArrayCollection implements \JsonSerializable
+class InstanceCollection implements \JsonSerializable, \Countable, \IteratorAggregate
 {
+    /**
+     * @param array<int, Instance> $instances
+     */
+    public function __construct(
+        private readonly array $instances = [],
+    ) {
+    }
+
     public function findByIP(string $ip): ?Instance
     {
         foreach ($this as $instance) {
@@ -26,15 +33,15 @@ class InstanceCollection extends ArrayCollection implements \JsonSerializable
 
     public function getNewest(): ?Instance
     {
-        $sortedCollection = $this->sortByCreatedDate();
-        $first = $sortedCollection->first();
+        $sortedCollection = $this->sort(new InstanceCreatedDateSorter());
+        $first = $sortedCollection->instances[0] ?? null;
 
         return $first instanceof Instance ? $first : null;
     }
 
-    public function sort(InstanceSorterInterface $sorter): self
+    public function sort(InstanceSorterInterface $sorter): InstanceCollection
     {
-        $instances = $this->toArray();
+        $instances = $this->instances;
 
         usort($instances, function (Instance $a, Instance $b) use ($sorter): int {
             return $sorter->sort($a, $b);
@@ -56,8 +63,16 @@ class InstanceCollection extends ArrayCollection implements \JsonSerializable
         return $data;
     }
 
-    private function sortByCreatedDate(): self
+    /**
+     * @return \Traversable<int, Instance>
+     */
+    public function getIterator(): \Traversable
     {
-        return $this->sort(new InstanceCreatedDateSorter());
+        return new \ArrayIterator($this->instances);
+    }
+
+    public function count(): int
+    {
+        return count($this->instances);
     }
 }
