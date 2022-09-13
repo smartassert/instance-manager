@@ -80,9 +80,6 @@
     "phpstan/phpstan-mockery": {
         "version": "1.0.0"
     },
-    "phpstan/phpstan-phpunit": {
-        "version": "1.0.0"
-    },
     "phpstan/phpstan-symfony": {
         "version": "1.0.1"
     },
