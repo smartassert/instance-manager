@@ -5,31 +5,25 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Model\EnvironmentVariable;
+use App\Model\EnvironmentVariableCollection;
 use App\Model\Secret;
+use App\Model\SecretCollection;
 use App\Model\SecretPlaceholder;
-use Doctrine\Common\Collections\Collection;
 
 class EnvironmentVariableSecretHydrator
 {
-    /**
-     * @param Collection<int, EnvironmentVariable> $environmentVariables
-     * @param Collection<int, Secret>              $secrets
-     *
-     * @return Collection<int, EnvironmentVariable>
-     */
-    public function hydrateCollection(Collection $environmentVariables, Collection $secrets): Collection
-    {
+    public function hydrateCollection(
+        EnvironmentVariableCollection $environmentVariables,
+        SecretCollection $secrets
+    ): EnvironmentVariableCollection {
         foreach ($environmentVariables as $index => $environmentVariable) {
-            $environmentVariables->set($index, $this->hydrate($environmentVariable, $secrets));
+            $environmentVariables = $environmentVariables->set($index, $this->hydrate($environmentVariable, $secrets));
         }
 
         return $environmentVariables;
     }
 
-    /**
-     * @param Collection<int, Secret> $secrets
-     */
-    public function hydrate(EnvironmentVariable $environmentVariable, Collection $secrets): EnvironmentVariable
+    public function hydrate(EnvironmentVariable $environmentVariable, SecretCollection $secrets): EnvironmentVariable
     {
         $value = $environmentVariable->getValue();
 
@@ -47,10 +41,7 @@ class EnvironmentVariableSecretHydrator
         return $environmentVariable;
     }
 
-    /**
-     * @param Collection<int, Secret> $secrets
-     */
-    private function hydrateValue(string $value, Collection $secrets): string
+    private function hydrateValue(string $value, SecretCollection $secrets): string
     {
         if (false === SecretPlaceholder::is($value)) {
             return $value;
@@ -64,10 +55,7 @@ class EnvironmentVariableSecretHydrator
         return is_string($secretValue) ? $secretValue : (string) $secretPlaceholder;
     }
 
-    /**
-     * @param Collection<int, Secret> $secrets
-     */
-    private function getSecretByKey(string $key, Collection $secrets): ?Secret
+    private function getSecretByKey(string $key, SecretCollection $secrets): ?Secret
     {
         foreach ($secrets as $secret) {
             if ($key === $secret->getKey()) {
