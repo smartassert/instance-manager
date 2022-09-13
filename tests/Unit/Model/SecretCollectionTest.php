@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Model;
 
-use App\Model\Instance;
-use App\Model\InstanceCollection;
 use App\Model\Secret;
 use App\Model\SecretCollection;
-use App\Tests\Services\DropletDataFactory;
-use App\Tests\Services\InstanceFactory;
 use PHPUnit\Framework\TestCase;
 
 class SecretCollectionTest extends TestCase
