@@ -4,15 +4,11 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Model\EnvironmentVariable;
-use Doctrine\Common\Collections\Collection;
+use App\Model\EnvironmentVariableCollection;
 
 class BootScriptFactory
 {
-    /**
-     * @param Collection<int, EnvironmentVariable> $environmentVariables
-     */
-    public function create(Collection $environmentVariables, string $serviceBootScript): string
+    public function create(EnvironmentVariableCollection $environmentVariables, string $serviceBootScript): string
     {
         if ('' === $serviceBootScript && $environmentVariables->isEmpty()) {
             return '';
@@ -32,10 +28,7 @@ class BootScriptFactory
         return '' === $comparator || str_starts_with($comparator, '#!');
     }
 
-    /**
-     * @param Collection<int, EnvironmentVariable> $environmentVariables
-     */
-    private function createEnvironmentVariableContent(Collection $environmentVariables): string
+    private function createEnvironmentVariableContent(EnvironmentVariableCollection $environmentVariables): string
     {
         $content = [];
         foreach ($environmentVariables as $environmentVariable) {

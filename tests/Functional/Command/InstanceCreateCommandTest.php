@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Command;
 use App\Command\InstanceCreateCommand;
 use App\Command\Option;
 use App\Model\EnvironmentVariable;
+use App\Model\EnvironmentVariableCollection;
 use App\Services\BootScriptFactory;
 use App\Services\InstanceRepository;
 use App\Services\ServiceConfiguration;
@@ -16,8 +17,6 @@ use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
 use DigitalOceanV2\Exception\RuntimeException;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use GuzzleHttp\Handler\MockHandler;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -126,14 +125,14 @@ class InstanceCreateCommandTest extends KernelTestCase
                 ->getMock()
         );
 
-        $this->mockEnvironmentVariableRepository(new ArrayCollection());
+        $this->mockEnvironmentVariableRepository(new EnvironmentVariableCollection());
 
         $invalidFirstBootScript = '#invalid first boot script';
 
         $bootScriptFactory = \Mockery::mock(BootScriptFactory::class);
         $bootScriptFactory
             ->shouldReceive('create')
-            ->withArgs(function (Collection $collection, string $script) use ($firstBootScript) {
+            ->withArgs(function (EnvironmentVariableCollection $collection, string $script) use ($firstBootScript) {
                 self::assertSame($firstBootScript, $script);
 
                 return true;
@@ -185,7 +184,7 @@ class InstanceCreateCommandTest extends KernelTestCase
                 ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
                 ->getMock()
         );
-        $this->mockEnvironmentVariableRepository(new ArrayCollection());
+        $this->mockEnvironmentVariableRepository(new EnvironmentVariableCollection());
 
         $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
 
@@ -243,13 +242,11 @@ class InstanceCreateCommandTest extends KernelTestCase
 
     /**
      * @dataProvider passesFirstBootScriptDataProvider
-     *
-     * @param Collection<int, EnvironmentVariable> $environmentVariableList
      */
     public function testPassesFirstBootScript(
         string $firstBootScriptOption,
         string $secretsJsonOption,
-        Collection $environmentVariableList,
+        EnvironmentVariableCollection $environmentVariables,
         string $expectedFirstBootScript,
     ): void {
         $input = new ArrayInput([
@@ -288,7 +285,7 @@ class InstanceCreateCommandTest extends KernelTestCase
                 ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
                 ->getMock()
         );
-        $this->mockEnvironmentVariableRepository($environmentVariableList, $secretsJsonOption);
+        $this->mockEnvironmentVariableRepository($environmentVariables, $secretsJsonOption);
 
         $commandReturnCode = $this->command->run($input, new NullOutput());
 
@@ -304,14 +301,14 @@ class InstanceCreateCommandTest extends KernelTestCase
             'first boot script option only' => [
                 'firstBootScriptOption' => './first-boot.sh',
                 'secretsJsonOption' => '',
-                'environmentVariableList' => new ArrayCollection(),
+                'environmentVariables' => new EnvironmentVariableCollection(),
                 'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
                     './first-boot.sh',
             ],
             'env var options only, no secrets' => [
                 'firstBootScriptOption' => '',
                 'secretsJsonOption' => '',
-                'environmentVariableList' => new ArrayCollection([
+                'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'value1'),
                 ]),
                 'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
@@ -320,7 +317,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             'env var options only, has secrets' => [
                 'firstBootScriptOption' => '',
                 'secretsJsonOption' => '{"SERVICE_ID_SECRET_001":"secret 001 value"}',
-                'environmentVariableList' => new ArrayCollection([
+                'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'secret 001 value'),
                 ]),
                 'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
@@ -329,7 +326,7 @@ class InstanceCreateCommandTest extends KernelTestCase
             'first boot script option and env var options, no secrets' => [
                 'firstBootScriptOption' => './first-boot.sh',
                 'secretsJsonOption' => '',
-                'environmentVariableList' => new ArrayCollection([
+                'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'value1'),
                 ]),
                 'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
@@ -348,16 +345,13 @@ class InstanceCreateCommandTest extends KernelTestCase
         }
     }
 
-    /**
-     * @param null|Collection<int, EnvironmentVariable> $environmentVariables
-     */
     private function mockEnvironmentVariableRepository(
-        ?Collection $environmentVariables = null,
+        ?EnvironmentVariableCollection $environmentVariables = null,
         string $secretsJson = '',
     ): void {
         $environmentVariableRepository = \Mockery::mock(ServiceEnvironmentVariableRepository::class);
 
-        if ($environmentVariables instanceof Collection) {
+        if ($environmentVariables instanceof EnvironmentVariableCollection) {
             $environmentVariableRepository
                 ->shouldReceive('getCollection')
                 ->with(self::SERVICE_ID, $secretsJson)

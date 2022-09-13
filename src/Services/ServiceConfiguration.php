@@ -8,8 +8,7 @@ use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Model\Configuration;
 use App\Model\EnvironmentVariable;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
+use App\Model\EnvironmentVariableCollection;
 
 class ServiceConfiguration
 {
@@ -18,10 +17,7 @@ class ServiceConfiguration
     public const IMAGE_FILENAME = 'image.json';
     public const DOMAIN_FILENAME = 'domain.json';
 
-    /**
-     * @var Collection<int, EnvironmentVariable>
-     */
-    private Collection $environmentVariables;
+    private EnvironmentVariableCollection $environmentVariables;
     private Configuration $serviceConfiguration;
     private Configuration $imageConfiguration;
     private Configuration $domainConfiguration;
@@ -38,14 +34,10 @@ class ServiceConfiguration
         return $this->jsonFileExists($serviceId, self::CONFIGURATION_FILENAME);
     }
 
-    /**
-     * @return Collection<int, EnvironmentVariable>
-     */
-    public function getEnvironmentVariables(string $serviceId): Collection
+    public function getEnvironmentVariables(string $serviceId): EnvironmentVariableCollection
     {
         if (!isset($this->environmentVariables)) {
-            $collection = new ArrayCollection();
-
+            $collection = [];
             $configuration = $this->createConfiguration($serviceId, self::ENV_VAR_FILENAME);
 
             if ($configuration instanceof Configuration) {
@@ -58,7 +50,7 @@ class ServiceConfiguration
                 }
             }
 
-            $this->environmentVariables = $collection;
+            $this->environmentVariables = new EnvironmentVariableCollection($collection);
         }
 
         return $this->environmentVariables;

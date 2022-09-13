@@ -6,11 +6,10 @@ namespace App\Tests\Functional\Services;
 
 use App\Exception\MissingSecretException;
 use App\Model\EnvironmentVariable;
+use App\Model\EnvironmentVariableCollection;
 use App\Services\ServiceConfiguration;
 use App\Services\ServiceEnvironmentVariableRepository;
 use App\Tests\Mock\MockServiceConfiguration;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use webignition\ObjectReflector\ObjectReflector;
@@ -35,15 +34,12 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
 
     /**
      * @dataProvider getCollectionSuccessDataProvider
-     *
-     * @param Collection<int, EnvironmentVariable> $serviceConfigurationEnvironmentVariables
-     * @param Collection<int, EnvironmentVariable> $expectedEnvironmentVariables
      */
     public function testGetCollectionSuccess(
-        Collection $serviceConfigurationEnvironmentVariables,
+        EnvironmentVariableCollection $serviceConfigurationEnvironmentVariables,
         string $secretsJson,
         string $serviceConfigurationDomain,
-        Collection $expectedEnvironmentVariables,
+        EnvironmentVariableCollection $expectedEnvironmentVariables,
     ): void {
         $this->setServiceConfiguration((new MockServiceConfiguration())
             ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
@@ -63,10 +59,10 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
     {
         return [
             'no service configuration env vars, no secrets' => [
-                'serviceConfigurationEnvironmentVariables' => new ArrayCollection(),
+                'serviceConfigurationEnvironmentVariables' => new EnvironmentVariableCollection(),
                 'secretsJson' => '',
                 'serviceConfigurationDomain' => 'example.com',
-                'expectedEnvironmentVariables' => new ArrayCollection([
+                'expectedEnvironmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable(
                         ServiceEnvironmentVariableRepository::NAME_DOMAIN,
                         'example.com',
@@ -74,13 +70,13 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                 ]),
             ],
             'service configuration env vars, no secrets' => [
-                'serviceConfigurationEnvironmentVariables' => new ArrayCollection([
+                'serviceConfigurationEnvironmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'value1'),
                     new EnvironmentVariable('key2', 'value2'),
                 ]),
                 'secretsJson' => '',
                 'serviceConfigurationDomain' => 'example.com',
-                'expectedEnvironmentVariables' => new ArrayCollection([
+                'expectedEnvironmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'value1'),
                     new EnvironmentVariable('key2', 'value2'),
                     new EnvironmentVariable(
@@ -90,13 +86,13 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                 ]),
             ],
             'service-prefixed matching secrets' => [
-                'serviceConfigurationEnvironmentVariables' => new ArrayCollection([
+                'serviceConfigurationEnvironmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}'),
                     new EnvironmentVariable('key2', 'value2'),
                 ]),
                 'secretsJson' => '{"SERVICE_ID_SECRET_001":"secret 001 value"}',
                 'serviceConfigurationDomain' => 'example.com',
-                'expectedEnvironmentVariables' => new ArrayCollection([
+                'expectedEnvironmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'secret 001 value'),
                     new EnvironmentVariable('key2', 'value2'),
                     new EnvironmentVariable(
@@ -106,14 +102,14 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                 ]),
             ],
             'service- and common-prefixed matching secrets' => [
-                'serviceConfigurationEnvironmentVariables' => new ArrayCollection([
+                'serviceConfigurationEnvironmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}'),
                     new EnvironmentVariable('key2', 'value2'),
                     new EnvironmentVariable('key3', '{{ secrets.COMMON_VALUE }}'),
                 ]),
                 'secretsJson' => '{"SERVICE_ID_SECRET_001":"secret 001 value", "COMMON_VALUE":"common secret value"}',
                 'serviceConfigurationDomain' => 'example.com',
-                'expectedEnvironmentVariables' => new ArrayCollection([
+                'expectedEnvironmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'secret 001 value'),
                     new EnvironmentVariable('key2', 'value2'),
                     new EnvironmentVariable('key3', 'common secret value'),
@@ -128,12 +124,10 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
 
     /**
      * @dataProvider getCollectionThrowsMissingSecretExceptionDataProvider
-     *
-     * @param Collection<int, EnvironmentVariable> $environmentVariables
      */
     public function testGetCollectionThrowsMissingSecretException(
         string $secretsJsonOption,
-        Collection $environmentVariables,
+        EnvironmentVariableCollection $environmentVariables,
         string $expectedExceptionMessage
     ): void {
         $this->setServiceConfiguration((new MockServiceConfiguration())
@@ -155,7 +149,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
         return [
             'no secrets, env var references missing secret' => [
                 'secretsJson' => '',
-                'environmentVariableList' => new ArrayCollection([
+                'environmentVariableList' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}')
                 ]),
                 'expectedExceptionMessage' => 'Secret "SERVICE_ID_SECRET_001" not found',
@@ -163,7 +157,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
             'has secrets, env var references missing secret not having service id as prefix' => [
                 'secretsJson' => '',
 
-                'environmentVariableList' => new ArrayCollection([
+                'environmentVariableList' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', '{{ secrets.DIFFERENT_SERVICE_ID_SECRET_001 }}')
                 ]),
                 'expectedExceptionMessage' => 'Secret "DIFFERENT_SERVICE_ID_SECRET_001" not found',

@@ -7,7 +7,7 @@ namespace App\Services;
 use App\Exception\MissingSecretException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
-use Doctrine\Common\Collections\Collection;
+use App\Model\EnvironmentVariableCollection;
 
 class ServiceEnvironmentVariableRepository
 {
@@ -22,22 +22,17 @@ class ServiceEnvironmentVariableRepository
     }
 
     /**
-     * @return Collection<int, EnvironmentVariable>
-     *
      * @throws ServiceConfigurationMissingException
      * @throws MissingSecretException
      */
-    public function getCollection(string $serviceId, string $secretsJson): Collection
+    public function getCollection(string $serviceId, string $secretsJson): EnvironmentVariableCollection
     {
         $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
 
-        $secrets = $this->secretFactory->createFromJsonForKeysMatchingPrefix(
-            [
-                strtoupper($serviceId),
-                self::SECRET_PREFIX_COMMON,
-            ],
-            $secretsJson
-        );
+        $secrets = $this->secretFactory
+            ->create($secretsJson)
+            ->filterByKeyPrefixes([strtoupper($serviceId), self::SECRET_PREFIX_COMMON])
+        ;
 
         $environmentVariables = $this->secretHydrator->hydrateCollection($environmentVariables, $secrets);
 
@@ -49,11 +44,9 @@ class ServiceEnvironmentVariableRepository
             }
         }
 
-        $environmentVariables->add(new EnvironmentVariable(
+        return $environmentVariables->add(new EnvironmentVariable(
             self::NAME_DOMAIN,
             $this->serviceConfiguration->getDomain($serviceId)
         ));
-
-        return $environmentVariables;
     }
 }

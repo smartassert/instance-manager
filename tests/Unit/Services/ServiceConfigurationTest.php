@@ -7,10 +7,9 @@ namespace App\Tests\Unit\Services;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
+use App\Model\EnvironmentVariableCollection;
 use App\Services\ConfigurationFactory;
 use App\Services\ServiceConfiguration;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use phpmock\mockery\PHPMockery;
 use PHPUnit\Framework\TestCase;
@@ -46,7 +45,7 @@ class ServiceConfigurationTest extends TestCase
                 return $this->serviceConfiguration->getEnvironmentVariables($serviceId);
             },
             function ($result) {
-                self::assertEquals(new ArrayCollection(), $result);
+                self::assertEquals(new EnvironmentVariableCollection(), $result);
             }
         );
     }
@@ -62,20 +61,18 @@ class ServiceConfigurationTest extends TestCase
                 return $this->serviceConfiguration->getEnvironmentVariables($serviceId);
             },
             function ($result) {
-                self::assertEquals(new ArrayCollection(), $result);
+                self::assertEquals(new EnvironmentVariableCollection(), $result);
             }
         );
     }
 
     /**
      * @dataProvider getEnvironmentVariablesSuccessDataProvider
-     *
-     * @param Collection<int, EnvironmentVariable> $expected
      */
     public function testGetEnvironmentVariablesSuccess(
         string $serviceId,
         string $fileContent,
-        Collection $expected
+        EnvironmentVariableCollection $expected
     ): void {
         $this->createFileReadSuccessMocks(
             'App\Services',
@@ -94,19 +91,19 @@ class ServiceConfigurationTest extends TestCase
     public function getEnvironmentVariablesSuccessDataProvider(): array
     {
         return array_merge(
-            $this->createValueMissingDataProvider('key', new ArrayCollection()),
+            $this->createValueMissingDataProvider('key', new EnvironmentVariableCollection()),
             [
                 'single' => [
                     'serviceId' => 'service2',
                     'fileContent' => '{"key1":"value1"}',
-                    'expected' => new ArrayCollection([
+                    'expected' => new EnvironmentVariableCollection([
                         new EnvironmentVariable('key1', 'value1'),
                     ]),
                 ],
                 'multiple' => [
                     'serviceId' => 'service3',
                     'fileContent' => '{"key1":"value1", "key2":"value2"}',
-                    'expected' => new ArrayCollection([
+                    'expected' => new EnvironmentVariableCollection([
                         new EnvironmentVariable('key1', 'value1'),
                         new EnvironmentVariable('key2', 'value2'),
                     ]),

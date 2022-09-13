@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Mock;
 
-use App\Model\EnvironmentVariable;
+use App\Model\EnvironmentVariableCollection;
 use App\Services\ServiceConfiguration;
-use Doctrine\Common\Collections\Collection;
 use Mockery\MockInterface;
 
 class MockServiceConfiguration
@@ -48,11 +47,10 @@ class MockServiceConfiguration
         return $this->withCall($serviceId, 'getDomain', $outcome);
     }
 
-    /**
-     * @param Collection<int, EnvironmentVariable>|\Exception $outcome
-     */
-    public function withGetEnvironmentVariablesCall(string $serviceId, Collection|\Exception $outcome): self
-    {
+    public function withGetEnvironmentVariablesCall(
+        string $serviceId,
+        EnvironmentVariableCollection|\Exception $outcome
+    ): self {
         return $this->withCall($serviceId, 'getEnvironmentVariables', $outcome);
     }
 
