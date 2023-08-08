@@ -8,7 +8,7 @@ class ActionHandler
 {
     /**
      * @param \Closure(mixed    $actionResult): bool $decider
-     * @param \Closure(): mixed $action
+     * @param \Closure(): mixed                      $action
      */
     public function __construct(
         private \Closure $decider,
