@@ -31,7 +31,6 @@ jobs:
         run: echo "$INPUTS"
 
       - name: Set service_id
-        id: service_id
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
@@ -42,10 +41,9 @@ jobs:
             exit 1
           fi
 
-          echo "::set-output name=value::$VALUE"
+          echo "service_id=$VALUE" >> "$GITHUB_ENV"
 
       - name: Set env_vars
-        id: env_vars
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.env_vars }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.env_vars }}
@@ -56,15 +54,15 @@ jobs:
             exit 1
           fi
 
-          echo "::set-output name=value::$VALUE"
+          echo "env_vars=$VALUE" >> "$GITHUB_ENV"
 
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Store
         env:
-          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/env.json
-          ENV_VARS_JSON: ${{ steps.env_vars.outputs.value }}
+          CONFIGURATION_PATH: ./services/${{ env.service_id }}/env.json
+          ENV_VARS_JSON: ${{ env.env_vars }}
         run: |
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
           jq "." <<< "$ENV_VARS_JSON" > "$CONFIGURATION_PATH"
@@ -72,4 +70,4 @@ jobs:
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Automatic env update for ${{ steps.service_id.outputs.value }}"
+          commit_message: "Automatic env update for ${{ env.service_id }}"

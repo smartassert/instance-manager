@@ -32,7 +32,6 @@ jobs:
           --service-id='${{ github.event.inputs.service_id }}'
 
       - name: Create
-        id: instance
         run: |
           CREATE_OUTPUT=$(
             php bin/console app:instance:create \
@@ -40,25 +39,25 @@ jobs:
               --service-id='${{ github.event.inputs.service_id }}' \
               --secrets-json='${{ toJson(secrets) }}'
           )
-          echo "::set-output name=id::$(echo "$CREATE_OUTPUT" | jq -r ".id")"
+          echo "instance_id=$(echo "$CREATE_OUTPUT" | jq -r ".id")" >> "$GITHUB_ENV"
 
       - name: Is active?
         run: |
           php bin/console app:instance:is-active \
-          --id=${{ steps.instance.outputs.id }}
+          --id=${{ env.instance_id }}
 
       - name: Health check
         run: |
           php bin/console app:instance:is-healthy \
           --service-id='${{ github.event.inputs.service_id }}' \
-          --id=${{ steps.instance.outputs.id }}
+          --id=${{ env.instance_id }}
 
       - name: Readiness check
         run: |
           php bin/console app:instance:is-ready \
           --service-id='${{ github.event.inputs.service_id }}' \
-          --id=${{ steps.instance.outputs.id }}
+          --id=${{ env.instance_id }}
 
       - name: Remove instance on failure
         if: ${{ failure() }}
-        run: php bin/console app:instance:destroy --id="${{ steps.instance.outputs.id }}"
+        run: php bin/console app:instance:destroy --id="${{ env.instance_id }}"

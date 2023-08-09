@@ -30,7 +30,6 @@ jobs:
         run: echo "$INPUTS"
 
       - name: Set service_id
-        id: service_id
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
@@ -41,10 +40,9 @@ jobs:
             exit 1
           fi
 
-          echo "::set-output name=value::$VALUE"
+          echo "service_id=$VALUE" >> "$GITHUB_ENV"
 
       - name: Set image_id
-        id: image_id
         env:
           REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.image_id }}
           WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.image_id }}
@@ -55,20 +53,20 @@ jobs:
             exit 1
           fi
 
-          echo "::set-output name=value::$VALUE"
+          echo "image_id=$VALUE" >> "$GITHUB_ENV"
 
       - name: Output setup
         run: |
-          echo "service_id: ${{ steps.service_id.outputs.value }}"
-          echo "image_id: ${{ steps.image_id.outputs.value }}"
+          echo "service_id: ${{ env.service_id }}"
+          echo "image_id: ${{ env.image_id }}"
 
       - name: Checkout
         uses: actions/checkout@v2
 
       - name: Store
         env:
-          CONFIGURATION_PATH: ./services/${{ steps.service_id.outputs.value }}/image.json
-          IMAGE_ID: ${{ steps.image_id.outputs.value }}
+          CONFIGURATION_PATH: ./services/${{ env.service_id }}/image.json
+          IMAGE_ID: ${{ env.image_id }}
         run: |
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
           jq "." <<< "{\"image_id\":\"$IMAGE_ID\"}" > "$CONFIGURATION_PATH"
@@ -76,4 +74,4 @@ jobs:
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit_message: "Automatic image update for ${{ steps.service_id.outputs.value }}"
+          commit_message: "Automatic image update for ${{ env.service_id }}"
