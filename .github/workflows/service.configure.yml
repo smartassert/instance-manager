@@ -26,13 +26,17 @@ jobs:
           IS_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           if [ "true" = "$IS_WORKFLOW_DISPATCH_EVENT" ]; then
-            echo "service_id=${{ github.event.inputs.service_id }}" >> "$GITHUB_ENV"
-            echo "health_check_url=${{ github.event.inputs.service_id }}" >> "$GITHUB_ENV"
-            echo "state_url=${{ github.event.inputs.service_id }}" >> "$GITHUB_ENV"
+            {
+              echo "service_id=${{ github.event.inputs.service_id }}"
+              echo "health_check_url=${{ github.event.inputs.service_id }}"
+              echo "state_url=${{ github.event.inputs.service_id }}"          
+            } >> "$GITHUB_ENV"
           else
-            echo "service_id=${{ github.event.client_payload.service_id }}" >> "$GITHUB_ENV"
-            echo "health_check_url=${{ github.event.client_payload.service_id }}" >> "$GITHUB_ENV"
-            echo "state_url=${{ github.event.client_payload.service_id }}" >> "$GITHUB_ENV"
+            {
+              echo "service_id=${{ github.event.client_payload.service_id }}"
+              echo "health_check_url=${{ github.event.client_payload.service_id }}"
+              echo "state_url=${{ github.event.client_payload.service_id }}"          
+            } >> "$GITHUB_ENV"          
           fi
 
       - name: Output setup
