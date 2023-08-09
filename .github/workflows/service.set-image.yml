@@ -40,7 +40,7 @@ jobs:
             exit 1
           fi
 
-          echo "service_id=$VALUE >> "$GITHUB_ENV"
+          echo "service_id=$VALUE" >> "$GITHUB_ENV"
 
       - name: Set image_id
         env:
@@ -53,7 +53,7 @@ jobs:
             exit 1
           fi
 
-          echo "image_id=$VALUE >> "$GITHUB_ENV"
+          echo "image_id=$VALUE" >> "$GITHUB_ENV"
 
       - name: Output setup
         run: |
