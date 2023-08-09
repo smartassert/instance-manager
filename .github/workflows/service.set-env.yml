@@ -41,7 +41,7 @@ jobs:
             exit 1
           fi
 
-          echo "service_id=$VALUE >> "$GITHUB_ENV"
+          echo "service_id=$VALUE" >> "$GITHUB_ENV"
 
       - name: Set env_vars
         env:
@@ -54,7 +54,7 @@ jobs:
             exit 1
           fi
 
-          echo "env_vars=$VALUE >> "$GITHUB_ENV"
+          echo "env_vars=$VALUE" >> "$GITHUB_ENV"
 
       - name: Checkout
         uses: actions/checkout@v2
