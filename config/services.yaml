@@ -90,3 +90,13 @@ services:
     App\Services\InstanceClient:
         arguments:
             $httpClient: '@app.http.client.instance'
+
+    app.filesystem.adapter:
+        class: League\Flysystem\Local\LocalFilesystemAdapter
+        arguments:
+            $location: '%kernel.project_dir%/services'
+
+    League\Flysystem\FilesystemOperator:
+        class: League\Flysystem\Filesystem
+        arguments:
+            $adapter: '@app.filesystem.adapter'

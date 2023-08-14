@@ -8,6 +8,7 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "guzzlehttp/guzzle": "^7.4",
+        "league/flysystem": "^3.15",
         "php-http/client-common": "^2.5",
         "smartassert/digitalocean-droplet-configuration": "^1.2",
         "symfony/console": "6.1.*",
