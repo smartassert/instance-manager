@@ -8,11 +8,6 @@ use App\Model\Configuration;
 
 class ConfigurationFactory
 {
-    public function exists(string $path): bool
-    {
-        return file_exists($path) && is_readable($path);
-    }
-
     public function create(string $path): ?Configuration
     {
         if (false === (file_exists($path) && is_readable($path))) {
