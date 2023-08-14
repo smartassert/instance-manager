@@ -11,12 +11,12 @@
         "league/flysystem": "^3.15",
         "php-http/client-common": "^2.5",
         "smartassert/digitalocean-droplet-configuration": "^1.2",
-        "symfony/console": "6.2.*",
-        "symfony/dotenv": "6.2.*",
+        "symfony/console": "6.3.*",
+        "symfony/dotenv": "6.3.*",
         "symfony/flex": "^2.0",
-        "symfony/framework-bundle": "6.2.*",
-        "symfony/runtime": "6.2.*",
-        "symfony/yaml": "6.2.*",
+        "symfony/framework-bundle": "6.3.*",
+        "symfony/runtime": "6.3.*",
+        "symfony/yaml": "6.3.*",
         "toin0u/digitalocean-v2": "^4.5"
     },
     "require-dev": {
@@ -26,9 +26,9 @@
         "phpstan/phpstan-mockery": "^1.1",
         "phpunit/phpunit": "^9.6",
         "squizlabs/php_codesniffer": "dev-master#a813c38729aef0034ff7b0f5f0ac54e94ea76804",
-        "symfony/finder": "6.2.*",
-        "symfony/phpunit-bridge": "6.2.*",
-        "symfony/process": "6.2.*",
+        "symfony/finder": "6.3.*",
+        "symfony/phpunit-bridge": "6.3.*",
+        "symfony/process": "6.3.*",
         "webignition/object-reflector": "^1.0"
     },
     "config": {
@@ -92,7 +92,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "6.2.*"
+            "require": "6.3.*"
         }
     }
 }
