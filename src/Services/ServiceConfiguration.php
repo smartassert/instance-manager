@@ -9,6 +9,8 @@ use App\Exception\ServiceConfigurationMissingException;
 use App\Model\Configuration;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
+use League\Flysystem\FilesystemException;
+use League\Flysystem\FilesystemOperator;
 
 class ServiceConfiguration
 {
@@ -23,15 +25,20 @@ class ServiceConfiguration
     private Configuration $domainConfiguration;
 
     public function __construct(
-        private readonly ConfigurationFactory $configurationFactory,
         private readonly string $configurationDirectory,
         private readonly string $defaultDomain,
+        private readonly FilesystemOperator $filesystem,
     ) {
     }
 
     public function exists(string $serviceId): bool
     {
-        return $this->jsonFileExists($serviceId, self::CONFIGURATION_FILENAME);
+        try {
+            return $this->filesystem->fileExists($this->getFilePath($serviceId, self::CONFIGURATION_FILENAME));
+        } catch (FilesystemException) {
+        }
+
+        return false;
     }
 
     public function getEnvironmentVariables(string $serviceId): EnvironmentVariableCollection
@@ -147,20 +154,27 @@ class ServiceConfiguration
         $data = ['health_check_url' => $healthCheckUrl, 'state_url' => $stateUrl];
 
         $serviceConfigurationDirectory = $this->getServiceConfigurationDirectory($serviceId);
-        if (!file_exists($serviceConfigurationDirectory)) {
-            $makeDirectoryResult = mkdir(directory: $serviceConfigurationDirectory, recursive: true);
-            if (false === $makeDirectoryResult) {
-                return false;
+
+        try {
+            if (!$this->filesystem->directoryExists($serviceConfigurationDirectory)) {
+                $this->filesystem->createDirectory($serviceConfigurationDirectory);
             }
+        } catch (FilesystemException) {
+            return false;
         }
 
         $filePath = $this->getFilePath($serviceId, self::CONFIGURATION_FILENAME);
-        $writeResult = file_put_contents(
-            $filePath,
-            (string) json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
-        );
 
-        return is_int($writeResult);
+        try {
+            $this->filesystem->write(
+                $filePath,
+                (string) json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+            );
+        } catch (FilesystemException) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -178,14 +192,18 @@ class ServiceConfiguration
 
     private function createConfiguration(string $serviceId, string $filename): ?Configuration
     {
-        return $this->configurationFactory->create($this->getFilePath($serviceId, $filename));
-    }
+        $path = $this->getFilePath($serviceId, $filename);
 
-    private function jsonFileExists(string $serviceId, string $filename): bool
-    {
-        $filePath = $this->getFilePath($serviceId, $filename);
+        try {
+            $content = $this->filesystem->read($path);
 
-        return file_exists($filePath) && is_readable($filePath);
+            $data = json_decode($content, true);
+            $data = is_array($data) ? $data : [];
+
+            return new Configuration($data);
+        } catch (FilesystemException) {
+            return null;
+        }
     }
 
     private function getServiceConfigurationDirectory(string $serviceId): string
