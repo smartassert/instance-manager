@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsActiveCommand;
+use App\Command\Option;
+use App\Exception\RequiredOptionMissingException;
 use App\Model\Instance;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
@@ -14,11 +16,10 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 
 class InstanceIsActiveCommandTest extends KernelTestCase
 {
-    use MissingInstanceIdTestTrait;
-
     private InstanceIsActiveCommand $command;
     private MockHandler $mockHandler;
     private HttpResponseFactory $httpResponseFactory;
@@ -274,10 +275,35 @@ class InstanceIsActiveCommandTest extends KernelTestCase
     }
 
     /**
+     * @dataProvider runWithoutInstanceIdThrowsExceptionDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testRunWithoutInstanceIdThrowsException(string $serviceId, array $input): void
+    {
+        $this->expectExceptionObject(new RequiredOptionMissingException(Option::OPTION_ID));
+
+        $this->command->run(new ArrayInput($input), new NullOutput());
+    }
+
+    /**
      * @return array<mixed>
      */
-    protected static function getInputExcludingInstanceId(): array
+    public function runWithoutInstanceIdThrowsExceptionDataProvider(): array
     {
-        return [];
+        $serviceId = md5((string) rand());
+
+        return [
+            'missing' => [
+                'serviceId' => $serviceId,
+                'input' => [],
+            ],
+            'not numeric' => [
+                'serviceId' => $serviceId,
+                'input' => [
+                    '--' . Option::OPTION_ID => 'not-numeric',
+                ],
+            ],
+        ];
     }
 }

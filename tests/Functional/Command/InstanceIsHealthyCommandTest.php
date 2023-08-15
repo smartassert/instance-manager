@@ -7,6 +7,8 @@ namespace App\Tests\Functional\Command;
 use App\Command\InstanceIsHealthyCommand;
 use App\Command\Option;
 use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\InstanceNotFoundException;
+use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\ServiceConfiguration;
 use App\Tests\Mock\MockServiceConfiguration;
@@ -25,8 +27,6 @@ use webignition\ObjectReflector\ObjectReflector;
 class InstanceIsHealthyCommandTest extends KernelTestCase
 {
     use MissingServiceIdTestTrait;
-    use MissingInstanceIdTestTrait;
-    use MissingInstanceTestTrait;
 
     private InstanceIsHealthyCommand $command;
     private MockHandler $mockHandler;
@@ -307,13 +307,77 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     }
 
     /**
+     * @dataProvider runWithoutInstanceIdThrowsExceptionDataProvider
+     *
+     * @param array<mixed> $input
+     */
+    public function testRunWithoutInstanceIdThrowsException(string $serviceId, array $input): void
+    {
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            (new MockServiceConfiguration())
+                ->withExistsCall($serviceId, true)
+                ->withGetHealthCheckUrlCall($serviceId, '/health-check')
+                ->withGetStateUrlCall($serviceId, '/state')
+                ->getMock()
+        );
+
+        $this->expectExceptionObject(new RequiredOptionMissingException(Option::OPTION_ID));
+
+        $this->command->run(new ArrayInput($input), new NullOutput());
+    }
+
+    /**
      * @return array<mixed>
      */
-    protected static function getInputExcludingInstanceId(): array
+    public function runWithoutInstanceIdThrowsExceptionDataProvider(): array
     {
+        $serviceId = md5((string) rand());
+
         return [
-            '--' . Option::OPTION_SERVICE_ID => 'service_id',
+            'missing' => [
+                'serviceId' => $serviceId,
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                ],
+            ],
+            'not numeric' => [
+                'serviceId' => $serviceId,
+                'input' => [
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
+                    '--' . Option::OPTION_ID => 'not-numeric',
+                ],
+            ],
         ];
+    }
+
+    public function testRunWithNonExistentInstanceThrowsException(): void
+    {
+        $serviceId = 'service_id';
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            (new MockServiceConfiguration())
+                ->withExistsCall($serviceId, true)
+                ->withGetHealthCheckUrlCall($serviceId, '/health-check')
+                ->withGetStateUrlCall($serviceId, '/state')
+                ->getMock()
+        );
+
+        $this->mockHandler->append(new Response(404));
+
+        $this->expectExceptionObject(new InstanceNotFoundException(123));
+
+        $input = [
+            '--' . Option::OPTION_SERVICE_ID => $serviceId,
+            '--' . Option::OPTION_ID => '123',
+        ];
+
+        $this->command->run(new ArrayInput($input), new NullOutput());
     }
 
     private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
