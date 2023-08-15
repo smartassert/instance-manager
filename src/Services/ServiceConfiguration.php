@@ -20,7 +20,6 @@ class ServiceConfiguration
     public const DOMAIN_FILENAME = 'domain.json';
 
     private EnvironmentVariableCollection $environmentVariables;
-    private Configuration $serviceConfiguration;
     private Configuration $imageConfiguration;
     private Configuration $domainConfiguration;
 
@@ -91,29 +90,6 @@ class ServiceConfiguration
         $domain = $this->domainConfiguration->getString('domain');
 
         return is_string($domain) ? $domain : $this->defaultDomain;
-    }
-
-    /**
-     * @throws ServiceConfigurationMissingException
-     * @throws ConfigurationFileValueMissingException
-     */
-    public function getStateUrl(string $serviceId): string
-    {
-        if (!isset($this->serviceConfiguration)) {
-            $this->serviceConfiguration = $this->createConfigurationThrowingExceptionIfMissing(
-                $serviceId,
-                self::CONFIGURATION_FILENAME
-            );
-        }
-
-        $key = 'state_url';
-        $stateUrl = $this->serviceConfiguration->getString('state_url');
-
-        if (null === $stateUrl) {
-            throw new ConfigurationFileValueMissingException(self::CONFIGURATION_FILENAME, $key, $serviceId);
-        }
-
-        return $stateUrl;
     }
 
     public function setServiceConfiguration(string $serviceId, string $healthCheckUrl, string $stateUrl): bool
