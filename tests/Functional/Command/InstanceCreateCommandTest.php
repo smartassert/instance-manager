@@ -6,6 +6,8 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
 use App\Command\Option;
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
 use App\Services\BootScriptFactory;
@@ -29,7 +31,6 @@ use webignition\ObjectReflector\ObjectReflector;
 class InstanceCreateCommandTest extends KernelTestCase
 {
     use MissingServiceIdTestTrait;
-    use MissingImageIdTestTrait;
 
     private const SERVICE_ID = 'service_id';
     private const IMAGE_ID = '12345';
@@ -334,6 +335,41 @@ class InstanceCreateCommandTest extends KernelTestCase
                     './first-boot.sh',
             ],
         ];
+    }
+
+    public function testRunWithoutServiceConfigurationFileThrowsException(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::IMAGE_FILENAME)
+        );
+
+        $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
+    }
+
+    public function testRunWithoutImageIdThrowsException(): void
+    {
+        $serviceId = 'service_id';
+
+        $exception = new ConfigurationFileValueMissingException(
+            ServiceConfiguration::IMAGE_FILENAME,
+            'image_id',
+            'service_id'
+        );
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            (new MockServiceConfiguration())
+                ->withExistsCall($serviceId, true)
+                ->withGetImageIdCall($serviceId, $exception)
+                ->getMock()
+        );
+
+        $this->expectExceptionObject($exception);
+        $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
     }
 
     private function setHttpResponse(ResponseInterface $response): void

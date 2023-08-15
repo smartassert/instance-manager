@@ -6,7 +6,10 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\ImageExistsCommand;
 use App\Command\Option;
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Services\ServiceConfiguration;
+use App\Tests\Mock\MockServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -22,7 +25,6 @@ use webignition\ObjectReflector\ObjectReflector;
 class ImageExistsCommandTest extends KernelTestCase
 {
     use MissingServiceIdTestTrait;
-    use MissingImageIdTestTrait;
 
     private const SERVICE_ID = 'service_id';
     private const IMAGE_ID = '12345';
@@ -144,6 +146,41 @@ class ImageExistsCommandTest extends KernelTestCase
                 'expectedReturnCode' => Command::SUCCESS,
             ],
         ];
+    }
+
+    public function testRunWithoutServiceConfigurationFileThrowsException(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::IMAGE_FILENAME)
+        );
+
+        $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
+    }
+
+    public function testRunWithoutImageIdThrowsException(): void
+    {
+        $serviceId = 'service_id';
+
+        $exception = new ConfigurationFileValueMissingException(
+            ServiceConfiguration::IMAGE_FILENAME,
+            'image_id',
+            'service_id'
+        );
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            (new MockServiceConfiguration())
+                ->withExistsCall($serviceId, true)
+                ->withGetImageIdCall($serviceId, $exception)
+                ->getMock()
+        );
+
+        $this->expectExceptionObject($exception);
+        $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
     }
 
     private function setHttpResponse(ResponseInterface $response): void
