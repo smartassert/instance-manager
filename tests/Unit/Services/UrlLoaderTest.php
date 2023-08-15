@@ -10,14 +10,14 @@ use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\ServiceConfiguration;
 use App\Services\ServiceConfigurationLoader;
-use App\Services\UrlCollectionLoader;
+use App\Services\UrlLoader;
 use App\Tests\Model\ExpectedFilePath;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToReadFile;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use PHPUnit\Framework\TestCase;
 
-class UrlCollectionLoaderTest extends TestCase
+class UrlLoaderTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
@@ -39,7 +39,7 @@ class UrlCollectionLoaderTest extends TestCase
         ;
 
         $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new UrlCollectionLoader($serviceConfigurationLoader);
+        $loader = new UrlLoader($serviceConfigurationLoader);
 
         $loader->load($serviceId, UrlKey::HEALTH_CHECK);
     }
@@ -69,7 +69,7 @@ class UrlCollectionLoaderTest extends TestCase
         ;
 
         $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new UrlCollectionLoader($serviceConfigurationLoader);
+        $loader = new UrlLoader($serviceConfigurationLoader);
         $loader->load($serviceId, $key);
     }
 
@@ -147,7 +147,7 @@ class UrlCollectionLoaderTest extends TestCase
         ;
 
         $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new UrlCollectionLoader($serviceConfigurationLoader);
+        $loader = new UrlLoader($serviceConfigurationLoader);
 
         self::assertSame($healthCheckUrl, $loader->load($serviceId, UrlKey::HEALTH_CHECK));
         self::assertSame($stateUrl, $loader->load($serviceId, UrlKey::STATE));

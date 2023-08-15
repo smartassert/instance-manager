@@ -9,7 +9,7 @@ use App\Enum\UrlKey;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 
-readonly class UrlCollectionLoader
+readonly class UrlLoader
 {
     public function __construct(
         private ServiceConfigurationLoader $serviceConfigurationLoader,
