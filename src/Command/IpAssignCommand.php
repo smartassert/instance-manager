@@ -16,9 +16,9 @@ use App\Services\ActionRunner;
 use App\Services\CommandConfigurator;
 use App\Services\FloatingIpManager;
 use App\Services\FloatingIpRepository;
+use App\Services\ImageIdLoaderInterface;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
-use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Entity\Action as ActionEntity;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -47,9 +47,9 @@ class IpAssignCommand extends AbstractServiceCommand
         private FloatingIpRepository $floatingIpRepository,
         private ActionRunner $actionRunner,
         private OutputFactory $outputFactory,
-        private ServiceConfiguration $serviceConfiguration,
         private int $assigmentTimeoutInSeconds,
         private int $assignmentRetryInSeconds,
+        private ImageIdLoaderInterface $imageIdLoader,
     ) {
         parent::__construct($configurator);
     }
@@ -63,7 +63,7 @@ class IpAssignCommand extends AbstractServiceCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
-        $imageId = $this->serviceConfiguration->getImageId($serviceId);
+        $imageId = $this->imageIdLoader->load($serviceId);
 
         $instance = $this->instanceRepository->findCurrent($serviceId, $imageId);
         if (null === $instance) {
