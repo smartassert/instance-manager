@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Services;
 use App\Exception\MissingSecretException;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
+use App\Services\DomainLoaderInterface;
 use App\Services\ServiceConfiguration;
 use App\Services\ServiceEnvironmentVariableRepository;
 use App\Tests\Mock\MockServiceConfiguration;
@@ -46,6 +47,15 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
             ->withGetEnvironmentVariablesCall(self::SERVICE_ID, $serviceConfigurationEnvironmentVariables)
             ->withGetDomainCall(self::SERVICE_ID, $serviceConfigurationDomain)
             ->getMock());
+
+        $domainLoader = \Mockery::mock(DomainLoaderInterface::class);
+        $domainLoader
+            ->shouldReceive('load')
+            ->with(self::SERVICE_ID)
+            ->andReturn($serviceConfigurationDomain)
+        ;
+
+        ObjectReflector::setProperty($this->repository, $this->repository::class, 'domainLoader', $domainLoader);
 
         $environmentVariables = $this->repository->getCollection(self::SERVICE_ID, $secretsJson);
 

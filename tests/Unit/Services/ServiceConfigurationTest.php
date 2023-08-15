@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Services;
 
-use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
 use App\Services\ServiceConfiguration;
@@ -20,7 +19,6 @@ class ServiceConfigurationTest extends TestCase
     use MockeryPHPUnitIntegration;
 
     private const SERVICE_CONFIGURATION_DIRECTORY = './services';
-    private const DEFAULT_DOMAIN = 'localhost';
 
     public function testGetEnvironmentVariablesFileIsNotReadable(): void
     {
@@ -183,66 +181,6 @@ class ServiceConfigurationTest extends TestCase
         self::assertTrue($serviceConfiguration->setServiceConfiguration($serviceId, $healthCheckUrl, $stateUrl));
     }
 
-    public function testGetDomainFileIsNotReadable(): void
-    {
-        $serviceId = md5((string) rand());
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::DOMAIN_FILENAME);
-
-        $this->expectExceptionObject(
-            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::DOMAIN_FILENAME)
-        );
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('read')
-            ->with($expectedFilePath)
-            ->andThrow(
-                UnableToReadFile::fromLocation($expectedFilePath)
-            )
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertNull($serviceConfiguration->getDomain($serviceId));
-    }
-
-    /**
-     * @dataProvider getDomainSuccessDataProvider
-     */
-    public function testGetDomainSuccess(string $serviceId, string $fileContent, string $expectedDomain): void
-    {
-        $serviceId = md5((string) rand());
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::DOMAIN_FILENAME);
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('read')
-            ->with($expectedFilePath)
-            ->andReturn($fileContent)
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertSame($expectedDomain, $serviceConfiguration->getDomain($serviceId));
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getDomainSuccessDataProvider(): array
-    {
-        return array_merge(
-            $this->createValueMissingDataProvider('domain', self::DEFAULT_DOMAIN),
-            [
-                'valid' => [
-                    'serviceId' => 'service_id',
-                    'fileContent' => '{"domain":"example.com"}',
-                    'expectedDomain' => 'example.com',
-                ]
-            ]
-        );
-    }
-
     private function createExpectedDataDirectoryPath(string $serviceId): string
     {
         return sprintf(
@@ -299,10 +237,6 @@ class ServiceConfigurationTest extends TestCase
 
     private function createServiceConfiguration(FilesystemOperator $filesystem): ServiceConfiguration
     {
-        return new ServiceConfiguration(
-            self::SERVICE_CONFIGURATION_DIRECTORY,
-            self::DEFAULT_DOMAIN,
-            $filesystem
-        );
+        return new ServiceConfiguration(self::SERVICE_CONFIGURATION_DIRECTORY, $filesystem);
     }
 }

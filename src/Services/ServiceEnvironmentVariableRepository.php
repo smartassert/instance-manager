@@ -18,6 +18,7 @@ class ServiceEnvironmentVariableRepository
         private ServiceConfiguration $serviceConfiguration,
         private readonly SecretFactory $secretFactory,
         private readonly EnvironmentVariableSecretHydrator $secretHydrator,
+        private DomainLoaderInterface $domainLoader,
     ) {
     }
 
@@ -46,7 +47,7 @@ class ServiceEnvironmentVariableRepository
 
         return $environmentVariables->add(new EnvironmentVariable(
             self::NAME_DOMAIN,
-            $this->serviceConfiguration->getDomain($serviceId)
+            $this->domainLoader->load($serviceId)
         ));
     }
 }

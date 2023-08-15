@@ -85,7 +85,6 @@ services:
     App\Services\ServiceConfiguration:
         arguments:
             $configurationDirectory: '%kernel.project_dir%/services'
-            $defaultDomain: 'localhost'
 
     App\Services\InstanceClient:
         arguments:
@@ -107,3 +106,8 @@ services:
 
     App\Services\UrlLoaderInterface:
         class: App\Services\UrlLoader
+
+    App\Services\DomainLoaderInterface:
+        class: App\Services\DomainLoader
+        arguments:
+            $defaultDomain: 'localhost'
