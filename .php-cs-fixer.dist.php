@@ -24,6 +24,30 @@ return (new PhpCsFixer\Config())
         'php_unit_internal_class' => false,
         'php_unit_test_class_requires_covers' => false,
         'declare_strict_types' => true,
+        'blank_line_before_statement' => [
+            'statements' => [
+                'break',
+                'continue',
+                'declare',
+                'default',
+                'phpdoc',
+                'do',
+                'exit',
+                'for',
+                'goto',
+                'include',
+                'include_once',
+                'require',
+                'require_once',
+                'return',
+                'switch',
+                'throw',
+                'try',
+                'while',
+                'yield',
+                'yield_from',
+            ],
+        ],
     ])
     ->setFinder($finder)
     ;
