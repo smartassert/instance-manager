@@ -6,15 +6,15 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceCreateCommand;
 use App\Command\Option;
+use App\Enum\Filename;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
 use App\Services\BootScriptFactory;
+use App\Services\ImageIdLoaderInterface;
 use App\Services\InstanceRepository;
-use App\Services\ServiceConfiguration;
 use App\Services\ServiceEnvironmentVariableRepository;
-use App\Tests\Mock\MockServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use App\Tests\Services\InstanceFactory;
@@ -70,12 +70,14 @@ class InstanceCreateCommandTest extends KernelTestCase
         self::expectExceptionMessage($expectedExceptionMessage);
         self::expectExceptionCode($expectedExceptionCode);
 
-        $this->setCommandServiceConfiguration(
-            (new MockServiceConfiguration())
-                ->withExistsCall(self::SERVICE_ID, true)
-                ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
-                ->getMock()
-        );
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andReturn(self::IMAGE_ID)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
 
         $this->command->run(
             new ArrayInput([
@@ -119,12 +121,14 @@ class InstanceCreateCommandTest extends KernelTestCase
             ]))
         );
 
-        $this->setCommandServiceConfiguration(
-            (new MockServiceConfiguration())
-                ->withExistsCall(self::SERVICE_ID, true)
-                ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
-                ->getMock()
-        );
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andReturn(self::IMAGE_ID)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
 
         $this->mockEnvironmentVariableRepository(new EnvironmentVariableCollection());
 
@@ -179,12 +183,15 @@ class InstanceCreateCommandTest extends KernelTestCase
 
         $output = new BufferedOutput();
 
-        $this->setCommandServiceConfiguration(
-            (new MockServiceConfiguration())
-                ->withExistsCall(self::SERVICE_ID, true)
-                ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
-                ->getMock()
-        );
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andReturn(self::IMAGE_ID)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
+
         $this->mockEnvironmentVariableRepository(new EnvironmentVariableCollection());
 
         $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
@@ -280,12 +287,15 @@ class InstanceCreateCommandTest extends KernelTestCase
             $instanceRepository
         );
 
-        $this->setCommandServiceConfiguration(
-            (new MockServiceConfiguration())
-                ->withExistsCall(self::SERVICE_ID, true)
-                ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
-                ->getMock()
-        );
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andReturn(self::IMAGE_ID)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
+
         $this->mockEnvironmentVariableRepository($environmentVariables, $secretsJsonOption);
 
         $commandReturnCode = $this->command->run($input, new NullOutput());
@@ -342,7 +352,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $this->expectExceptionObject(
-            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::IMAGE_FILENAME)
+            new ServiceConfigurationMissingException($serviceId, Filename::IMAGE->value)
         );
 
         $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
@@ -353,20 +363,19 @@ class InstanceCreateCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $exception = new ConfigurationFileValueMissingException(
-            ServiceConfiguration::IMAGE_FILENAME,
+            Filename::IMAGE->value,
             'image_id',
             'service_id'
         );
 
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            (new MockServiceConfiguration())
-                ->withExistsCall($serviceId, true)
-                ->withGetImageIdCall($serviceId, $exception)
-                ->getMock()
-        );
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andThrow($exception)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
 
         $this->expectExceptionObject($exception);
         $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
@@ -400,16 +409,6 @@ class InstanceCreateCommandTest extends KernelTestCase
             $this->command::class,
             'environmentVariableRepository',
             $environmentVariableRepository
-        );
-    }
-
-    private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
-    {
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            $serviceConfiguration
         );
     }
 }

@@ -9,9 +9,9 @@ use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\BootScriptFactory;
 use App\Services\CommandConfigurator;
+use App\Services\ImageIdLoaderInterface;
 use App\Services\InstanceRepository;
 use App\Services\OutputFactory;
-use App\Services\ServiceConfiguration;
 use App\Services\ServiceEnvironmentVariableRepository;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -36,9 +36,9 @@ class InstanceCreateCommand extends AbstractServiceCommand
         CommandConfigurator $configurator,
         private InstanceRepository $instanceRepository,
         private OutputFactory $outputFactory,
-        private ServiceConfiguration $serviceConfiguration,
         private BootScriptFactory $bootScriptFactory,
         private ServiceEnvironmentVariableRepository $environmentVariableRepository,
+        private ImageIdLoaderInterface $imageIdLoader,
     ) {
         parent::__construct($configurator);
     }
@@ -72,7 +72,7 @@ class InstanceCreateCommand extends AbstractServiceCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
-        $imageId = $this->serviceConfiguration->getImageId($serviceId);
+        $imageId = $this->imageIdLoader->load($serviceId);
 
         $instance = $this->instanceRepository->findCurrent($serviceId, $imageId);
         if (null === $instance) {
