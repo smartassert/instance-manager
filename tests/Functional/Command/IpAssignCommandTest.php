@@ -7,6 +7,8 @@ namespace App\Tests\Functional\Command;
 use App\Command\IpAssignCommand;
 use App\Command\Option;
 use App\Exception\ActionTimeoutException;
+use App\Exception\ConfigurationFileValueMissingException;
+use App\Exception\ServiceConfigurationMissingException;
 use App\Services\ActionRunner;
 use App\Services\ServiceConfiguration;
 use App\Tests\Mock\MockServiceConfiguration;
@@ -18,13 +20,13 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\NullOutput;
 use webignition\ObjectReflector\ObjectReflector;
 
 class IpAssignCommandTest extends KernelTestCase
 {
     use MockeryPHPUnitIntegration;
     use MissingServiceIdTestTrait;
-    use MissingImageIdTestTrait;
 
     private const SERVICE_ID = 'service_id';
     private const IMAGE_ID = '123456';
@@ -430,6 +432,41 @@ class IpAssignCommandTest extends KernelTestCase
                 ]),
             ],
         ];
+    }
+
+    public function testRunWithoutServiceConfigurationFileThrowsException(): void
+    {
+        $serviceId = 'service_id';
+
+        $this->expectExceptionObject(
+            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::IMAGE_FILENAME)
+        );
+
+        $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
+    }
+
+    public function testRunWithoutImageIdThrowsException(): void
+    {
+        $serviceId = 'service_id';
+
+        $exception = new ConfigurationFileValueMissingException(
+            ServiceConfiguration::IMAGE_FILENAME,
+            'image_id',
+            'service_id'
+        );
+
+        ObjectReflector::setProperty(
+            $this->command,
+            $this->command::class,
+            'serviceConfiguration',
+            (new MockServiceConfiguration())
+                ->withExistsCall($serviceId, true)
+                ->withGetImageIdCall($serviceId, $exception)
+                ->getMock()
+        );
+
+        $this->expectExceptionObject($exception);
+        $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
     }
 
     private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
