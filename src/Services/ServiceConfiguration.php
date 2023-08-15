@@ -97,29 +97,6 @@ class ServiceConfiguration
      * @throws ServiceConfigurationMissingException
      * @throws ConfigurationFileValueMissingException
      */
-    public function getHealthCheckUrl(string $serviceId): string
-    {
-        if (!isset($this->serviceConfiguration)) {
-            $this->serviceConfiguration = $this->createConfigurationThrowingExceptionIfMissing(
-                $serviceId,
-                self::CONFIGURATION_FILENAME
-            );
-        }
-
-        $key = 'health_check_url';
-        $healthCheckUrl = $this->serviceConfiguration->getString($key);
-
-        if (null === $healthCheckUrl) {
-            throw new ConfigurationFileValueMissingException(self::CONFIGURATION_FILENAME, $key, $serviceId);
-        }
-
-        return $healthCheckUrl;
-    }
-
-    /**
-     * @throws ServiceConfigurationMissingException
-     * @throws ConfigurationFileValueMissingException
-     */
     public function getStateUrl(string $serviceId): string
     {
         if (!isset($this->serviceConfiguration)) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Enum\UrlKey;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\InstanceNotFoundException;
 use App\Exception\RequiredOptionMissingException;
@@ -12,7 +13,7 @@ use App\Services\CommandActionRunner;
 use App\Services\CommandConfigurator;
 use App\Services\CommandInstanceRepository;
 use App\Services\InstanceClient;
-use App\Services\ServiceConfiguration;
+use App\Services\UrlLoaderInterface;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -39,7 +40,7 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
         private InstanceClient $instanceClient,
         private CommandActionRunner $commandActionRunner,
         private CommandInstanceRepository $commandInstanceRepository,
-        private ServiceConfiguration $serviceConfiguration,
+        private UrlLoaderInterface $urlLoader,
     ) {
         parent::__construct($configurator);
     }
@@ -65,7 +66,7 @@ class InstanceIsHealthyCommand extends AbstractServiceCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
-        $healthCheckUrl = $this->serviceConfiguration->getHealthCheckUrl($serviceId);
+        $healthCheckUrl = $this->urlLoader->load($serviceId, UrlKey::HEALTH_CHECK);
         if ('' === $healthCheckUrl) {
             return Command::SUCCESS;
         }

@@ -100,3 +100,10 @@ services:
         class: League\Flysystem\Filesystem
         arguments:
             $adapter: '@app.filesystem.adapter'
+
+    App\Services\ServiceConfigurationLoader:
+        arguments:
+            $configurationDirectory: '%kernel.project_dir%/services'
+
+    App\Services\UrlLoaderInterface:
+        class: App\Services\UrlLoader

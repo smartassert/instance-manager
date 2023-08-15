@@ -166,32 +166,6 @@ class ServiceConfigurationTest extends TestCase
         self::assertEquals($expectedImageId, $serviceConfiguration->getImageId($serviceId));
     }
 
-    public function testGetHealthCheckUrlFileIsNotReadable(): void
-    {
-        $serviceId = md5((string) rand());
-        $expectedFilePath = $this->createExpectedDataFilePath(
-            $serviceId,
-            ServiceConfiguration::CONFIGURATION_FILENAME
-        );
-
-        $this->expectExceptionObject(
-            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME)
-        );
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('read')
-            ->with($expectedFilePath)
-            ->andThrow(
-                UnableToReadFile::fromLocation($expectedFilePath)
-            )
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertNull($serviceConfiguration->getHealthCheckUrl($serviceId));
-    }
-
     public function testGetStateUrlFileIsNotReadable(): void
     {
         $serviceId = md5((string) rand());
@@ -216,59 +190,6 @@ class ServiceConfigurationTest extends TestCase
         $serviceConfiguration = $this->createServiceConfiguration($filesystem);
 
         self::assertNull($serviceConfiguration->getStateUrl($serviceId));
-    }
-
-    /**
-     * @dataProvider getHealthCheckUrlValueMissingDataProvider
-     */
-    public function testGetHealthCheckValueMissing(string $serviceId, string $fileContent): void
-    {
-        $serviceId = md5((string) rand());
-        $expectedFilePath = $this->createExpectedDataFilePath(
-            $serviceId,
-            ServiceConfiguration::CONFIGURATION_FILENAME
-        );
-
-        $this->expectExceptionObject(new ConfigurationFileValueMissingException(
-            ServiceConfiguration::CONFIGURATION_FILENAME,
-            'health_check_url',
-            $serviceId
-        ));
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('read')
-            ->with($expectedFilePath)
-            ->andReturn($fileContent)
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertNull($serviceConfiguration->getHealthCheckUrl($serviceId));
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getHealthCheckUrlValueMissingDataProvider(): array
-    {
-        return $this->createValueMissingDataProvider('health_check_url', null);
-    }
-
-    public function testGetHealthCheckUrlSuccess(): void
-    {
-        $serviceId = md5((string) rand());
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('read')
-            ->with($this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME))
-            ->andReturn('{"health_check_url":"/health-check"}')
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertSame('/health-check', $serviceConfiguration->getHealthCheckUrl($serviceId));
     }
 
     /**

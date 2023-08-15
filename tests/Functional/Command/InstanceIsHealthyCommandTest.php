@@ -6,12 +6,14 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsHealthyCommand;
 use App\Command\Option;
+use App\Enum\Filename;
+use App\Enum\UrlKey;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\InstanceNotFoundException;
 use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\ServiceConfiguration;
-use App\Tests\Mock\MockServiceConfiguration;
+use App\Services\UrlLoaderInterface;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -69,24 +71,23 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
 
     public function testRunWithoutHealthCheckUrlThrowsException(): void
     {
-        $serviceId = 'service_id';
-        $instanceId = '123';
+        $serviceId = md5((string) rand());
+        $instanceId = rand(100, 900);
 
         $exception = new ConfigurationFileValueMissingException(
-            ServiceConfiguration::CONFIGURATION_FILENAME,
+            Filename::URL_COLLECTION->value,
             'health_check_url',
-            'service_id'
+            $serviceId
         );
 
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            (new MockServiceConfiguration())
-                ->withExistsCall($serviceId, true)
-                ->withGetHealthCheckUrlCall($serviceId, $exception)
-                ->getMock()
-        );
+        $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+        $urlLoader
+            ->shouldReceive('load')
+            ->with($serviceId, UrlKey::HEALTH_CHECK)
+            ->andThrow($exception)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         $this->expectExceptionObject($exception);
 
@@ -101,12 +102,16 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
 
     public function testRunInvalidApiToken(): void
     {
-        $serviceId = 'service_id';
+        $serviceId = md5((string) rand());
 
-        $this->setCommandServiceConfiguration((new MockServiceConfiguration())
-            ->withExistsCall($serviceId, true)
-            ->withGetHealthCheckUrlCall($serviceId, '/health-check')
-            ->getMock());
+        $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+        $urlLoader
+            ->shouldReceive('load')
+            ->with($serviceId, UrlKey::HEALTH_CHECK)
+            ->andReturn('/health-check')
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         $this->mockHandler->append(new Response(401));
 
@@ -124,19 +129,19 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runDataProvider
+     * @dataProvider runSuccessDataProvider
      *
      * @param array<mixed>             $input
      * @param array<int, array<mixed>> $httpResponseDataCollection
      */
     public function testRunSuccess(
         array $input,
-        ServiceConfiguration $serviceConfiguration,
+        UrlLoaderInterface $urlLoader,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
         string $expectedOutput
     ): void {
-        $this->setCommandServiceConfiguration($serviceConfiguration);
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         foreach ($httpResponseDataCollection as $httpResponseData) {
             $this->mockHandler->append(
@@ -155,16 +160,21 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runDataProvider(): array
+    public function runSuccessDataProvider(): array
     {
         $serviceId = 'service_id';
         $instanceId = 123;
 
-        $validServiceConfiguration = (new MockServiceConfiguration())
-            ->withExistsCall($serviceId, true)
-            ->withGetHealthCheckUrlCall($serviceId, 'https://{{ host }}/health-check')
-            ->getMock()
-        ;
+        $validUrlLoader = (function (string $serviceId) {
+            $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+            $urlLoader
+                ->shouldReceive('load')
+                ->with($serviceId, UrlKey::HEALTH_CHECK)
+                ->andReturn('https://{{ host }}/health-check')
+            ;
+
+            return $urlLoader;
+        })($serviceId);
 
         $dropletResponseData = HttpResponseDataFactory::createJsonResponseData([
             'droplet' => [
@@ -178,10 +188,16 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--' . Option::OPTION_ID => (string) $instanceId,
                 ],
-                'serviceConfiguration' => (new MockServiceConfiguration())
-                    ->withExistsCall($serviceId, true)
-                    ->withGetHealthCheckUrlCall($serviceId, '')
-                    ->getMock(),
+                'urlLoader' => (function (string $serviceId) {
+                    $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+                    $urlLoader
+                        ->shouldReceive('load')
+                        ->with($serviceId, UrlKey::HEALTH_CHECK)
+                        ->andReturn('')
+                    ;
+
+                    return $urlLoader;
+                })($serviceId),
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
                 ],
@@ -190,10 +206,10 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'no health data' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--' . Option::OPTION_ID => (string) $instanceId,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
                     HttpResponseDataFactory::createJsonResponseData([]),
@@ -203,12 +219,12 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not healthy, retry-limit=1' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--' . Option::OPTION_ID => (string) $instanceId,
                     '--retry-limit' => 1,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
                     HttpResponseDataFactory::createJsonResponseData(
@@ -229,12 +245,12 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not healthy, not-healthy, retry-limit=2' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--' . Option::OPTION_ID => (string) $instanceId,
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
                     HttpResponseDataFactory::createJsonResponseData(
@@ -258,12 +274,12 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'not healthy, healthy, retry-limit=2' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--' . Option::OPTION_ID => (string) $instanceId,
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
                     HttpResponseDataFactory::createJsonResponseData(
@@ -284,10 +300,10 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
             ],
             'healthy' => [
                 'input' => [
-                    '--' . Option::OPTION_SERVICE_ID => 'service_id',
+                    '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--' . Option::OPTION_ID => (string) $instanceId,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -313,16 +329,14 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
      */
     public function testRunWithoutInstanceIdThrowsException(string $serviceId, array $input): void
     {
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            (new MockServiceConfiguration())
-                ->withExistsCall($serviceId, true)
-                ->withGetHealthCheckUrlCall($serviceId, '/health-check')
-                ->withGetStateUrlCall($serviceId, '/state')
-                ->getMock()
-        );
+        $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+        $urlLoader
+            ->shouldReceive('load')
+            ->with($serviceId, UrlKey::HEALTH_CHECK)
+            ->andReturn('/health-check')
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         $this->expectExceptionObject(new RequiredOptionMissingException(Option::OPTION_ID));
 
@@ -357,16 +371,14 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
     {
         $serviceId = 'service_id';
 
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            (new MockServiceConfiguration())
-                ->withExistsCall($serviceId, true)
-                ->withGetHealthCheckUrlCall($serviceId, '/health-check')
-                ->withGetStateUrlCall($serviceId, '/state')
-                ->getMock()
-        );
+        $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+        $urlLoader
+            ->shouldReceive('load')
+            ->with($serviceId, UrlKey::HEALTH_CHECK)
+            ->andReturn('/health-check')
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         $this->mockHandler->append(new Response(404));
 
@@ -378,15 +390,5 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         ];
 
         $this->command->run(new ArrayInput($input), new NullOutput());
-    }
-
-    private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
-    {
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            $serviceConfiguration
-        );
     }
 }
