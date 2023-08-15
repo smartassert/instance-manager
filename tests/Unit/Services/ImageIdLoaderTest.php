@@ -98,7 +98,7 @@ class ImageIdLoaderTest extends TestCase
     {
         $serviceId = md5((string) rand());
         $fileContent = '{"image_id":"123456"}';
-        $expectedImageId = '123456';
+        $expectedImageId = 123456;
 
         $filesystem = \Mockery::mock(FilesystemOperator::class);
         $filesystem

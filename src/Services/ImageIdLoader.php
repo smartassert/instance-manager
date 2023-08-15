@@ -8,7 +8,7 @@ use App\Enum\Filename;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 
-readonly class ImageIdLoader
+readonly class ImageIdLoader implements ImageIdLoaderInterface
 {
     public function __construct(
         private ServiceConfigurationLoader $serviceConfigurationLoader,
@@ -19,7 +19,7 @@ readonly class ImageIdLoader
      * @throws ConfigurationFileValueMissingException
      * @throws ServiceConfigurationMissingException
      */
-    public function load(string $serviceId): string
+    public function load(string $serviceId): int
     {
         $filename = Filename::IMAGE->value;
 
@@ -29,10 +29,10 @@ readonly class ImageIdLoader
         }
 
         $value = $data['image_id'] ?? null;
-        if (!is_string($value)) {
+        if (!(is_int($value) || is_numeric($value))) {
             throw new ConfigurationFileValueMissingException($filename, 'image_id', $serviceId);
         }
 
-        return $value;
+        return (int) $value;
     }
 }
