@@ -15,7 +15,6 @@ class ServiceConfiguration
 {
     public const ENV_VAR_FILENAME = 'env.json';
     public const CONFIGURATION_FILENAME = 'configuration.json';
-    public const IMAGE_FILENAME = 'image.json';
     public const DOMAIN_FILENAME = 'domain.json';
 
     private EnvironmentVariableCollection $environmentVariables;

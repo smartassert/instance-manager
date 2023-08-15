@@ -10,7 +10,6 @@ use App\Enum\Filename;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\ImageIdLoaderInterface;
-use App\Services\ServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -178,7 +177,7 @@ class ImageExistsCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $exception = new ConfigurationFileValueMissingException(
-            ServiceConfiguration::IMAGE_FILENAME,
+            Filename::IMAGE->value,
             'image_id',
             'service_id'
         );
