@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enum\Filename;
+use App\Enum\UrlKey;
+use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Model\Service\UrlCollection;
 
@@ -17,19 +19,26 @@ readonly class UrlCollectionLoader
 
     /**
      * @throws ServiceConfigurationMissingException
+     * @throws ConfigurationFileValueMissingException
      */
     public function load(string $serviceId): UrlCollection
     {
-        $data = $this->serviceConfigurationLoader->load($serviceId, Filename::URL_COLLECTION->value);
+        $filename = Filename::URL_COLLECTION->value;
+
+        $data = $this->serviceConfigurationLoader->load($serviceId, $filename);
         if (null === $data) {
-            throw new ServiceConfigurationMissingException($serviceId, Filename::URL_COLLECTION->value);
+            throw new ServiceConfigurationMissingException($serviceId, $filename);
         }
 
-        $healthCheckUrl = $data['health_check_url'] ?? null;
-        $healthCheckUrl = is_string($healthCheckUrl) ? $healthCheckUrl : null;
+        $healthCheckUrl = $data[UrlKey::HEALTH_CHECK->value] ?? null;
+        if (!is_string($healthCheckUrl)) {
+            throw new ConfigurationFileValueMissingException($filename, UrlKey::HEALTH_CHECK->value, $serviceId);
+        }
 
-        $stateUrl = $data['state_url'] ?? null;
-        $stateUrl = is_string($stateUrl) ? $stateUrl : null;
+        $stateUrl = $data[UrlKey::STATE->value] ?? null;
+        if (!is_string($stateUrl)) {
+            throw new ConfigurationFileValueMissingException($filename, UrlKey::STATE->value, $serviceId);
+        }
 
         return new UrlCollection($healthCheckUrl, $stateUrl);
     }
