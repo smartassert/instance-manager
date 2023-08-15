@@ -1,4 +1,0 @@
-{
-    "health_check_url": "http://{{ host }}/health-check",
-    "state_url": "http://{{ host }}/status"
-}
