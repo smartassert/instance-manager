@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Model\Configuration;
 use App\Model\EnvironmentVariable;
@@ -20,7 +19,6 @@ class ServiceConfiguration
     public const DOMAIN_FILENAME = 'domain.json';
 
     private EnvironmentVariableCollection $environmentVariables;
-    private Configuration $imageConfiguration;
     private Configuration $domainConfiguration;
 
     public function __construct(
@@ -50,29 +48,6 @@ class ServiceConfiguration
         }
 
         return $this->environmentVariables;
-    }
-
-    /**
-     * @throws ConfigurationFileValueMissingException
-     * @throws ServiceConfigurationMissingException
-     */
-    public function getImageId(string $serviceId): int
-    {
-        if (!isset($this->imageConfiguration)) {
-            $this->imageConfiguration = $this->createConfigurationThrowingExceptionIfMissing(
-                $serviceId,
-                self::IMAGE_FILENAME
-            );
-        }
-
-        $key = 'image_id';
-        $imageId = $this->imageConfiguration->getInt($key);
-
-        if (!is_int($imageId)) {
-            throw new ConfigurationFileValueMissingException(self::IMAGE_FILENAME, $key, $serviceId);
-        }
-
-        return $imageId;
     }
 
     /**

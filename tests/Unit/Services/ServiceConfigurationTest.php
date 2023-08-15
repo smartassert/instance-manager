@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Services;
 
-use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
@@ -92,78 +91,6 @@ class ServiceConfigurationTest extends TestCase
                 ]
             ]
         );
-    }
-
-    public function testGetImageIdFileIsNotReadable(): void
-    {
-        $serviceId = md5((string) rand());
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME);
-
-        $this->expectExceptionObject(
-            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::IMAGE_FILENAME)
-        );
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('read')
-            ->with($expectedFilePath)
-            ->andThrow(
-                UnableToReadFile::fromLocation($expectedFilePath)
-            )
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertNull($serviceConfiguration->getImageId($serviceId));
-    }
-
-    /**
-     * @dataProvider getImageIdValueMissingDataProvider
-     */
-    public function testGetImageIdValueMissing(string $serviceId, string $fileContent): void
-    {
-        $this->expectExceptionObject(new ConfigurationFileValueMissingException(
-            ServiceConfiguration::IMAGE_FILENAME,
-            'image_id',
-            $serviceId
-        ));
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('read')
-            ->with($this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME))
-            ->andReturn($fileContent)
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        $serviceConfiguration->getImageId($serviceId);
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    public function getImageIdValueMissingDataProvider(): array
-    {
-        return $this->createValueMissingDataProvider('image_id', null);
-    }
-
-    public function testGetImageIdSuccess(): void
-    {
-        $serviceId = md5((string) rand());
-        $fileContent = '{"image_id":"123456"}';
-        $expectedImageId = 123456;
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('read')
-            ->with($this->createExpectedDataFilePath($serviceId, ServiceConfiguration::IMAGE_FILENAME))
-            ->andReturn($fileContent)
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertEquals($expectedImageId, $serviceConfiguration->getImageId($serviceId));
     }
 
     public function testSetConfigurationWriteFailureUnableToCreateDirectory(): void
