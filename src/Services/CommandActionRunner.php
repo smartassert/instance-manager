@@ -16,6 +16,7 @@ class CommandActionRunner
     public function run(int $limit, int $delay, OutputInterface $output, callable $action): bool
     {
         $count = 0;
+
         do {
             try {
                 $result = ($action)($count === $limit - 1);
