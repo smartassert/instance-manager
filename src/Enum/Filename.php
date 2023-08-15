@@ -7,4 +7,5 @@ namespace App\Enum;
 enum Filename: string
 {
     case URL_COLLECTION = 'configuration.json';
+    case IMAGE = 'image.json';
 }
