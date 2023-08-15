@@ -8,7 +8,6 @@ use App\Enum\Filename;
 use App\Enum\UrlKey;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Model\Service\UrlCollection;
 
 readonly class UrlCollectionLoader
 {
@@ -18,10 +17,10 @@ readonly class UrlCollectionLoader
     }
 
     /**
-     * @throws ServiceConfigurationMissingException
      * @throws ConfigurationFileValueMissingException
+     * @throws ServiceConfigurationMissingException
      */
-    public function load(string $serviceId): UrlCollection
+    public function load(string $serviceId, UrlKey $key): string
     {
         $filename = Filename::URL_COLLECTION->value;
 
@@ -30,16 +29,11 @@ readonly class UrlCollectionLoader
             throw new ServiceConfigurationMissingException($serviceId, $filename);
         }
 
-        $healthCheckUrl = $data[UrlKey::HEALTH_CHECK->value] ?? null;
-        if (!is_string($healthCheckUrl)) {
-            throw new ConfigurationFileValueMissingException($filename, UrlKey::HEALTH_CHECK->value, $serviceId);
+        $value = $data[$key->value] ?? null;
+        if (!is_string($value)) {
+            throw new ConfigurationFileValueMissingException($filename, $key->value, $serviceId);
         }
 
-        $stateUrl = $data[UrlKey::STATE->value] ?? null;
-        if (!is_string($stateUrl)) {
-            throw new ConfigurationFileValueMissingException($filename, UrlKey::STATE->value, $serviceId);
-        }
-
-        return new UrlCollection($healthCheckUrl, $stateUrl);
+        return $value;
     }
 }

@@ -40,14 +40,18 @@ class UrlCollectionLoaderTest extends TestCase
 
         $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
         $loader = new UrlCollectionLoader($serviceConfigurationLoader);
-        $loader->load($serviceId);
+
+        $loader->load($serviceId, UrlKey::HEALTH_CHECK);
     }
 
     /**
      * @dataProvider loadHealthCheckUrlValueMissingDataProvider
      */
-    public function testLoadValueMissing(string $fileContent, string $expectedExceptionKey): void
-    {
+    public function testLoadValueMissing(
+        string $fileContent,
+        UrlKey $key,
+        string $expectedExceptionKey
+    ): void {
         $serviceId = md5((string) rand());
         $expectedFilePath = ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME);
 
@@ -66,7 +70,7 @@ class UrlCollectionLoaderTest extends TestCase
 
         $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
         $loader = new UrlCollectionLoader($serviceConfigurationLoader);
-        $loader->load($serviceId);
+        $loader->load($serviceId, $key);
     }
 
     /**
@@ -75,32 +79,43 @@ class UrlCollectionLoaderTest extends TestCase
     public function loadHealthCheckUrlValueMissingDataProvider(): array
     {
         return [
-            'empty' => [
+            'empty, key=health_check_url' => [
                 'fileContent' => '{}',
+                'key' => UrlKey::HEALTH_CHECK,
                 'expectedExceptionKey' => UrlKey::HEALTH_CHECK->value,
+            ],
+            'empty, key=state_url' => [
+                'fileContent' => '{}',
+                'key' => UrlKey::STATE,
+                'expectedExceptionKey' => UrlKey::STATE->value,
             ],
             'content not a json array' => [
                 'fileContent' => 'true',
+                'key' => UrlKey::HEALTH_CHECK,
                 'expectedExceptionKey' => UrlKey::HEALTH_CHECK->value,
             ],
             'single invalid item, key not a string' => [
                 'fileContent' => '{0:"value1"}',
+                'key' => UrlKey::HEALTH_CHECK,
                 'expectedExceptionKey' => UrlKey::HEALTH_CHECK->value,
             ],
             'single invalid item, value not a string' => [
                 'fileContent' => '{"key1":true}',
+                'key' => UrlKey::HEALTH_CHECK,
                 'expectedExceptionKey' => UrlKey::HEALTH_CHECK->value,
             ],
             'health_check_url key present, value not a string' => [
                 'fileContent' => json_encode([
                     UrlKey::HEALTH_CHECK->value => true,
                 ]),
+                'key' => UrlKey::HEALTH_CHECK,
                 'expectedExceptionKey' => UrlKey::HEALTH_CHECK->value,
             ],
             'health_check_url valid, state_url missing' => [
                 'fileContent' => json_encode([
                     UrlKey::HEALTH_CHECK->value => 'http://example.com/health',
                 ]),
+                'key' => UrlKey::STATE,
                 'expectedExceptionKey' => UrlKey::STATE->value,
             ],
             'health_check_url valid, state_url not a string' => [
@@ -108,6 +123,7 @@ class UrlCollectionLoaderTest extends TestCase
                     UrlKey::HEALTH_CHECK->value => 'http://example.com/health',
                     UrlKey::STATE->value => 123,
                 ]),
+                'key' => UrlKey::STATE,
                 'expectedExceptionKey' => UrlKey::STATE->value,
             ],
         ];
@@ -132,9 +148,8 @@ class UrlCollectionLoaderTest extends TestCase
 
         $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
         $loader = new UrlCollectionLoader($serviceConfigurationLoader);
-        $urlCollection = $loader->load($serviceId);
 
-        self::assertSame($healthCheckUrl, $urlCollection->healthCheckUrl);
-        self::assertSame($stateUrl, $urlCollection->stateUrl);
+        self::assertSame($healthCheckUrl, $loader->load($serviceId, UrlKey::HEALTH_CHECK));
+        self::assertSame($stateUrl, $loader->load($serviceId, UrlKey::STATE));
     }
 }
