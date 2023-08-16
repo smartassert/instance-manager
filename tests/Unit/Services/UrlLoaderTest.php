@@ -8,7 +8,7 @@ use App\Enum\Filename;
 use App\Enum\UrlKey;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Services\ServiceConfigurationLoader;
+use App\Services\ServiceConfigurationOperator;
 use App\Services\UrlLoader;
 use App\Tests\Model\ExpectedFilePath;
 use League\Flysystem\FilesystemOperator;
@@ -37,8 +37,9 @@ class UrlLoaderTest extends TestCase
             ->andThrow(UnableToReadFile::fromLocation($expectedFilePath))
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new UrlLoader($serviceConfigurationLoader);
+        $loader = new UrlLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+        );
 
         $loader->load($serviceId, UrlKey::HEALTH_CHECK);
     }
@@ -67,8 +68,9 @@ class UrlLoaderTest extends TestCase
             ->andReturn($fileContent)
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new UrlLoader($serviceConfigurationLoader);
+        $loader = new UrlLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+        );
         $loader->load($serviceId, $key);
     }
 
@@ -145,8 +147,9 @@ class UrlLoaderTest extends TestCase
             ]))
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new UrlLoader($serviceConfigurationLoader);
+        $loader = new UrlLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+        );
 
         self::assertSame($healthCheckUrl, $loader->load($serviceId, UrlKey::HEALTH_CHECK));
         self::assertSame($stateUrl, $loader->load($serviceId, UrlKey::STATE));

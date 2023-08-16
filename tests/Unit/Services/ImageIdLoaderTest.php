@@ -8,7 +8,7 @@ use App\Enum\Filename;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\ImageIdLoader;
-use App\Services\ServiceConfigurationLoader;
+use App\Services\ServiceConfigurationOperator;
 use App\Tests\Model\ExpectedFilePath;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToReadFile;
@@ -38,8 +38,9 @@ class ImageIdLoaderTest extends TestCase
             )
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new ImageIdLoader($serviceConfigurationLoader);
+        $loader = new ImageIdLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+        );
 
         $loader->load($serviceId);
     }
@@ -64,8 +65,9 @@ class ImageIdLoaderTest extends TestCase
             ->andReturn($fileContent)
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new ImageIdLoader($serviceConfigurationLoader);
+        $loader = new ImageIdLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+        );
 
         $loader->load($serviceId);
     }
@@ -107,8 +109,9 @@ class ImageIdLoaderTest extends TestCase
             ->andReturn($fileContent)
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new ImageIdLoader($serviceConfigurationLoader);
+        $loader = new ImageIdLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+        );
 
         $loader->load($serviceId);
 

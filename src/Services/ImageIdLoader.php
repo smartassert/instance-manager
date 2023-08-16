@@ -11,7 +11,7 @@ use App\Exception\ServiceConfigurationMissingException;
 readonly class ImageIdLoader implements ImageIdLoaderInterface
 {
     public function __construct(
-        private ServiceConfigurationLoader $serviceConfigurationLoader,
+        private ServiceConfigurationOperator $serviceConfigurationOperator,
     ) {
     }
 
@@ -23,7 +23,7 @@ readonly class ImageIdLoader implements ImageIdLoaderInterface
     {
         $filename = Filename::IMAGE->value;
 
-        $data = $this->serviceConfigurationLoader->load($serviceId, $filename);
+        $data = $this->serviceConfigurationOperator->load($serviceId, $filename);
         if (null === $data) {
             throw new ServiceConfigurationMissingException($serviceId, $filename);
         }

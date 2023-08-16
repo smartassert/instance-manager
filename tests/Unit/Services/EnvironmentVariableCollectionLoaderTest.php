@@ -8,7 +8,7 @@ use App\Enum\Filename;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
 use App\Services\EnvironmentVariableCollectionLoader;
-use App\Services\ServiceConfigurationLoader;
+use App\Services\ServiceConfigurationOperator;
 use App\Tests\Model\ExpectedFilePath;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToReadFile;
@@ -36,8 +36,9 @@ class EnvironmentVariableCollectionLoaderTest extends TestCase
             )
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new EnvironmentVariableCollectionLoader($serviceConfigurationLoader);
+        $loader = new EnvironmentVariableCollectionLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+        );
 
         self::assertEquals(new EnvironmentVariableCollection([]), $loader->load($serviceId));
     }
@@ -57,8 +58,9 @@ class EnvironmentVariableCollectionLoaderTest extends TestCase
             ->andReturn($fileContent)
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new EnvironmentVariableCollectionLoader($serviceConfigurationLoader);
+        $loader = new EnvironmentVariableCollectionLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+        );
 
         self::assertEquals($expected, $loader->load($serviceId));
     }

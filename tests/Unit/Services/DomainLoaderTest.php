@@ -7,7 +7,7 @@ namespace App\Tests\Unit\Services;
 use App\Enum\Filename;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\DomainLoader;
-use App\Services\ServiceConfigurationLoader;
+use App\Services\ServiceConfigurationOperator;
 use App\Tests\Model\ExpectedFilePath;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToReadFile;
@@ -41,8 +41,10 @@ class DomainLoaderTest extends TestCase
             )
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new DomainLoader($serviceConfigurationLoader, self::DEFAULT_DOMAIN);
+        $loader = new DomainLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem),
+            self::DEFAULT_DOMAIN
+        );
 
         $loader->load($serviceId);
     }
@@ -66,8 +68,10 @@ class DomainLoaderTest extends TestCase
             ->andReturn($fileContent)
         ;
 
-        $serviceConfigurationLoader = new ServiceConfigurationLoader(self::CONFIGURATION_DIRECTORY, $filesystem);
-        $loader = new DomainLoader($serviceConfigurationLoader, self::DEFAULT_DOMAIN);
+        $loader = new DomainLoader(
+            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem),
+            self::DEFAULT_DOMAIN
+        );
 
         self::assertSame($expected, $loader->load($serviceId));
     }

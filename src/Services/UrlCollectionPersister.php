@@ -10,13 +10,13 @@ use App\Model\Service\UrlCollection;
 readonly class UrlCollectionPersister implements UrlCollectionPersisterInterface
 {
     public function __construct(
-        private ServiceConfigurationPersister $serviceConfigurationPersister,
+        private ServiceConfigurationOperator $serviceConfigurationOperator,
     ) {
     }
 
     public function persist(string $serviceId, UrlCollection $urlCollection): bool
     {
-        return $this->serviceConfigurationPersister->persist(
+        return $this->serviceConfigurationOperator->persist(
             $serviceId,
             Filename::URL_COLLECTION->value,
             (string) json_encode($urlCollection, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)

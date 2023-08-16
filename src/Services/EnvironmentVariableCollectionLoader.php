@@ -11,7 +11,7 @@ use App\Model\EnvironmentVariableCollection;
 readonly class EnvironmentVariableCollectionLoader implements EnvironmentVariableCollectionLoaderInterface
 {
     public function __construct(
-        private ServiceConfigurationLoader $serviceConfigurationLoader,
+        private ServiceConfigurationOperator $configurationOperator,
     ) {
     }
 
@@ -19,7 +19,7 @@ readonly class EnvironmentVariableCollectionLoader implements EnvironmentVariabl
     {
         $filename = Filename::ENVIRONMENT_VARIABLES->value;
 
-        $data = $this->serviceConfigurationLoader->load($serviceId, $filename);
+        $data = $this->configurationOperator->load($serviceId, $filename);
         $data = is_array($data) ? $data : [];
 
         $collection = [];

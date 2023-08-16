@@ -10,8 +10,8 @@ use App\Exception\ServiceConfigurationMissingException;
 readonly class DomainLoader implements DomainLoaderInterface
 {
     public function __construct(
-        private ServiceConfigurationLoader $serviceConfigurationLoader,
-        private readonly string $defaultDomain,
+        private ServiceConfigurationOperator $serviceConfigurationOperator,
+        private string $defaultDomain,
     ) {
     }
 
@@ -22,7 +22,7 @@ readonly class DomainLoader implements DomainLoaderInterface
     {
         $filename = Filename::DOMAIN->value;
 
-        $data = $this->serviceConfigurationLoader->load($serviceId, $filename);
+        $data = $this->serviceConfigurationOperator->load($serviceId, $filename);
         if (null === $data) {
             throw new ServiceConfigurationMissingException($serviceId, $filename);
         }

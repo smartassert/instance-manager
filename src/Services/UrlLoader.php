@@ -12,7 +12,7 @@ use App\Exception\ServiceConfigurationMissingException;
 readonly class UrlLoader implements UrlLoaderInterface
 {
     public function __construct(
-        private ServiceConfigurationLoader $serviceConfigurationLoader,
+        private ServiceConfigurationOperator $configurationOperator,
     ) {
     }
 
@@ -24,7 +24,7 @@ readonly class UrlLoader implements UrlLoaderInterface
     {
         $filename = Filename::URL_COLLECTION->value;
 
-        $data = $this->serviceConfigurationLoader->load($serviceId, $filename);
+        $data = $this->configurationOperator->load($serviceId, $filename);
         if (null === $data) {
             throw new ServiceConfigurationMissingException($serviceId, $filename);
         }

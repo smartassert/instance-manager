@@ -96,7 +96,7 @@ services:
         arguments:
             $adapter: '@app.filesystem.adapter'
 
-    App\Services\ServiceConfigurationLoader:
+    App\Services\ServiceConfigurationOperator:
         arguments:
             $configurationDirectory: '%kernel.project_dir%/services'
 
@@ -110,7 +110,3 @@ services:
 
     App\Services\EnvironmentVariableCollectionLoaderInterface:
         class: App\Services\EnvironmentVariableCollectionLoader
-
-    App\Services\ServiceConfigurationPersister:
-        arguments:
-            $configurationDirectory: '%kernel.project_dir%/services'

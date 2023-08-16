@@ -7,12 +7,30 @@ namespace App\Services;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 
-readonly class ServiceConfigurationPersister
+readonly class ServiceConfigurationOperator
 {
     public function __construct(
         private string $configurationDirectory,
         private FilesystemOperator $filesystem,
     ) {
+    }
+
+    /**
+     * @return ?array<mixed>
+     */
+    public function load(string $serviceId, string $filename): ?array
+    {
+        $path = $this->getFilePath($serviceId, $filename);
+
+        try {
+            $content = $this->filesystem->read($path);
+
+            $data = json_decode($content, true);
+
+            return is_array($data) ? $data : [];
+        } catch (FilesystemException) {
+            return null;
+        }
     }
 
     public function persist(string $serviceId, string $filename, string $content): bool
