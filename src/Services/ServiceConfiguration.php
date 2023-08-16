@@ -4,45 +4,17 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Model\Configuration;
-use App\Model\EnvironmentVariable;
-use App\Model\EnvironmentVariableCollection;
 use League\Flysystem\FilesystemException;
 use League\Flysystem\FilesystemOperator;
 
 class ServiceConfiguration
 {
-    public const ENV_VAR_FILENAME = 'env.json';
     public const CONFIGURATION_FILENAME = 'configuration.json';
-
-    private EnvironmentVariableCollection $environmentVariables;
 
     public function __construct(
         private readonly string $configurationDirectory,
         private readonly FilesystemOperator $filesystem,
     ) {
-    }
-
-    public function getEnvironmentVariables(string $serviceId): EnvironmentVariableCollection
-    {
-        if (!isset($this->environmentVariables)) {
-            $collection = [];
-            $configuration = $this->createConfiguration($serviceId, self::ENV_VAR_FILENAME);
-
-            if ($configuration instanceof Configuration) {
-                $data = $configuration->getAll();
-
-                foreach ($data as $key => $value) {
-                    if (is_string($key) && is_string($value)) {
-                        $collection[] = new EnvironmentVariable($key, $value);
-                    }
-                }
-            }
-
-            $this->environmentVariables = new EnvironmentVariableCollection($collection);
-        }
-
-        return $this->environmentVariables;
     }
 
     public function setServiceConfiguration(string $serviceId, string $healthCheckUrl, string $stateUrl): bool
@@ -71,22 +43,6 @@ class ServiceConfiguration
         }
 
         return true;
-    }
-
-    private function createConfiguration(string $serviceId, string $filename): ?Configuration
-    {
-        $path = $this->getFilePath($serviceId, $filename);
-
-        try {
-            $content = $this->filesystem->read($path);
-
-            $data = json_decode($content, true);
-            $data = is_array($data) ? $data : [];
-
-            return new Configuration($data);
-        } catch (FilesystemException) {
-            return null;
-        }
     }
 
     private function getServiceConfigurationDirectory(string $serviceId): string

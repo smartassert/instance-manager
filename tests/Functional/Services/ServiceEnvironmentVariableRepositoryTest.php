@@ -8,9 +8,8 @@ use App\Exception\MissingSecretException;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
 use App\Services\DomainLoaderInterface;
-use App\Services\ServiceConfiguration;
+use App\Services\EnvironmentVariableCollectionLoaderInterface;
 use App\Services\ServiceEnvironmentVariableRepository;
-use App\Tests\Mock\MockServiceConfiguration;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use webignition\ObjectReflector\ObjectReflector;
@@ -20,7 +19,6 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
     use MockeryPHPUnitIntegration;
 
     private const SERVICE_ID = 'service_id';
-    private const IMAGE_ID = '12345';
 
     private ServiceEnvironmentVariableRepository $repository;
 
@@ -42,12 +40,6 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
         string $serviceConfigurationDomain,
         EnvironmentVariableCollection $expectedEnvironmentVariables,
     ): void {
-        $this->setServiceConfiguration((new MockServiceConfiguration())
-            ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
-            ->withGetEnvironmentVariablesCall(self::SERVICE_ID, $serviceConfigurationEnvironmentVariables)
-            ->withGetDomainCall(self::SERVICE_ID, $serviceConfigurationDomain)
-            ->getMock());
-
         $domainLoader = \Mockery::mock(DomainLoaderInterface::class);
         $domainLoader
             ->shouldReceive('load')
@@ -55,7 +47,20 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
             ->andReturn($serviceConfigurationDomain)
         ;
 
+        $environmentVariableCollectionLoader = \Mockery::mock(EnvironmentVariableCollectionLoaderInterface::class);
+        $environmentVariableCollectionLoader
+            ->shouldReceive('load')
+            ->with(self::SERVICE_ID)
+            ->andReturn($serviceConfigurationEnvironmentVariables)
+        ;
+
         ObjectReflector::setProperty($this->repository, $this->repository::class, 'domainLoader', $domainLoader);
+        ObjectReflector::setProperty(
+            $this->repository,
+            $this->repository::class,
+            'environmentVariableCollectionLoader',
+            $environmentVariableCollectionLoader
+        );
 
         $environmentVariables = $this->repository->getCollection(self::SERVICE_ID, $secretsJson);
 
@@ -140,10 +145,19 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
         EnvironmentVariableCollection $environmentVariables,
         string $expectedExceptionMessage
     ): void {
-        $this->setServiceConfiguration((new MockServiceConfiguration())
-            ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
-            ->withGetEnvironmentVariablesCall(self::SERVICE_ID, $environmentVariables)
-            ->getMock());
+        $environmentVariableCollectionLoader = \Mockery::mock(EnvironmentVariableCollectionLoaderInterface::class);
+        $environmentVariableCollectionLoader
+            ->shouldReceive('load')
+            ->with(self::SERVICE_ID)
+            ->andReturn($environmentVariables)
+        ;
+
+        ObjectReflector::setProperty(
+            $this->repository,
+            $this->repository::class,
+            'environmentVariableCollectionLoader',
+            $environmentVariableCollectionLoader
+        );
 
         self::expectException(MissingSecretException::class);
         self::expectExceptionMessage($expectedExceptionMessage);
@@ -173,15 +187,5 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                 'expectedExceptionMessage' => 'Secret "DIFFERENT_SERVICE_ID_SECRET_001" not found',
             ],
         ];
-    }
-
-    private function setServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
-    {
-        ObjectReflector::setProperty(
-            $this->repository,
-            $this->repository::class,
-            'serviceConfiguration',
-            $serviceConfiguration
-        );
     }
 }

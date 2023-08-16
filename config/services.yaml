@@ -111,3 +111,6 @@ services:
         class: App\Services\DomainLoader
         arguments:
             $defaultDomain: 'localhost'
+
+    App\Services\EnvironmentVariableCollectionLoaderInterface:
+        class: App\Services\EnvironmentVariableCollectionLoader
