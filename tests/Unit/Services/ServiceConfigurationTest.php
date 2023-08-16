@@ -94,57 +94,6 @@ class ServiceConfigurationTest extends TestCase
         );
     }
 
-    public function testExistsDoesNotExist(): void
-    {
-        $serviceId = md5((string) rand());
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('fileExists')
-            ->with($this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME))
-            ->andReturn(false)
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertFalse($serviceConfiguration->exists($serviceId));
-    }
-
-    public function testExistsIsNotReadable(): void
-    {
-        $serviceId = md5((string) rand());
-        $expectedFilePath = $this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME);
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('fileExists')
-            ->with($expectedFilePath)
-            ->andThrow(
-                UnableToReadFile::fromLocation($expectedFilePath)
-            )
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertFalse($serviceConfiguration->exists($serviceId));
-    }
-
-    public function testExistsDoesExist(): void
-    {
-        $serviceId = md5((string) rand());
-
-        $filesystem = \Mockery::mock(FilesystemOperator::class);
-        $filesystem
-            ->shouldReceive('fileExists')
-            ->with($this->createExpectedDataFilePath($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME))
-            ->andReturn(true)
-        ;
-
-        $serviceConfiguration = $this->createServiceConfiguration($filesystem);
-
-        self::assertTrue($serviceConfiguration->exists($serviceId));
-    }
-
     public function testGetImageIdFileIsNotReadable(): void
     {
         $serviceId = md5((string) rand());

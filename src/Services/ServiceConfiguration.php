@@ -31,16 +31,6 @@ class ServiceConfiguration
     ) {
     }
 
-    public function exists(string $serviceId): bool
-    {
-        try {
-            return $this->filesystem->fileExists($this->getFilePath($serviceId, self::CONFIGURATION_FILENAME));
-        } catch (FilesystemException) {
-        }
-
-        return false;
-    }
-
     public function getEnvironmentVariables(string $serviceId): EnvironmentVariableCollection
     {
         if (!isset($this->environmentVariables)) {
