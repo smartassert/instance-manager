@@ -9,4 +9,5 @@ enum Filename: string
     case URL_COLLECTION = 'configuration.json';
     case IMAGE = 'image.json';
     case DOMAIN = 'domain.json';
+    case ENVIRONMENT_VARIABLES = 'env.json';
 }
