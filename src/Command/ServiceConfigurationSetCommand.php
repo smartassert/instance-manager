@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Exception\RequiredOptionMissingException;
+use App\Model\Service\UrlCollection;
 use App\Services\CommandConfigurator;
-use App\Services\ServiceConfiguration;
+use App\Services\UrlCollectionPersisterInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -29,7 +30,7 @@ class ServiceConfigurationSetCommand extends AbstractServiceCommand
 
     public function __construct(
         CommandConfigurator $configurator,
-        private ServiceConfiguration $serviceConfiguration,
+        private UrlCollectionPersisterInterface $urlCollectionPersister,
     ) {
         parent::__construct($configurator);
     }
@@ -77,8 +78,10 @@ class ServiceConfigurationSetCommand extends AbstractServiceCommand
             return self::EXIT_CODE_EMPTY_STATE_URL;
         }
 
-        $result = $this->serviceConfiguration->setServiceConfiguration($serviceId, $healthCheckUrl, $stateUrl);
+        $urlCollection = new UrlCollection($healthCheckUrl, $stateUrl);
 
-        return $result ? Command::SUCCESS : Command::FAILURE;
+        return $this->urlCollectionPersister->persist($serviceId, $urlCollection)
+            ? Command::SUCCESS
+            : Command::FAILURE;
     }
 }

@@ -83,8 +83,6 @@ services:
                 size: '%env(DIGITALOCEAN_DROPLET_SIZE)%'
 
     App\Services\ServiceConfiguration:
-        arguments:
-            $configurationDirectory: '%kernel.project_dir%/services'
 
     App\Services\InstanceClient:
         arguments:
@@ -114,3 +112,7 @@ services:
 
     App\Services\EnvironmentVariableCollectionLoaderInterface:
         class: App\Services\EnvironmentVariableCollectionLoader
+
+    App\Services\ServiceConfigurationPersister:
+        arguments:
+            $configurationDirectory: '%kernel.project_dir%/services'
