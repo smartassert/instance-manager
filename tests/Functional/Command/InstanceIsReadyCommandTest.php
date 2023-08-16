@@ -6,12 +6,12 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsReadyCommand;
 use App\Command\Option;
+use App\Enum\Filename;
 use App\Enum\UrlKey;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\InstanceNotFoundException;
 use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Services\ServiceConfiguration;
 use App\Services\UrlLoaderInterface;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
@@ -57,7 +57,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $this->expectExceptionObject(
-            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME)
+            new ServiceConfigurationMissingException($serviceId, Filename::URL_COLLECTION->value)
         );
 
         $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
@@ -68,7 +68,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $exception = new ConfigurationFileValueMissingException(
-            ServiceConfiguration::CONFIGURATION_FILENAME,
+            Filename::URL_COLLECTION->value,
             'state_url',
             'service_id'
         );

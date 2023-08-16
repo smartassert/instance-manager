@@ -12,7 +12,6 @@ use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\InstanceNotFoundException;
 use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Services\ServiceConfiguration;
 use App\Services\UrlLoaderInterface;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
@@ -57,7 +56,7 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
         $instanceId = '123';
 
         $this->expectExceptionObject(
-            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME)
+            new ServiceConfigurationMissingException($serviceId, Filename::URL_COLLECTION->value)
         );
 
         $this->command->run(

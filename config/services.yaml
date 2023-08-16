@@ -82,8 +82,6 @@ services:
                 region: '%env(DIGITALOCEAN_DROPLET_REGION)%'
                 size: '%env(DIGITALOCEAN_DROPLET_SIZE)%'
 
-    App\Services\ServiceConfiguration:
-
     App\Services\InstanceClient:
         arguments:
             $httpClient: '@app.http.client.instance'

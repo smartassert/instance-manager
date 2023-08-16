@@ -6,5 +6,4 @@ namespace App\Services;
 
 class ServiceConfiguration
 {
-    public const CONFIGURATION_FILENAME = 'configuration.json';
 }

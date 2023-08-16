@@ -8,7 +8,6 @@ use App\Enum\Filename;
 use App\Enum\UrlKey;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Services\ServiceConfiguration;
 use App\Services\ServiceConfigurationLoader;
 use App\Services\UrlLoader;
 use App\Tests\Model\ExpectedFilePath;
@@ -56,7 +55,7 @@ class UrlLoaderTest extends TestCase
         $expectedFilePath = ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME);
 
         $this->expectExceptionObject(new ConfigurationFileValueMissingException(
-            ServiceConfiguration::CONFIGURATION_FILENAME,
+            Filename::URL_COLLECTION->value,
             $expectedExceptionKey,
             $serviceId
         ));
