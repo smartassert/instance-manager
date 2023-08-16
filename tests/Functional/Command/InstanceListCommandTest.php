@@ -6,8 +6,6 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceListCommand;
 use App\Command\Option;
-use App\Services\ServiceConfiguration;
-use App\Tests\Mock\MockServiceConfiguration;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -18,7 +16,6 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
-use webignition\ObjectReflector\ObjectReflector;
 
 class InstanceListCommandTest extends KernelTestCase
 {
@@ -49,10 +46,6 @@ class InstanceListCommandTest extends KernelTestCase
     public function testRunInvalidApiToken(): void
     {
         $serviceId = 'service_id';
-
-        $this->setCommandServiceConfiguration((new MockServiceConfiguration())
-            ->withExistsCall($serviceId, true)
-            ->getMock());
 
         $this->mockHandler->append(new Response(401));
 
@@ -273,15 +266,5 @@ class InstanceListCommandTest extends KernelTestCase
         $commandReturnCode = $this->command->run(new ArrayInput($input), $output);
 
         $assertions($commandReturnCode, $output->fetch());
-    }
-
-    private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
-    {
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            $serviceConfiguration
-        );
     }
 }
