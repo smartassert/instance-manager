@@ -8,8 +8,8 @@ use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\CommandConfigurator;
+use App\Services\ImageIdLoaderInterface;
 use App\Services\ImageRepository;
-use App\Services\ServiceConfiguration;
 use DigitalOceanV2\Exception\ExceptionInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -26,8 +26,8 @@ class ImageExistsCommand extends AbstractServiceCommand
 
     public function __construct(
         CommandConfigurator $configurator,
-        private ServiceConfiguration $serviceConfiguration,
         private ImageRepository $imageRepository,
+        private ImageIdLoaderInterface $imageIdLoader,
     ) {
         parent::__construct($configurator);
     }
@@ -41,7 +41,7 @@ class ImageExistsCommand extends AbstractServiceCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $serviceId = $this->getServiceId($input);
-        $imageId = $this->serviceConfiguration->getImageId($serviceId);
+        $imageId = $this->imageIdLoader->load($serviceId);
 
         return $this->imageRepository->exists($imageId) ? Command::SUCCESS : Command::FAILURE;
     }

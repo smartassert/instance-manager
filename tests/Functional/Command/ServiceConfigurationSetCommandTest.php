@@ -6,7 +6,8 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\Option;
 use App\Command\ServiceConfigurationSetCommand;
-use App\Services\ServiceConfiguration;
+use App\Model\Service\UrlCollection;
+use App\Services\UrlCollectionPersisterInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -75,21 +76,22 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
         string $expectedStateUrl,
         int $expectedReturnCode
     ): void {
-        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
-        $serviceConfiguration
-            ->shouldReceive('setServiceConfiguration')
+        $urlCollectionPersister = \Mockery::mock(UrlCollectionPersisterInterface::class);
+        $urlCollectionPersister
+            ->shouldReceive('persist')
             ->withArgs(function (
                 string $serviceId,
-                string $healthCheckUrl,
-                string $stateUrl
+                UrlCollection $urlCollection
             ) use (
                 $expectedServiceId,
                 $expectedHealthCheckUrl,
                 $expectedStateUrl
             ) {
                 self::assertSame($expectedServiceId, $serviceId);
-                self::assertSame($expectedHealthCheckUrl, $healthCheckUrl);
-                self::assertSame($expectedStateUrl, $stateUrl);
+                self::assertEquals(
+                    new UrlCollection($expectedHealthCheckUrl, $expectedStateUrl),
+                    $urlCollection
+                );
 
                 return true;
             })
@@ -99,8 +101,8 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
         ObjectReflector::setProperty(
             $this->command,
             $this->command::class,
-            'serviceConfiguration',
-            $serviceConfiguration
+            'urlCollectionPersister',
+            $urlCollectionPersister
         );
 
         $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());

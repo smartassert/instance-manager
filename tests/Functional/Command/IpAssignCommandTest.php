@@ -6,12 +6,12 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\IpAssignCommand;
 use App\Command\Option;
+use App\Enum\Filename;
 use App\Exception\ActionTimeoutException;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\ActionRunner;
-use App\Services\ServiceConfiguration;
-use App\Tests\Mock\MockServiceConfiguration;
+use App\Services\ImageIdLoaderInterface;
 use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
@@ -78,13 +78,14 @@ class IpAssignCommandTest extends KernelTestCase
             '--' . Option::OPTION_SERVICE_ID => self::SERVICE_ID,
         ]);
 
-        $serviceConfiguration = (new MockServiceConfiguration())
-            ->withExistsCall(self::SERVICE_ID, true)
-            ->withGetImageIdCall(self::SERVICE_ID, self::IMAGE_ID)
-            ->getMock()
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andReturn(self::IMAGE_ID)
         ;
 
-        $this->setCommandServiceConfiguration($serviceConfiguration);
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
 
         $exitCode = $this->command->run($input, $output);
 
@@ -438,9 +439,7 @@ class IpAssignCommandTest extends KernelTestCase
     {
         $serviceId = 'service_id';
 
-        $this->expectExceptionObject(
-            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::IMAGE_FILENAME)
-        );
+        $this->expectExceptionObject(new ServiceConfigurationMissingException($serviceId, Filename::IMAGE->value));
 
         $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
     }
@@ -450,32 +449,21 @@ class IpAssignCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $exception = new ConfigurationFileValueMissingException(
-            ServiceConfiguration::IMAGE_FILENAME,
+            Filename::IMAGE->value,
             'image_id',
             'service_id'
         );
 
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            (new MockServiceConfiguration())
-                ->withExistsCall($serviceId, true)
-                ->withGetImageIdCall($serviceId, $exception)
-                ->getMock()
-        );
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andThrow($exception)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
 
         $this->expectExceptionObject($exception);
         $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
-    }
-
-    private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
-    {
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            $serviceConfiguration
-        );
     }
 }

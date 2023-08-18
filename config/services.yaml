@@ -82,11 +82,6 @@ services:
                 region: '%env(DIGITALOCEAN_DROPLET_REGION)%'
                 size: '%env(DIGITALOCEAN_DROPLET_SIZE)%'
 
-    App\Services\ServiceConfiguration:
-        arguments:
-            $configurationDirectory: '%kernel.project_dir%/services'
-            $defaultDomain: 'localhost'
-
     App\Services\InstanceClient:
         arguments:
             $httpClient: '@app.http.client.instance'
@@ -100,3 +95,18 @@ services:
         class: League\Flysystem\Filesystem
         arguments:
             $adapter: '@app.filesystem.adapter'
+
+    App\Services\ServiceConfigurationOperator:
+        arguments:
+            $configurationDirectory: '%kernel.project_dir%/services'
+
+    App\Services\UrlLoaderInterface:
+        class: App\Services\UrlLoader
+
+    App\Services\DomainLoaderInterface:
+        class: App\Services\DomainLoader
+        arguments:
+            $defaultDomain: 'localhost'
+
+    App\Services\EnvironmentVariableCollectionLoaderInterface:
+        class: App\Services\EnvironmentVariableCollectionLoader

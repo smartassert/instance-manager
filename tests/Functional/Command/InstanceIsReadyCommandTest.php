@@ -6,12 +6,13 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\InstanceIsReadyCommand;
 use App\Command\Option;
+use App\Enum\Filename;
+use App\Enum\UrlKey;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\InstanceNotFoundException;
 use App\Exception\RequiredOptionMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Services\ServiceConfiguration;
-use App\Tests\Mock\MockServiceConfiguration;
+use App\Services\UrlLoaderInterface;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -56,7 +57,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $this->expectExceptionObject(
-            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::CONFIGURATION_FILENAME)
+            new ServiceConfigurationMissingException($serviceId, Filename::URL_COLLECTION->value)
         );
 
         $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
@@ -67,20 +68,19 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $exception = new ConfigurationFileValueMissingException(
-            ServiceConfiguration::CONFIGURATION_FILENAME,
+            Filename::URL_COLLECTION->value,
             'state_url',
             'service_id'
         );
 
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            (new MockServiceConfiguration())
-                ->withExistsCall($serviceId, true)
-                ->withGetStateUrlCall($serviceId, $exception)
-                ->getMock()
-        );
+        $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+        $urlLoader
+            ->shouldReceive('load')
+            ->with($serviceId, UrlKey::STATE)
+            ->andThrow($exception)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         $this->expectExceptionObject($exception);
 
@@ -91,10 +91,14 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     {
         $serviceId = 'service_id';
 
-        $this->setCommandServiceConfiguration((new MockServiceConfiguration())
-            ->withExistsCall($serviceId, true)
-            ->withGetStateUrlCall($serviceId, 'https://{{ host }}/state')
-            ->getMock());
+        $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+        $urlLoader
+            ->shouldReceive('load')
+            ->with($serviceId, UrlKey::STATE)
+            ->andReturn('https://{{ host }}/state')
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         $this->mockHandler->append(new Response(401));
 
@@ -112,19 +116,19 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runDataProvider
+     * @dataProvider runSuccessDataProvider
      *
      * @param array<mixed>             $input
      * @param array<int, array<mixed>> $httpResponseDataCollection
      */
-    public function testRun(
+    public function testRunSuccess(
         array $input,
-        ServiceConfiguration $serviceConfiguration,
+        UrlLoaderInterface $urlLoader,
         array $httpResponseDataCollection,
         int $expectedReturnCode,
         string $expectedOutput
     ): void {
-        $this->setCommandServiceConfiguration($serviceConfiguration);
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         foreach ($httpResponseDataCollection as $fixture) {
             if (is_array($fixture)) {
@@ -145,7 +149,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runDataProvider(): array
+    public function runSuccessDataProvider(): array
     {
         $serviceId = 'service_id';
         $instanceId = 123;
@@ -155,11 +159,16 @@ class InstanceIsReadyCommandTest extends KernelTestCase
             ],
         ]);
 
-        $validServiceConfiguration = (new MockServiceConfiguration())
-            ->withExistsCall($serviceId, true)
-            ->withGetStateUrlCall($serviceId, 'https://{{ host }}/state')
-            ->getMock()
-        ;
+        $validUrlLoader = (function (string $serviceId) {
+            $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+            $urlLoader
+                ->shouldReceive('load')
+                ->with($serviceId, UrlKey::STATE)
+                ->andReturn('https://{{ host }}/state')
+            ;
+
+            return $urlLoader;
+        })($serviceId);
 
         return [
             'no explicit readiness state' => [
@@ -167,7 +176,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => (string) $instanceId,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([]),
@@ -182,7 +191,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--retry-limit' => 1,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -199,7 +208,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -219,7 +228,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -235,7 +244,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => (string) $instanceId,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -252,7 +261,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--retry-limit' => 2,
                     '--retry-delay' => 0,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -270,7 +279,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
                     '--' . Option::OPTION_SERVICE_ID => $serviceId,
                     '--id' => (string) $instanceId,
                 ],
-                'serviceConfiguration' => $validServiceConfiguration,
+                'urlLoader' => $validUrlLoader,
                 'httpResponseDataCollection' => [
                     $dropletHttpResponseData,
                     HttpResponseDataFactory::createJsonResponseData([
@@ -290,16 +299,14 @@ class InstanceIsReadyCommandTest extends KernelTestCase
      */
     public function testRunWithoutInstanceIdThrowsException(string $serviceId, array $input): void
     {
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            (new MockServiceConfiguration())
-                ->withExistsCall($serviceId, true)
-                ->withGetHealthCheckUrlCall($serviceId, '/health-check')
-                ->withGetStateUrlCall($serviceId, '/state')
-                ->getMock()
-        );
+        $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+        $urlLoader
+            ->shouldReceive('load')
+            ->with($serviceId, UrlKey::STATE)
+            ->andReturn('https://{{ host }}/state')
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         $this->expectExceptionObject(new RequiredOptionMissingException(Option::OPTION_ID));
 
@@ -334,16 +341,14 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     {
         $serviceId = 'service_id';
 
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            (new MockServiceConfiguration())
-                ->withExistsCall($serviceId, true)
-                ->withGetHealthCheckUrlCall($serviceId, '/health-check')
-                ->withGetStateUrlCall($serviceId, '/state')
-                ->getMock()
-        );
+        $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
+        $urlLoader
+            ->shouldReceive('load')
+            ->with($serviceId, UrlKey::STATE)
+            ->andReturn('https://{{ host }}/state')
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'urlLoader', $urlLoader);
 
         $this->mockHandler->append(new Response(404));
 
@@ -355,15 +360,5 @@ class InstanceIsReadyCommandTest extends KernelTestCase
         ];
 
         $this->command->run(new ArrayInput($input), new NullOutput());
-    }
-
-    private function setCommandServiceConfiguration(ServiceConfiguration $serviceConfiguration): void
-    {
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            $serviceConfiguration
-        );
     }
 }

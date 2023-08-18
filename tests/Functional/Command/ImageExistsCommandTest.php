@@ -6,10 +6,10 @@ namespace App\Tests\Functional\Command;
 
 use App\Command\ImageExistsCommand;
 use App\Command\Option;
+use App\Enum\Filename;
 use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
-use App\Services\ServiceConfiguration;
-use App\Tests\Mock\MockServiceConfiguration;
+use App\Services\ImageIdLoaderInterface;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
@@ -26,7 +26,6 @@ class ImageExistsCommandTest extends KernelTestCase
 {
     use MissingServiceIdTestTrait;
 
-    private const SERVICE_ID = 'service_id';
     private const IMAGE_ID = '12345';
 
     private ImageExistsCommand $command;
@@ -64,7 +63,14 @@ class ImageExistsCommandTest extends KernelTestCase
         self::expectExceptionMessage($expectedExceptionMessage);
         self::expectExceptionCode($expectedExceptionCode);
 
-        $this->mockServiceConfigurationGetImageId(self::IMAGE_ID);
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andReturn(self::IMAGE_ID)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
 
         $this->command->run(
             new ArrayInput([
@@ -108,7 +114,14 @@ class ImageExistsCommandTest extends KernelTestCase
             );
         }
 
-        $this->mockServiceConfigurationGetImageId(self::IMAGE_ID);
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andReturn(self::IMAGE_ID)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
 
         $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
 
@@ -153,7 +166,7 @@ class ImageExistsCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $this->expectExceptionObject(
-            new ServiceConfigurationMissingException($serviceId, ServiceConfiguration::IMAGE_FILENAME)
+            new ServiceConfigurationMissingException($serviceId, Filename::IMAGE->value)
         );
 
         $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
@@ -164,20 +177,19 @@ class ImageExistsCommandTest extends KernelTestCase
         $serviceId = 'service_id';
 
         $exception = new ConfigurationFileValueMissingException(
-            ServiceConfiguration::IMAGE_FILENAME,
+            Filename::IMAGE->value,
             'image_id',
             'service_id'
         );
 
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            (new MockServiceConfiguration())
-                ->withExistsCall($serviceId, true)
-                ->withGetImageIdCall($serviceId, $exception)
-                ->getMock()
-        );
+        $imageIdLoader = \Mockery::mock(ImageIdLoaderInterface::class);
+        $imageIdLoader
+            ->shouldReceive('load')
+            ->with('service_id')
+            ->andThrow($exception)
+        ;
+
+        ObjectReflector::setProperty($this->command, $this->command::class, 'imageIdLoader', $imageIdLoader);
 
         $this->expectExceptionObject($exception);
         $this->command->run(new ArrayInput(['--' . Option::OPTION_SERVICE_ID => $serviceId]), new NullOutput());
@@ -190,22 +202,5 @@ class ImageExistsCommandTest extends KernelTestCase
         if ($mockHandler instanceof MockHandler) {
             $mockHandler->append($response);
         }
-    }
-
-    private function mockServiceConfigurationGetImageId(?string $imageId): void
-    {
-        $serviceConfiguration = \Mockery::mock(ServiceConfiguration::class);
-        $serviceConfiguration
-            ->shouldReceive('getImageId')
-            ->with(self::SERVICE_ID)
-            ->andReturn($imageId)
-        ;
-
-        ObjectReflector::setProperty(
-            $this->command,
-            $this->command::class,
-            'serviceConfiguration',
-            $serviceConfiguration
-        );
     }
 }

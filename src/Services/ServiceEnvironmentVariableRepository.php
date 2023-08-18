@@ -15,9 +15,10 @@ class ServiceEnvironmentVariableRepository
     public const SECRET_PREFIX_COMMON = 'COMMON';
 
     public function __construct(
-        private ServiceConfiguration $serviceConfiguration,
         private readonly SecretFactory $secretFactory,
         private readonly EnvironmentVariableSecretHydrator $secretHydrator,
+        private DomainLoaderInterface $domainLoader,
+        private EnvironmentVariableCollectionLoaderInterface $environmentVariableCollectionLoader,
     ) {
     }
 
@@ -27,7 +28,7 @@ class ServiceEnvironmentVariableRepository
      */
     public function getCollection(string $serviceId, string $secretsJson): EnvironmentVariableCollection
     {
-        $environmentVariables = $this->serviceConfiguration->getEnvironmentVariables($serviceId);
+        $environmentVariables = $this->environmentVariableCollectionLoader->load($serviceId);
 
         $secrets = $this->secretFactory
             ->create($secretsJson)
@@ -46,7 +47,7 @@ class ServiceEnvironmentVariableRepository
 
         return $environmentVariables->add(new EnvironmentVariable(
             self::NAME_DOMAIN,
-            $this->serviceConfiguration->getDomain($serviceId)
+            $this->domainLoader->load($serviceId)
         ));
     }
 }
