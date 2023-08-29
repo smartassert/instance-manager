@@ -28,22 +28,22 @@ jobs:
           if [ "true" = "$IS_WORKFLOW_DISPATCH_EVENT" ]; then
             {
               echo "service_id=${{ github.event.inputs.service_id }}"
-              echo "health_check_url=${{ github.event.inputs.service_id }}"
-              echo "state_url=${{ github.event.inputs.service_id }}"          
+              echo "health_check_url=${{ github.event.inputs.health_check_url }}"
+              echo "state_url=${{ github.event.inputs.state_url }}"          
             } >> "$GITHUB_ENV"
           else
             {
               echo "service_id=${{ github.event.client_payload.service_id }}"
-              echo "health_check_url=${{ github.event.client_payload.service_id }}"
-              echo "state_url=${{ github.event.client_payload.service_id }}"          
+              echo "health_check_url=${{ github.event.client_payload.health_check_url }}"
+              echo "state_url=${{ github.event.client_payload.state_url }}"          
             } >> "$GITHUB_ENV"          
           fi
 
       - name: Output setup
         run: |
-          echo ${{ env.service_id }}
-          echo ${{ env.health_check_url }}
-          echo ${{ env.state_url }}
+          echo "service_id=${{ env.service_id }}"
+          echo "health_check_url=${{ env.health_check_url }}"
+          echo "state_url=${{ env.state_url }}"            
 
       - name: Checkout
         uses: actions/checkout@v3
