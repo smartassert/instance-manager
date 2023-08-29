@@ -41,7 +41,7 @@ jobs:
 
       - name: Output setup
         run: |
-          echo ${{ env }}
+          echo ${{ fromJSON(env) }}
 
       - name: Checkout
         uses: actions/checkout@v3
