@@ -10,7 +10,6 @@ use League\Flysystem\FilesystemOperator;
 readonly class ServiceConfigurationOperator
 {
     public function __construct(
-        private string $configurationDirectory,
         private FilesystemOperator $filesystem,
     ) {
     }
@@ -58,7 +57,7 @@ readonly class ServiceConfigurationOperator
 
     private function getServiceConfigurationDirectory(string $serviceId): string
     {
-        return $this->configurationDirectory . '/' . $serviceId;
+        return '/' . $serviceId;
     }
 
     private function getFilePath(string $serviceId, string $filename): string
