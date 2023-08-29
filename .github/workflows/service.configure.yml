@@ -40,7 +40,9 @@ jobs:
           fi
 
       - name: Output setup
-        run: echo "$GITHUB_ENV"
+        run: |
+          echo "$GITHUB_ENV"
+          ls -la "$GITHUB_ENV"
 
       - name: Checkout
         uses: actions/checkout@v3
