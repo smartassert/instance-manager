@@ -43,6 +43,7 @@ jobs:
         run: |
           echo "$GITHUB_ENV"
           ls -la "$GITHUB_ENV"
+          cat "$GITHUB_ENV"
 
       - name: Checkout
         uses: actions/checkout@v3
