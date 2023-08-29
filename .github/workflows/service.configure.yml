@@ -41,7 +41,9 @@ jobs:
 
       - name: Output setup
         run: |
-          echo ${{ fromJSON(env) }}
+          echo ${{ env.service_id }}
+          echo ${{ env.health_check_url }}
+          echo ${{ env.state_url }}
 
       - name: Checkout
         uses: actions/checkout@v3
