@@ -41,11 +41,7 @@ jobs:
 
       - name: Output setup
         run: |
-          echo "$GITHUB_ENV"
-          ls -la "$GITHUB_ENV"
-          echo "foo01"
-          cat "$GITHUB_ENV"
-          echo "foo02"
+          echo ${{ env }}
 
       - name: Checkout
         uses: actions/checkout@v3
