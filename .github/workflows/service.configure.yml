@@ -63,8 +63,8 @@ jobs:
           --health-check-url='${{ env.health_check_url }}' \
           --state-url='${{ env.state_url }}'
 
-#      - name: Commit
-#        uses: stefanzweifel/git-auto-commit-action@v4
-#        with:
-#          file_pattern: services/${{ env.service_id }}/*
-#          commit_message: "Automatic configuration update for ${{ env.service_id }}"
+      - name: Commit
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          file_pattern: services/${{ env.service_id }}/*
+          commit_message: "Automatic configuration update for ${{ env.service_id }}"
