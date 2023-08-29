@@ -6,13 +6,8 @@ namespace App\Tests\Model;
 
 class ExpectedFilePath
 {
-    public static function create(string $configurationDirectory, string $serviceId, string $filename): string
+    public static function create(string $serviceId, string $filename): string
     {
-        return sprintf(
-            '%s/%s/%s',
-            $configurationDirectory,
-            $serviceId,
-            $filename
-        );
+        return sprintf('/%s/%s', $serviceId, $filename);
     }
 }

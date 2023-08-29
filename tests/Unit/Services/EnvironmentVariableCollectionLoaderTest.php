@@ -19,13 +19,12 @@ class EnvironmentVariableCollectionLoaderTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    private const CONFIGURATION_DIRECTORY = './services';
     private const FILENAME = Filename::ENVIRONMENT_VARIABLES->value;
 
     public function testLoadFileIsNotReadable(): void
     {
         $serviceId = md5((string) rand());
-        $expectedFilePath = ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME);
+        $expectedFilePath = ExpectedFilePath::create($serviceId, self::FILENAME);
 
         $filesystem = \Mockery::mock(FilesystemOperator::class);
         $filesystem
@@ -37,7 +36,7 @@ class EnvironmentVariableCollectionLoaderTest extends TestCase
         ;
 
         $loader = new EnvironmentVariableCollectionLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+            new ServiceConfigurationOperator($filesystem)
         );
 
         self::assertEquals(new EnvironmentVariableCollection([]), $loader->load($serviceId));
@@ -49,7 +48,7 @@ class EnvironmentVariableCollectionLoaderTest extends TestCase
     public function testLoadSuccess(string $fileContent, EnvironmentVariableCollection $expected): void
     {
         $serviceId = md5((string) rand());
-        $expectedFilePath = ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME);
+        $expectedFilePath = ExpectedFilePath::create($serviceId, self::FILENAME);
 
         $filesystem = \Mockery::mock(FilesystemOperator::class);
         $filesystem
@@ -59,7 +58,7 @@ class EnvironmentVariableCollectionLoaderTest extends TestCase
         ;
 
         $loader = new EnvironmentVariableCollectionLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+            new ServiceConfigurationOperator($filesystem)
         );
 
         self::assertEquals($expected, $loader->load($serviceId));
