@@ -18,47 +18,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Output repository_dispatch inputs
-        if: ${{ github.event_name == 'repository_dispatch' }}
+      - name: Setup
         env:
-          INPUTS: ${{ toJson(github.event.client_payload) }}
-        run: echo "$INPUTS"
-
-      - name: Output workflow_dispatch inputs
-        env:
-          INPUTS: ${{ toJson(github.event.inputs) }}
-        run: echo "$INPUTS"
-
-      - name: Set service_id
-        env:
-          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
-          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
+          IS_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
-          if [ "" = "$VALUE" ]; then
-            echo "service_id not set"
-            exit 1
+          if [ "true" = "$IS_WORKFLOW_DISPATCH_EVENT" ]; then
+            {
+              echo "service_id=${{ github.event.inputs.service_id }}"
+              echo "image_id=${{ github.event.inputs.image_id }}"      
+            } >> "$GITHUB_ENV"
+          else
+            {
+              echo "service_id=${{ github.event.client_payload.service_id }}"
+              echo "image_id=${{ github.event.client_payload.image_id }}"
+          
+            } >> "$GITHUB_ENV"          
           fi
-
-          echo "service_id=$VALUE" >> "$GITHUB_ENV"
-
-      - name: Set image_id
-        env:
-          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.image_id }}
-          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.image_id }}
-        run: |
-          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
-          if [ "" = "$VALUE" ]; then
-            echo "image_id not set"
-            exit 1
-          fi
-
-          echo "image_id=$VALUE" >> "$GITHUB_ENV"
 
       - name: Output setup
         run: |
-          echo "service_id: ${{ env.service_id }}"
-          echo "image_id: ${{ env.image_id }}"
+          echo "service_id=${{ env.service_id }}"
+          echo "image_id=${{ env.image_id }}"         
 
       - name: Checkout
         uses: actions/checkout@v3
