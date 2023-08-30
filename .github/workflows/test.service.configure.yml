@@ -26,7 +26,7 @@ jobs:
         run: |
           git checkout -b temp-${{ env.service_id }}          
           git push origin temp-${{ env.service_id }}
-          git branch --set-upstream-to=temp-${{ env.service_id }} temp-${{ env.service_id }}
+          git branch --set-upstream-to=origin/temp-${{ env.service_id }} temp-${{ env.service_id }}
 
       - name: Verify service does not have a configuration directory
         run: |
