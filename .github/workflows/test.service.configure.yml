@@ -88,6 +88,8 @@ jobs:
           CONFIGURATION_FILE_PATH="${{ env.service_directory }}/configuration.json"
           
           cat "$CONFIGURATION_FILE_PATH"
+          jq -r '.health_check_url' < "$CONFIGURATION_FILE_PATH"
+          jq -r '.state_url' < "$CONFIGURATION_FILE_PATH"
 
       - name: Delete temporary branch
         run: |
