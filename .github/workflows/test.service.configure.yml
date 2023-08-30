@@ -59,8 +59,8 @@ jobs:
           gh workflow run service.configure.yml \
           -r "${{ env.branch_name }}" \
           -f service_id="${{ env.service_id }}" \
-          -f state_url="/state" \
-          -f health_check_url="/health"
+          -f state_url="${{ env.state_url }}" \
+          -f health_check_url="${{ env.health_check_url }}"
 
       - name: Wait for service.configure to finish
         run: |
