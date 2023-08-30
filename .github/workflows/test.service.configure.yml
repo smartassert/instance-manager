@@ -1,0 +1,20 @@
+name: test.service.configure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-store-service-configuration:
+    name: Test Store Service Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup
+        run: |
+          SERVICE_ID=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
+          
+          echo "service_id=$SERVICE_ID" >> "$GITHUB_ENV"  
+
+      - name: Output setup
+        run: |
+          echo "service_id=${{ env.service_id }}"         
