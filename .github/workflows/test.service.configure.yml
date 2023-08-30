@@ -31,9 +31,9 @@ jobs:
       - name: Delete temporary branch
         run: |
           git checkout "$GITHUB_REF"
-          git branch
-          git branch -D temp-${{ env.service_id }}
-          git branch
+          git branch -r
+          git push origin --delete temp-${{ env.service_id }}
+          git branch -r
 
 #      - name: Verify service does not have a configuration directory
 #        run: |
