@@ -33,6 +33,11 @@ jobs:
           
           echo "$SERVICE_DIRECTORY does not exist."
 
-      - name: Should reach this step
+      - name: Call service.configure
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "should reach this step"
+          gh workflow run service-configure.yml \
+          -f service_id="${{ env.service_id }}" \
+          -f state_url="/state" \
+          -f health_check_url="/health"
