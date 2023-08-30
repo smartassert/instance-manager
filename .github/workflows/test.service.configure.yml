@@ -26,6 +26,10 @@ jobs:
         run: |         
           echo "branch_name=temp-$SERVICE_ID" >> "$GITHUB_ENV"          
 
+      - name: Create service configuration directory path
+        run: |
+          echo "service_directory=services/${{ env.service_id }}" >> "$GITHUB_ENV"  
+
       - name: Create and push temporary branch
         run: |
           git checkout -b ${{ env.branch_name }}          
@@ -34,7 +38,7 @@ jobs:
 
       - name: Verify service does not have a configuration directory
         run: |
-          SERVICE_DIRECTORY="services/${{ env.service_id }}"
+          SERVICE_DIRECTORY="${{ env.service_directory }}"
 
           if [ -d "$SERVICE_DIRECTORY" ] ; then
             echo "$SERVICE_DIRECTORY already exists."
@@ -58,7 +62,7 @@ jobs:
           LIMIT=100
           TIMEOUT=$LIMIT
           DELAY=10
-          SERVICE_DIRECTORY="services/${{ env.service_id }}"
+          SERVICE_DIRECTORY="${{ env.service_directory }}"
 
           until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
             git pull --quiet
