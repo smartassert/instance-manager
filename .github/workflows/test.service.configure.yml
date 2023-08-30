@@ -13,7 +13,7 @@ jobs:
         run: |
           SERVICE_ID=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
           
-          echo "service_id=${{ github.event.inputs.service_id }}" >> "$GITHUB_ENV"  
+          echo "service_id=$SERVICE_ID" >> "$GITHUB_ENV"  
 
       - name: Output setup
         run: |
