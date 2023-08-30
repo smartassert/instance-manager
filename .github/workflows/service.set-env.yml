@@ -14,7 +14,7 @@ on:
 
 jobs:
   store-service-configuration:
-    name: Store ${{ github.event.inputs.service_id }}
+    name: Store ${{ github.event.inputs.service_id }} ${{ github.event.client_payload.service_id }}
     runs-on: ubuntu-latest
 
     steps:
