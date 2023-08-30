@@ -1,0 +1,26 @@
+name: test.service.configure
+
+on:
+  pull_request:
+
+jobs:
+  test-store-service-configuration:
+    name: Test Store Service Environment Variables
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup
+        run: |
+          SERVICE_ID=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
+          
+          {
+            echo "service_id=$SERVICE_ID"
+            echo "branch_name=temp-$SERVICE_ID"
+            echo "service_directory=services/$SERVICE_ID"       
+          } >> "$GITHUB_ENV"
+
+      - name: Output setup
+        run: |
+          echo "service_id=${{ env.service_id }}"         
+          echo "branch_name=${{ env.branch_name }}"
+          echo "service_directory=${{ env.service_directory }}"          
