@@ -64,11 +64,11 @@ jobs:
 
       - name: Find commit to remove
         run: |
-          SERVICE_ID=${{ env.service_id }}
+          SERVICE_ID="${{ env.service_id }}"
           
           $COMMIT_HASH=$(git log --grep "Automatic configuration update for $SERVICE_ID" --pretty=format:"%h")
           
-          echo $COMMIT_HASH
+          echo "$COMMIT_HASH"
           
           if [ -z "$var" ] ; then
             echo "no commit hash found"
