@@ -42,3 +42,20 @@ jobs:
           -f service_id="${{ env.service_id }}" \
           -f state_url="/state" \
           -f health_check_url="/health"
+
+      - name: Wait for service.configure to finish
+        run: |
+          TIMEOUT=300
+          DELAY=10
+          SERVICE_DIRECTORY="services/${{ env.service_id }}"
+          
+          until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
+            echo "$SERVICE_DIRECTORY does not exist. Waiting $DELAY seconds ..."
+            sleep $DELAY
+            TIMEOUT=$(( TIMEOUT - DELAY ))
+          done
+
+          ls -la services
+          ls -la "$SERVICE_DIRECTORY"
+          
+          echo "Timeout !$TIMEOUT!"
