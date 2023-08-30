@@ -21,8 +21,13 @@ jobs:
 
       - name: Verify service does not have a configuration directory
         run: |
-          [ ! -d "services/${{ env.service_id }}" ]
-          echo $?
+          if [ -d "services" ] ; then
+            echo "exists"
+            exit 1
+          else
+            echo "does not exist"
+            exit 0
+          fi
 
       - name: Should not reach this step
         run: |
