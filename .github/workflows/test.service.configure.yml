@@ -21,7 +21,7 @@ jobs:
 
       - name: Verify service does not have a configuration directory
         run: |
-          [ ! -d services ]
+          [ ! -d "services/${{ env.serice_id }}" ]
           echo $?
 
       - name: Should not reach this step
