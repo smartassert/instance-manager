@@ -33,46 +33,46 @@ jobs:
           
           echo "$SERVICE_DIRECTORY does not exist."
 
-      - name: Call service.configure
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh workflow run service.configure.yml \
-          -r "$GITHUB_REF" \
-          -f service_id="${{ env.service_id }}" \
-          -f state_url="/state" \
-          -f health_check_url="/health"
-
-      - name: Wait for service.configure to finish
-        run: |
-          LIMIT=100
-          TIMEOUT=$LIMIT          
-          DELAY=10
-          SERVICE_DIRECTORY="services/${{ env.service_id }}"
-          
-          until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
-            git pull --quiet
-            echo "$SERVICE_DIRECTORY does not exist. Waiting $TIMEOUT seconds of $LIMIT ..."
-            sleep $DELAY
-            TIMEOUT=$(( TIMEOUT - DELAY ))
-          done
-          
-          if [ $TIMEOUT -le 0 ] ; then
-            echo "Timed out after $LIMIT seconds waiting for $SERVICE_DIRECTORY to exist."
-            exit 1
-          fi
-
-      - name: Find commit to remove
-        run: |
-          SERVICE_ID="${{ env.service_id }}"
-          
-          $COMMIT_HASH=$(git log --grep "Automatic configuration update for $SERVICE_ID" --pretty=format:"%h")
-          
-          echo "$COMMIT_HASH"
-          
-          if [ -z "$COMMIT_HASH" ] ; then
-            echo "no commit hash found"
-            exit 1
-          else
-            echo "commit hash found"
-          fi
+#      - name: Call service.configure
+#        env:
+#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          gh workflow run service.configure.yml \
+#          -r "$GITHUB_REF" \
+#          -f service_id="${{ env.service_id }}" \
+#          -f state_url="/state" \
+#          -f health_check_url="/health"
+#
+#      - name: Wait for service.configure to finish
+#        run: |
+#          LIMIT=100
+#          TIMEOUT=$LIMIT
+#          DELAY=10
+#          SERVICE_DIRECTORY="services/${{ env.service_id }}"
+#
+#          until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
+#            git pull --quiet
+#            echo "$SERVICE_DIRECTORY does not exist. Waiting $TIMEOUT seconds of $LIMIT ..."
+#            sleep $DELAY
+#            TIMEOUT=$(( TIMEOUT - DELAY ))
+#          done
+#
+#          if [ $TIMEOUT -le 0 ] ; then
+#            echo "Timed out after $LIMIT seconds waiting for $SERVICE_DIRECTORY to exist."
+#            exit 1
+#          fi
+#
+#      - name: Find commit to remove
+#        run: |
+#          SERVICE_ID="${{ env.service_id }}"
+#
+#          $COMMIT_HASH=$(git log --grep "Automatic configuration update for $SERVICE_ID" --pretty=format:"%h")
+#
+#          echo "$COMMIT_HASH"
+#
+#          if [ -z "$COMMIT_HASH" ] ; then
+#            echo "no commit hash found"
+#            exit 1
+#          else
+#            echo "commit hash found"
+#          fi
