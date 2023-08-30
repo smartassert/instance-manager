@@ -1,4 +1,4 @@
-name: test.service.configure
+name: test.service.set-env
 
 on:
   pull_request:
