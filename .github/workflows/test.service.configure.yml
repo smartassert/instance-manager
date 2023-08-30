@@ -67,23 +67,9 @@ jobs:
             echo "Timed out after $LIMIT seconds waiting for $SERVICE_DIRECTORY to exist."
             exit 1
           fi
+          
+          echo "$SERVICE_DIRECTORY exists."
 
-#      - name: Delete temporary branch
-#        run: |
-#          git push origin --delete temp-${{ env.service_id }}
-#
-#
-#      - name: Find commit to remove
-#        run: |
-#          SERVICE_ID="${{ env.service_id }}"
-#
-#          $COMMIT_HASH=$(git log --grep "Automatic configuration update for $SERVICE_ID" --pretty=format:"%h")
-#
-#          echo "$COMMIT_HASH"
-#
-#          if [ -z "$COMMIT_HASH" ] ; then
-#            echo "no commit hash found"
-#            exit 1
-#          else
-#            echo "commit hash found"
-#          fi
+      - name: Delete temporary branch
+        run: |
+          git push origin --delete temp-${{ env.service_id }}
