@@ -52,7 +52,7 @@ jobs:
           
           until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
             # git pull --quiet
-            echo "$SERVICE_DIRECTORY does not exist. Waiting $DELAY seconds of $LIMIT ..."
+            echo "$SERVICE_DIRECTORY does not exist. Waiting $TIMEOUT seconds of $LIMIT ..."
             sleep $DELAY
             TIMEOUT=$(( TIMEOUT - DELAY ))
           done
