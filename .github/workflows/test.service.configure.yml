@@ -22,11 +22,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Create temporary branch name
+        run: |         
+          echo "branch_name=temp-$SERVICE_ID" >> "$GITHUB_ENV"          
+
       - name: Create and push temporary branch
         run: |
-          git checkout -b temp-${{ env.service_id }}          
-          git push origin temp-${{ env.service_id }}
-          git branch --set-upstream-to=origin/temp-${{ env.service_id }} temp-${{ env.service_id }}
+          git checkout -b ${{ env.branch_name }}          
+          git push origin ${{ env.branch_name }}
+          git branch --set-upstream-to=origin/${{ env.branch_name }} ${{ env.branch_name }}
 
       - name: Verify service does not have a configuration directory
         run: |
@@ -44,7 +48,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh workflow run service.configure.yml \
-          -r "temp-${{ env.service_id }}" \
+          -r "${{ env.branch_name }}" \
           -f service_id="${{ env.service_id }}" \
           -f state_url="/state" \
           -f health_check_url="/health"
@@ -72,4 +76,4 @@ jobs:
 
       - name: Delete temporary branch
         run: |
-          git push origin --delete temp-${{ env.service_id }}
+          git push origin --delete ${{ env.branch_name }}
