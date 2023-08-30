@@ -70,7 +70,7 @@ jobs:
           
           echo "$COMMIT_HASH"
           
-          if [ -z "$var" ] ; then
+          if [ -z "$COMMIT_HASH" ] ; then
             echo "no commit hash found"
             exit 1
           else
