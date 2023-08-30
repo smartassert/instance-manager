@@ -49,28 +49,29 @@ jobs:
           -f state_url="/state" \
           -f health_check_url="/health"
 
+      - name: Wait for service.configure to finish
+        run: |
+          LIMIT=100
+          TIMEOUT=$LIMIT
+          DELAY=10
+          SERVICE_DIRECTORY="services/${{ env.service_id }}"
+
+          until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
+            git pull --quiet
+            echo "$SERVICE_DIRECTORY does not exist. Waiting $TIMEOUT seconds of $LIMIT ..."
+            sleep $DELAY
+            TIMEOUT=$(( TIMEOUT - DELAY ))
+          done
+
+          if [ $TIMEOUT -le 0 ] ; then
+            echo "Timed out after $LIMIT seconds waiting for $SERVICE_DIRECTORY to exist."
+            exit 1
+          fi
+
 #      - name: Delete temporary branch
 #        run: |
 #          git push origin --delete temp-${{ env.service_id }}
 #
-#      - name: Wait for service.configure to finish
-#        run: |
-#          LIMIT=100
-#          TIMEOUT=$LIMIT
-#          DELAY=10
-#          SERVICE_DIRECTORY="services/${{ env.service_id }}"
-#
-#          until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
-#            git pull --quiet
-#            echo "$SERVICE_DIRECTORY does not exist. Waiting $TIMEOUT seconds of $LIMIT ..."
-#            sleep $DELAY
-#            TIMEOUT=$(( TIMEOUT - DELAY ))
-#          done
-#
-#          if [ $TIMEOUT -le 0 ] ; then
-#            echo "Timed out after $LIMIT seconds waiting for $SERVICE_DIRECTORY to exist."
-#            exit 1
-#          fi
 #
 #      - name: Find commit to remove
 #        run: |
