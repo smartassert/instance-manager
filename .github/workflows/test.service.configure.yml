@@ -45,18 +45,19 @@ jobs:
 
       - name: Wait for service.configure to finish
         run: |
-          TIMEOUT=300
+          TIMEOUT=30
           DELAY=10
           SERVICE_DIRECTORY="services/${{ env.service_id }}"
           
           until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
-            git pull
+            # git pull --quiet
             echo "$SERVICE_DIRECTORY does not exist. Waiting $DELAY seconds of $TIMEOUT ..."
             sleep $DELAY
             TIMEOUT=$(( TIMEOUT - DELAY ))
           done
-
-          ls -la services
-          ls -la "$SERVICE_DIRECTORY"
           
-          echo "Timeout !$TIMEOUT!"
+          if [ $TIMEOUT le 0 ] ; then
+            echo "Timed out after$TIMEOUT seconds waiting for $SERVICE_DIRECTORY to exist."
+            exit 1
+          fi
+q
