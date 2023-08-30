@@ -22,6 +22,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Create temporary branch
+        run: |
+          git checkout -b temp-${{ env.service_id }}
+          git branch
+
 #      - name: Verify service does not have a configuration directory
 #        run: |
 #          SERVICE_DIRECTORY="services/${{ env.service_id }}"
