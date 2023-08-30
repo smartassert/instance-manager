@@ -13,18 +13,24 @@ jobs:
       - name: Setup
         run: |
           SERVICE_ID=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
+          HEALTH_CHECK_URL=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
+          STATE_URL=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
           
           {
             echo "service_id=$SERVICE_ID"
             echo "branch_name=temp-$SERVICE_ID"
-            echo "service_directory=services/$SERVICE_ID"       
+            echo "service_directory=services/$SERVICE_ID"
+            echo "health_check_url=$HEALTH_CHECK_URL"
+            echo "state_url=$STATE_URL"
           } >> "$GITHUB_ENV"
 
       - name: Output setup
         run: |
           echo "service_id=${{ env.service_id }}"         
           echo "branch_name=${{ env.branch_name }}"
-          echo "service_directory=${{ env.service_directory }}"          
+          echo "service_directory=${{ env.service_directory }}"
+          echo "health_check_url=${{ env.health_check_url }}"
+          echo "state_url=${{ env.state_url }}"
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -76,6 +82,12 @@ jobs:
           fi
           
           echo "$SERVICE_DIRECTORY exists."
+
+      - name: Verify generated file contents
+        run: |
+          CONFIGURATION_FILE_PATH="${{ env.service_directory }}/configuration.json"
+          
+          cat "$CONFIGURATION_FILE_PATH"
 
       - name: Delete temporary branch
         run: |
