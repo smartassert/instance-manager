@@ -37,7 +37,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh workflow run service-configure.yml \
+          gh workflow run service.configure.yml \
           -f service_id="${{ env.service_id }}" \
           -f state_url="/state" \
           -f health_check_url="/health"
