@@ -90,6 +90,17 @@ jobs:
           cat "$CONFIGURATION_FILE_PATH"
           jq -r '.health_check_url' < "$CONFIGURATION_FILE_PATH"
           jq -r '.state_url' < "$CONFIGURATION_FILE_PATH"
+          
+          FOO=$(jq -r '.health_check_url' < "$CONFIGURATION_FILE_PATH")
+          BAR=$(jq -r '.state_url' < "$CONFIGURATION_FILE_PATH")
+          
+          if [ "$FOO" = "${{ env.health_check_url }}" ]; then
+            echo "health check url is valid"
+          fi
+          
+          if [ "$BAR" = "${{ env.state_url }}" ]; then
+            echo "state url is valid"
+          fi
 
       - name: Delete temporary branch
         run: |
