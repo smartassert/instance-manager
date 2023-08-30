@@ -87,19 +87,16 @@ jobs:
         run: |
           CONFIGURATION_FILE_PATH="${{ env.service_directory }}/configuration.json"          
           
-          jq -r '.health_check_url' < "$CONFIGURATION_FILE_PATH"
-          jq -r '.state_url' < "$CONFIGURATION_FILE_PATH"
+          HEALTH_CHECK_URL=$(jq -r '.health_check_url' < "$CONFIGURATION_FILE_PATH")
+          STATE_URL=$(jq -r '.state_url' < "$CONFIGURATION_FILE_PATH")
           
-          FOO=$(jq -r '.health_check_url' < "$CONFIGURATION_FILE_PATH")
-          BAR=$(jq -r '.state_url' < "$CONFIGURATION_FILE_PATH")
-          
-          if [ "$FOO" != "${{ env.health_check_url }}" ]; then
+          if [ "$HEALTH_CHECK_URL" != "${{ env.health_check_url }}" ]; then
             echo "health check url is invalid"
             cat "$CONFIGURATION_FILE_PATH"
             exit 1
           fi
           
-          if [ "$BAR" != "${{ env.state_url }}" ]; then
+          if [ "$STATE_URL" != "${{ env.state_url }}" ]; then
             echo "state url is invalid"
             cat "$CONFIGURATION_FILE_PATH"
             exit 1
