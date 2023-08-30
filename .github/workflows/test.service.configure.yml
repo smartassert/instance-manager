@@ -22,6 +22,7 @@ jobs:
       - name: Verify service does not have a configuration directory
         run: |
           [ ! -d services ]
+          echo $?
 
       - name: Should not reach this step
         run: |
