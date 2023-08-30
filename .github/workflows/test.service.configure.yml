@@ -30,9 +30,7 @@ jobs:
 
       - name: Delete temporary branch
         run: |
-          git branch -r
           git push origin --delete temp-${{ env.service_id }}
-          git branch -r
 
 #      - name: Verify service does not have a configuration directory
 #        run: |
