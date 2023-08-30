@@ -1,4 +1,0 @@
-{
-    "health_check_url": "/health",
-    "state_url": "/state"
-}
