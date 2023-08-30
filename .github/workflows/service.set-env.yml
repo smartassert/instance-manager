@@ -18,43 +18,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Output repository_dispatch inputs
-        if: ${{ github.event_name == 'repository_dispatch' }}
+      - name: Setup
         env:
-          INPUTS: ${{ toJson(github.event.client_payload) }}
-        run: echo "$INPUTS"
-
-      - name: Output workflow_dispatch inputs
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        env:
-          INPUTS: ${{ toJson(github.event.inputs) }}
-        run: echo "$INPUTS"
-
-      - name: Set service_id
-        env:
-          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.service_id }}
-          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.service_id }}
+          IS_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
-          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
-          if [ "" = "$VALUE" ]; then
-            echo "service_id not set"
-            exit 1
+          if [ "true" = "$IS_WORKFLOW_DISPATCH_EVENT" ]; then
+            {
+              echo "service_id=${{ github.event.inputs.service_id }}"
+              echo "env_vars=${{ github.event.inputs.env_vars }}"      
+            } >> "$GITHUB_ENV"
+          else
+            {
+              echo "service_id=${{ github.event.client_payload.service_id }}"
+              echo "env_vars=${{ github.event.client_payload.env_vars }}"
+      
+            } >> "$GITHUB_ENV"          
           fi
 
-          echo "service_id=$VALUE" >> "$GITHUB_ENV"
-
-      - name: Set env_vars
-        env:
-          REPOSITORY_DISPATCH_VALUE: ${{ github.event.client_payload.env_vars }}
-          WORKFLOW_DISPATCH_VALUE: ${{ github.event.inputs.env_vars }}
+      - name: Output setup
         run: |
-          VALUE="${REPOSITORY_DISPATCH_VALUE:-$WORKFLOW_DISPATCH_VALUE}"
-          if [ "" = "$VALUE" ]; then
-            echo "env_vars not set"
-            exit 1
-          fi
-
-          echo "env_vars=$VALUE" >> "$GITHUB_ENV"
+          echo "service_id=${{ env.service_id }}"
+          echo "env_vars=${{ env.env_vars }}" 
 
       - name: Checkout
         uses: actions/checkout@v3
