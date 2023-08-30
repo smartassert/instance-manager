@@ -85,21 +85,24 @@ jobs:
 
       - name: Verify generated file contents
         run: |
-          CONFIGURATION_FILE_PATH="${{ env.service_directory }}/configuration.json"
+          CONFIGURATION_FILE_PATH="${{ env.service_directory }}/configuration.json"          
           
-          cat "$CONFIGURATION_FILE_PATH"
           jq -r '.health_check_url' < "$CONFIGURATION_FILE_PATH"
           jq -r '.state_url' < "$CONFIGURATION_FILE_PATH"
           
           FOO=$(jq -r '.health_check_url' < "$CONFIGURATION_FILE_PATH")
           BAR=$(jq -r '.state_url' < "$CONFIGURATION_FILE_PATH")
           
-          if [ "$FOO" = "${{ env.health_check_url }}" ]; then
-            echo "health check url is valid"
+          if [ "$FOO" != "${{ env.health_check_url }}" ]; then
+            echo "health check url is invalid"
+            cat "$CONFIGURATION_FILE_PATH"
+            exit 1
           fi
           
-          if [ "$BAR" = "${{ env.state_url }}" ]; then
-            echo "state url is valid"
+          if [ "$BAR" != "${{ env.state_url }}" ]; then
+            echo "state url is invalid"
+            cat "$CONFIGURATION_FILE_PATH"
+            exit 1
           fi
 
       - name: Delete temporary branch
