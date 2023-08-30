@@ -9,26 +9,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Create service id
+      - name: Setup
         run: |
           SERVICE_ID=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
           
-          echo "service_id=$SERVICE_ID" >> "$GITHUB_ENV"  
+          {
+            echo "service_id=$SERVICE_ID"
+            echo "branch_name=temp-$SERVICE_ID"
+            echo "service_directory=services/$SERVICE_ID"       
+          } >> "$GITHUB_ENV"
 
-      - name: Output service id
+      - name: Output setup
         run: |
           echo "service_id=${{ env.service_id }}"         
+          echo "branch_name=${{ env.branch_name }}"
+          echo "service_directory=${{ env.service_directory }}"          
 
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Create temporary branch name
-        run: |         
-          echo "branch_name=temp-${{ env.service_id }}" >> "$GITHUB_ENV"          
-
-      - name: Create service configuration directory path
-        run: |
-          echo "service_directory=services/${{ env.service_id }}" >> "$GITHUB_ENV"  
 
       - name: Create and push temporary branch
         run: |
