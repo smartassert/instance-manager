@@ -22,16 +22,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Verify service does not have a configuration directory
-        run: |     
-          SERVICE_DIRECTORY="services/${{ env.service_id }}"
-          
-          if [ -d "$SERVICE_DIRECTORY" ] ; then
-            echo "$SERVICE_DIRECTORY already exists."
-            exit 1
-          fi
-          
-          echo "$SERVICE_DIRECTORY does not exist."
+#      - name: Verify service does not have a configuration directory
+#        run: |
+#          SERVICE_DIRECTORY="services/${{ env.service_id }}"
+#
+#          if [ -d "$SERVICE_DIRECTORY" ] ; then
+#            echo "$SERVICE_DIRECTORY already exists."
+#            exit 1
+#          fi
+#
+#          echo "$SERVICE_DIRECTORY does not exist."
 
 #      - name: Call service.configure
 #        env:
