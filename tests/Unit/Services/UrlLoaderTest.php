@@ -20,13 +20,12 @@ class UrlLoaderTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    private const CONFIGURATION_DIRECTORY = './services';
     private const FILENAME = Filename::URL_COLLECTION->value;
 
     public function testLoadFileIsNotReadable(): void
     {
         $serviceId = md5((string) rand());
-        $expectedFilePath = ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME);
+        $expectedFilePath = ExpectedFilePath::create($serviceId, self::FILENAME);
 
         $this->expectExceptionObject(new ServiceConfigurationMissingException($serviceId, self::FILENAME));
 
@@ -38,7 +37,7 @@ class UrlLoaderTest extends TestCase
         ;
 
         $loader = new UrlLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+            new ServiceConfigurationOperator($filesystem)
         );
 
         $loader->load($serviceId, UrlKey::HEALTH_CHECK);
@@ -53,7 +52,7 @@ class UrlLoaderTest extends TestCase
         string $expectedExceptionKey
     ): void {
         $serviceId = md5((string) rand());
-        $expectedFilePath = ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME);
+        $expectedFilePath = ExpectedFilePath::create($serviceId, self::FILENAME);
 
         $this->expectExceptionObject(new ConfigurationFileValueMissingException(
             Filename::URL_COLLECTION->value,
@@ -69,7 +68,7 @@ class UrlLoaderTest extends TestCase
         ;
 
         $loader = new UrlLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+            new ServiceConfigurationOperator($filesystem)
         );
         $loader->load($serviceId, $key);
     }
@@ -140,7 +139,7 @@ class UrlLoaderTest extends TestCase
         $filesystem = \Mockery::mock(FilesystemOperator::class);
         $filesystem
             ->shouldReceive('read')
-            ->with(ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME))
+            ->with(ExpectedFilePath::create($serviceId, self::FILENAME))
             ->andReturn(json_encode([
                 UrlKey::HEALTH_CHECK->value => $healthCheckUrl,
                 UrlKey::STATE->value => $stateUrl,
@@ -148,7 +147,7 @@ class UrlLoaderTest extends TestCase
         ;
 
         $loader = new UrlLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+            new ServiceConfigurationOperator($filesystem)
         );
 
         self::assertSame($healthCheckUrl, $loader->load($serviceId, UrlKey::HEALTH_CHECK));

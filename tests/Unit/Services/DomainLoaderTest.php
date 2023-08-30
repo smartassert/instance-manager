@@ -18,17 +18,12 @@ class DomainLoaderTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    private const CONFIGURATION_DIRECTORY = './services';
     private const DEFAULT_DOMAIN = 'localhost';
 
     public function testGetDomainFileIsNotReadable(): void
     {
         $serviceId = md5((string) rand());
-        $expectedFilePath = ExpectedFilePath::create(
-            self::CONFIGURATION_DIRECTORY,
-            $serviceId,
-            Filename::DOMAIN->value
-        );
+        $expectedFilePath = ExpectedFilePath::create($serviceId, Filename::DOMAIN->value);
 
         $this->expectExceptionObject(new ServiceConfigurationMissingException($serviceId, Filename::DOMAIN->value));
 
@@ -42,7 +37,7 @@ class DomainLoaderTest extends TestCase
         ;
 
         $loader = new DomainLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem),
+            new ServiceConfigurationOperator($filesystem),
             self::DEFAULT_DOMAIN
         );
 
@@ -55,11 +50,7 @@ class DomainLoaderTest extends TestCase
     public function testGetDomainSuccess(string $fileContent, string $expected): void
     {
         $serviceId = md5((string) rand());
-        $expectedFilePath = ExpectedFilePath::create(
-            self::CONFIGURATION_DIRECTORY,
-            $serviceId,
-            Filename::DOMAIN->value
-        );
+        $expectedFilePath = ExpectedFilePath::create($serviceId, Filename::DOMAIN->value);
 
         $filesystem = \Mockery::mock(FilesystemOperator::class);
         $filesystem
@@ -69,7 +60,7 @@ class DomainLoaderTest extends TestCase
         ;
 
         $loader = new DomainLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem),
+            new ServiceConfigurationOperator($filesystem),
             self::DEFAULT_DOMAIN
         );
 

@@ -19,13 +19,12 @@ class ImageIdLoaderTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    private const CONFIGURATION_DIRECTORY = './services';
     private const FILENAME = Filename::IMAGE->value;
 
     public function testLoadFileIsNotReadable(): void
     {
         $serviceId = md5((string) rand());
-        $expectedFilePath = ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME);
+        $expectedFilePath = ExpectedFilePath::create($serviceId, self::FILENAME);
 
         $this->expectExceptionObject(new ServiceConfigurationMissingException($serviceId, self::FILENAME));
 
@@ -39,7 +38,7 @@ class ImageIdLoaderTest extends TestCase
         ;
 
         $loader = new ImageIdLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+            new ServiceConfigurationOperator($filesystem)
         );
 
         $loader->load($serviceId);
@@ -61,12 +60,12 @@ class ImageIdLoaderTest extends TestCase
         $filesystem = \Mockery::mock(FilesystemOperator::class);
         $filesystem
             ->shouldReceive('read')
-            ->with(ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME))
+            ->with(ExpectedFilePath::create($serviceId, self::FILENAME))
             ->andReturn($fileContent)
         ;
 
         $loader = new ImageIdLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+            new ServiceConfigurationOperator($filesystem)
         );
 
         $loader->load($serviceId);
@@ -105,12 +104,12 @@ class ImageIdLoaderTest extends TestCase
         $filesystem = \Mockery::mock(FilesystemOperator::class);
         $filesystem
             ->shouldReceive('read')
-            ->with(ExpectedFilePath::create(self::CONFIGURATION_DIRECTORY, $serviceId, self::FILENAME))
+            ->with(ExpectedFilePath::create($serviceId, self::FILENAME))
             ->andReturn($fileContent)
         ;
 
         $loader = new ImageIdLoader(
-            new ServiceConfigurationOperator(self::CONFIGURATION_DIRECTORY, $filesystem)
+            new ServiceConfigurationOperator($filesystem)
         );
 
         $loader->load($serviceId);

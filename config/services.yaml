@@ -96,10 +96,6 @@ services:
         arguments:
             $adapter: '@app.filesystem.adapter'
 
-    App\Services\ServiceConfigurationOperator:
-        arguments:
-            $configurationDirectory: '%kernel.project_dir%/services'
-
     App\Services\UrlLoaderInterface:
         class: App\Services\UrlLoader
 
