@@ -9,12 +9,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup
+      - name: Create service id
         run: |
           SERVICE_ID=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
           
           echo "service_id=$SERVICE_ID" >> "$GITHUB_ENV"  
 
-      - name: Output setup
+      - name: Output service id
         run: |
           echo "service_id=${{ env.service_id }}"         
+
+      - name: Verify service does not have a configuration directory
+        run: |
+          [ ! -d services ]
+
+      - name: Should not reach this step
+        run: |
+          echo "should not reach this step"
