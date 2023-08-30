@@ -28,6 +28,17 @@ jobs:
           git branch
           git push origin temp-${{ env.service_id }}
 
+      - name: Verify service does not have a configuration directory
+        run: |
+          SERVICE_DIRECTORY="services/${{ env.service_id }}"
+
+          if [ -d "$SERVICE_DIRECTORY" ] ; then
+            echo "$SERVICE_DIRECTORY already exists."
+            exit 1
+          fi
+
+          echo "$SERVICE_DIRECTORY does not exist."          
+
       - name: Delete temporary branch
         run: |
           git push origin --delete temp-${{ env.service_id }}
