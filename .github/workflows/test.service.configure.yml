@@ -39,19 +39,19 @@ jobs:
 
           echo "$SERVICE_DIRECTORY does not exist."          
 
-      - name: Delete temporary branch
+      - name: Call service.configure
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push origin --delete temp-${{ env.service_id }}
+          gh workflow run service.configure.yml \
+          -r "temp-${{ env.service_id }}" \
+          -f service_id="${{ env.service_id }}" \
+          -f state_url="/state" \
+          -f health_check_url="/health"
 
-#      - name: Call service.configure
-#        env:
-#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Delete temporary branch
 #        run: |
-#          gh workflow run service.configure.yml \
-#          -r "$GITHUB_REF" \
-#          -f service_id="${{ env.service_id }}" \
-#          -f state_url="/state" \
-#          -f health_check_url="/health"
+#          git push origin --delete temp-${{ env.service_id }}
 #
 #      - name: Wait for service.configure to finish
 #        run: |
