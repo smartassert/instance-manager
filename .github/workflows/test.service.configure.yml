@@ -57,7 +57,6 @@ jobs:
           done
           
           if [ $TIMEOUT le 0 ] ; then
-            echo "Timed out after$TIMEOUT seconds waiting for $SERVICE_DIRECTORY to exist."
+            echo "Timed out after $TIMEOUT seconds waiting for $SERVICE_DIRECTORY to exist."
             exit 1
           fi
-q
