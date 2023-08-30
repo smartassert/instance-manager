@@ -38,6 +38,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh workflow run service.configure.yml \
+          -r "$GITHUB_REF" \
           -f service_id="${{ env.service_id }}" \
           -f state_url="/state" \
           -f health_check_url="/health"
