@@ -50,7 +50,8 @@ jobs:
           SERVICE_DIRECTORY="services/${{ env.service_id }}"
           
           until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
-            echo "$SERVICE_DIRECTORY does not exist. Waiting $DELAY seconds ..."
+            git pull
+            echo "$SERVICE_DIRECTORY does not exist. Waiting $DELAY seconds of $TIMEOUT ..."
             sleep $DELAY
             TIMEOUT=$(( TIMEOUT - DELAY ))
           done
