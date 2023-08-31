@@ -2,6 +2,7 @@ name: test.service.set-env
 
 on:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test-store-service-configuration:
