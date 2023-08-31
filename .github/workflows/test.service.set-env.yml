@@ -13,15 +13,94 @@ jobs:
       - name: Setup
         run: |
           SERVICE_ID=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
+          VALUE1=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
+          VALUE2=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
           
           {
             echo "service_id=$SERVICE_ID"
             echo "branch_name=temp-$SERVICE_ID"
-            echo "service_directory=services/$SERVICE_ID"       
+            echo "service_directory=services/$SERVICE_ID"
+            echo "value1=$VALUE1"
+            echo "value2=$VALUE2"
           } >> "$GITHUB_ENV"
 
       - name: Output setup
         run: |
           echo "service_id=${{ env.service_id }}"         
           echo "branch_name=${{ env.branch_name }}"
-          echo "service_directory=${{ env.service_directory }}"          
+          echo "service_directory=${{ env.service_directory }}"
+          echo "value1=${{ env.value1 }}"
+          echo "value2=${{ env.value2 }}"
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Create and push temporary branch
+        run: |
+          git checkout -b ${{ env.branch_name }}          
+          git push origin ${{ env.branch_name }}
+          git branch --set-upstream-to=origin/${{ env.branch_name }} ${{ env.branch_name }}
+
+      - name: Verify service does not have a configuration directory
+        run: |
+          SERVICE_DIRECTORY="${{ env.service_directory }}"
+
+          if [ -d "$SERVICE_DIRECTORY" ] ; then
+            echo "$SERVICE_DIRECTORY already exists."
+            exit 1
+          fi
+
+          echo "$SERVICE_DIRECTORY does not exist."          
+
+      - name: Call service.set-env
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run service.set-env.yml \
+          -r "${{ env.branch_name }}" \
+          -f service_id="${{ env.service_id }}" \
+          -f env_vars='{\"key1\": \"${{ env.value1 }}\", \"key2\": \"${{ env.value2 }}\"}'
+
+      - name: Wait for service.set-env to finish
+        run: |
+          LIMIT=100
+          TIMEOUT=$LIMIT
+          DELAY=10
+          SERVICE_DIRECTORY="${{ env.service_directory }}"
+
+          until [ $TIMEOUT -le 0 ] || [ -d "$SERVICE_DIRECTORY" ] ; do
+            git pull --quiet
+            echo "$SERVICE_DIRECTORY does not exist. Waiting $TIMEOUT seconds of $LIMIT ..."
+            sleep $DELAY
+            TIMEOUT=$(( TIMEOUT - DELAY ))
+          done
+
+          if [ $TIMEOUT -le 0 ] ; then
+            echo "Timed out after $LIMIT seconds waiting for $SERVICE_DIRECTORY to exist."
+            exit 1
+          fi
+          
+          echo "$SERVICE_DIRECTORY exists."
+
+      - name: Verify generated file contents
+        run: |
+          CONFIGURATION_FILE_PATH="${{ env.service_directory }}/env.json"          
+          
+          VALUE1=$(jq -r '.key1' < "$CONFIGURATION_FILE_PATH")
+          VALUE2=$(jq -r '.key2' < "$CONFIGURATION_FILE_PATH")
+          
+          if [ "$VALUE1" != "${{ env.value1 }}" ]; then
+            echo "value1 is invalid"
+            cat "$CONFIGURATION_FILE_PATH"
+            exit 1
+          fi
+          
+          if [ "$VALUE2" != "${{ env.value2 }}" ]; then
+            echo "value2 is invalid"
+            cat "$CONFIGURATION_FILE_PATH"
+            exit 1
+          fi
+
+      - name: Delete temporary branch
+        run: |
+          git push origin --delete ${{ env.branch_name }}
