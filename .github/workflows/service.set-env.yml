@@ -54,5 +54,4 @@ jobs:
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          branch: github-504
           commit_message: "Automatic env update for ${{ env.service_id }}"
