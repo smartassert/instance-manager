@@ -9,7 +9,7 @@ on:
         description: The service for which the configuration is being stored
         required: true
       env_vars:
-        description: JSON-string of key:value pairs to be set as environment variables on first boot
+        description: Base64-encoded JSON-string of key:value pairs to be set as environment variables on first boot
         required: true
 
 jobs:
@@ -21,16 +21,16 @@ jobs:
       - name: Setup
         env:
           IS_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
-        run: |
+        run: |          
           if [ "true" = "$IS_WORKFLOW_DISPATCH_EVENT" ]; then
             {
               echo "service_id=${{ github.event.inputs.service_id }}"
-              echo "env_vars=${{ github.event.inputs.env_vars }}"      
+              echo "env_vars=$(base64 --decode <<< "${{ github.event.inputs.env_vars }}")"
             } >> "$GITHUB_ENV"
           else
             {
               echo "service_id=${{ github.event.client_payload.service_id }}"
-              echo "env_vars=${{ github.event.client_payload.env_vars }}"
+              echo "env_vars=$(base64 --decode <<< "${{ github.event.client_payload.env_vars }}")"
       
             } >> "$GITHUB_ENV"          
           fi
@@ -47,11 +47,12 @@ jobs:
         env:
           CONFIGURATION_PATH: ./services/${{ env.service_id }}/env.json
           ENV_VARS_JSON: ${{ env.env_vars }}
-        run: |
+        run: |         
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
           jq "." <<< "$ENV_VARS_JSON" > "$CONFIGURATION_PATH"
 
       - name: Commit
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
+          branch: github-504
           commit_message: "Automatic env update for ${{ env.service_id }}"
