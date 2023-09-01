@@ -81,11 +81,11 @@ jobs:
 
       - name: Verify generated file contents
         run: |
-          CONFIGURATION_FILE_PATH="${{ env.service_directory }}/image.json"          
+          CONFIGURATION_FILE_PATH="${{ env.service_directory }}/image.json"
           
           IMAGE_ID=$(jq -r '.image_id' < "$CONFIGURATION_FILE_PATH")
-          
-          if [ "IMAGE_ID" != "${{ env.image_id }}" ]; then
+
+          if [ "$IMAGE_ID" != "${{ env.image_id }}" ]; then
             echo "image id is invalid"
             cat "$CONFIGURATION_FILE_PATH"
             exit 1
