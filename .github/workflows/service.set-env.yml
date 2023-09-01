@@ -21,7 +21,7 @@ jobs:
       - name: Setup
         env:
           IS_WORKFLOW_DISPATCH_EVENT: ${{ github.event_name == 'workflow_dispatch' }}
-        run: |          
+        run: |
           if [ "true" = "$IS_WORKFLOW_DISPATCH_EVENT" ]; then
             {
               echo "service_id=${{ github.event.inputs.service_id }}"
@@ -47,7 +47,7 @@ jobs:
         env:
           CONFIGURATION_PATH: ./services/${{ env.service_id }}/env.json
           ENV_VARS_JSON: ${{ env.env_vars }}
-        run: |         
+        run: |
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
           jq "." <<< "$ENV_VARS_JSON" > "$CONFIGURATION_PATH"
 
