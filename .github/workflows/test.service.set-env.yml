@@ -12,16 +12,15 @@ jobs:
     steps:
       - name: Setup
         run: |
-          SERVICE_ID=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)          
-          VALUE2=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
-          VALUE1="{{ secrets.JOB_COORDINATOR_DATABASE_URL }}"
+          SERVICE_ID=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
+          GENERATED_VALUE=$(md5sum <<< "$RANDOM" | cut -d ' ' -f 1)
           
           {
             echo "service_id=$SERVICE_ID"
             echo "branch_name=temp-$SERVICE_ID"
             echo "service_directory=services/$SERVICE_ID"
-            echo "value1=$VALUE1"
-            echo "value2=$VALUE2"
+            echo "value1={{ secrets.SERVICE_DATABASE_URL }}"
+            echo "value2=$GENERATED_VALUE"
           } >> "$GITHUB_ENV"
 
       - name: Output setup
@@ -61,7 +60,7 @@ jobs:
           gh workflow run service.set-env.yml \
           -r "${{ env.branch_name }}" \
           -f service_id="${{ env.service_id }}" \
-          -f env_vars="ewogICJEQVRBQkFTRV9VUkwiOiAie3sgc2VjcmV0cy5KT0JfQ09PUkRJTkFUT1JfREFUQUJBU0VfVVJMIH19IiwKICAiQVVUSEVOVElDQVRJT05fQkFTRV9VUkwiOiAie3sgc2VjcmV0cy5DT01NT05fQVVUSEVOVElDQVRJT05fQkFTRV9VUkwgfX0iLAogICJXT1JLRVJfTUFOQUdFUl9CQVNFX1VSTCI6ICJ7eyBzZWNyZXRzLkpPQl9DT09SRElOQVRPUl9XT1JLRVJfTUFOQUdFUl9CQVNFX1VSTCB9fSIsCiAgIlNPVVJDRVNfQkFTRV9VUkwiOiAie3sgc2VjcmV0cy5KT0JfQ09PUkRJTkFUT1JfU09VUkNFU19CQVNFX1VSTCB9fSIKfQo="
+          -f env_vars="$ENV_VARS"
 
       - name: Wait for service.set-env to finish
         run: |
@@ -103,6 +102,6 @@ jobs:
             exit 1
           fi
 
-#      - name: Delete temporary branch
-#        run: |
-#          git push origin --delete ${{ env.branch_name }}
+      - name: Delete temporary branch
+        run: |
+          git push origin --delete ${{ env.branch_name }}
