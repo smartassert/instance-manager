@@ -56,10 +56,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          ENV_VARS=$(base64 <<< "{\"key1\": \"${{ env.value1 }}\", \"key2\": \"${{ env.value2 }}\"}")
+          
           gh workflow run service.set-env.yml \
           -r "${{ env.branch_name }}" \
           -f service_id="${{ env.service_id }}" \
-          -f env_vars='{\"key1\": \"${{ env.value1 }}\", \"key2\": \"${{ env.value2 }}\"}'
+          -f env_vars="$ENV_VARS"
 
       - name: Wait for service.set-env to finish
         run: |
