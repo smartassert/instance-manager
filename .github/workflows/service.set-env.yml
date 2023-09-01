@@ -25,12 +25,12 @@ jobs:
           if [ "true" = "$IS_WORKFLOW_DISPATCH_EVENT" ]; then
             {
               echo "service_id=${{ github.event.inputs.service_id }}"
-              echo "env_vars=$(base64 --decode <<< "${{ github.event.inputs.env_vars }}")"
+              echo "base64_env_vars=${{ github.event.inputs.env_vars }}"
             } >> "$GITHUB_ENV"
           else
             {
-              echo "service_id=${{ github.event.client_payload.service_id }}"
-              echo "env_vars=$(base64 --decode <<< "${{ github.event.client_payload.env_vars }}")"
+              echo "service_id=${{ github.event.client_payload.service_id }}"              
+              echo "base64_env_vars=${{ github.event.client_payload.env_vars }}"
       
             } >> "$GITHUB_ENV"          
           fi
@@ -38,7 +38,7 @@ jobs:
       - name: Output setup
         run: |
           echo "service_id=${{ env.service_id }}"
-          echo "env_vars=${{ env.env_vars }}" 
+          echo "base64_env_vars=${{ env.base64_env_vars }}"
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -46,8 +46,10 @@ jobs:
       - name: Store
         env:
           CONFIGURATION_PATH: ./services/${{ env.service_id }}/env.json
-          ENV_VARS_JSON: ${{ env.env_vars }}
+          BASE64_ENV_VARS: ${{ env.base64_env_vars }}
         run: |
+          ENV_VARS_JSON=$(base64 --decode <<< "$BASE64_ENV_VARS")
+          
           mkdir -p "$(dirname "$CONFIGURATION_PATH")"
           jq "." <<< "$ENV_VARS_JSON" > "$CONFIGURATION_PATH"
 
