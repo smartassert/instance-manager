@@ -9,7 +9,7 @@ on:
         description: The service for which the configuration is being stored
         required: true
       env_vars:
-        description: JSON-string of key:value pairs to be set as environment variables on first boot
+        description: Base64-encoded JSON-string of key:value pairs to be set as environment variables on first boot
         required: true
 
 jobs:
@@ -25,12 +25,12 @@ jobs:
           if [ "true" = "$IS_WORKFLOW_DISPATCH_EVENT" ]; then
             {
               echo "service_id=${{ github.event.inputs.service_id }}"
-              echo "env_vars=${{ github.event.inputs.env_vars }}"      
+              echo "env_vars=$(base64 --decode <<< "${{ github.event.inputs.env_vars }}")"
             } >> "$GITHUB_ENV"
           else
             {
               echo "service_id=${{ github.event.client_payload.service_id }}"
-              echo "env_vars=${{ github.event.client_payload.env_vars }}"
+              echo "env_vars=$(base64 --decode <<< "${{ github.event.client_payload.env_vars }}")"
       
             } >> "$GITHUB_ENV"          
           fi
