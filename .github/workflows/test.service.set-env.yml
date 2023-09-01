@@ -55,7 +55,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          ENV_VARS=$(base64 <<< "{\"key1\": \"${{ env.value1 }}\", \"key2\": \"${{ env.value2 }}\"}")
+          ENV_VARS=$(base64 --wrap=0 <<< "{\"key1\": \"${{ env.value1 }}\", \"key2\": \"${{ env.value2 }}\"}")
           
           gh workflow run service.set-env.yml \
           -r "${{ env.branch_name }}" \
