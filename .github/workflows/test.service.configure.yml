@@ -33,7 +33,7 @@ jobs:
           echo "state_url=${{ env.state_url }}"
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Create and push temporary branch
         run: |
