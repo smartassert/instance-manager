@@ -21,9 +21,10 @@
     },
     "require-dev": {
         "mockery/mockery": "^1.5",
-        "phpstan/extension-installer": "^1.1",
-        "phpstan/phpstan": "^1.8",
-        "phpstan/phpstan-mockery": "^1.1",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-mockery": "^2.0",
+        "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^9.6",
         "squizlabs/php_codesniffer": "^4.0",
         "symfony/finder": "6.4.*",
