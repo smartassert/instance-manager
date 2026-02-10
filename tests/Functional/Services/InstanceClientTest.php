@@ -11,6 +11,9 @@ use App\Tests\Services\InstanceFactory;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class InstanceClientTest extends KernelTestCase
 {
     private InstanceClient $instanceClient;
@@ -52,8 +55,8 @@ class InstanceClientTest extends KernelTestCase
     /**
      * @dataProvider getStateDataProvider
      *
-     * @param array<mixed> $responseData
-     * @param array<mixed> $expectedState
+     * @param HttpResponseData $responseData
+     * @param array<mixed>     $expectedState
      */
     public function testGetState(string $stateUrl, array $responseData, array $expectedState): void
     {

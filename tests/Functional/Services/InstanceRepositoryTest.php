@@ -11,6 +11,9 @@ use App\Tests\Services\InstanceFactory;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class InstanceRepositoryTest extends KernelTestCase
 {
     private InstanceRepository $instanceRepository;
@@ -56,7 +59,6 @@ class InstanceRepositoryTest extends KernelTestCase
         );
         $instance = $this->instanceRepository->create('service_id', 123465, '');
 
-        self::assertInstanceOf(Instance::class, $instance);
         self::assertEquals(
             InstanceFactory::create($dropletData),
             $instance
@@ -210,7 +212,7 @@ class InstanceRepositoryTest extends KernelTestCase
     /**
      * @dataProvider findDataProvider
      *
-     * @param array<mixed> $httpResponseData
+     * @param HttpResponseData $httpResponseData
      */
     public function testFind(array $httpResponseData, int $id, ?Instance $expectedInstance): void
     {
@@ -257,7 +259,7 @@ class InstanceRepositoryTest extends KernelTestCase
     /**
      * @dataProvider deleteDataProvider
      *
-     * @param array<mixed> $httpResponseData
+     * @param HttpResponseData $httpResponseData
      */
     public function testDelete(array $httpResponseData, int $id): void
     {

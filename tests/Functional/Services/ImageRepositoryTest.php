@@ -9,6 +9,9 @@ use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class ImageRepositoryTest extends KernelTestCase
 {
     private ImageRepository $imageRepository;
@@ -35,7 +38,7 @@ class ImageRepositoryTest extends KernelTestCase
     /**
      * @dataProvider existsDataProvider
      *
-     * @param array<mixed> $httpResponseData
+     * @param HttpResponseData $httpResponseData
      */
     public function testExists(array $httpResponseData, int $imageId, bool $expectedExists): void
     {

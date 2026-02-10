@@ -17,6 +17,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class InstanceListCommandTest extends KernelTestCase
 {
     use MockeryPHPUnitIntegration;
@@ -64,8 +67,8 @@ class InstanceListCommandTest extends KernelTestCase
     /**
      * @dataProvider runSuccessDataProvider
      *
-     * @param array<mixed>             $input
-     * @param array<int, array<mixed>> $httpResponseDataCollection
+     * @param array<mixed>                 $input
+     * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
     public function testRunSuccess(
         array $input,
@@ -248,9 +251,9 @@ class InstanceListCommandTest extends KernelTestCase
     }
 
     /**
-     * @param array<mixed>                $input
-     * @param array<int, array<mixed>>    $httpResponseDataCollection
-     * @param callable(int, string): void $assertions
+     * @param array<mixed>                 $input
+     * @param array<int, HttpResponseData> $httpResponseDataCollection
+     * @param callable(int, string): void  $assertions
      */
     private function doTestRun(
         array $input,

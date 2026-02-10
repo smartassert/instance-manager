@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\Tests\Services;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class HttpResponseDataFactory
 {
     /**
      * @param array<mixed> $data
      *
-     * @return array{"status-code": int, "headers": array<string>, "body": string}
+     * @return HttpResponseData
      */
     public static function createJsonResponseData(array $data, int $statusCode = 200): array
     {

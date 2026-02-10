@@ -22,6 +22,9 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 use webignition\ObjectReflector\ObjectReflector;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class ImageExistsCommandTest extends KernelTestCase
 {
     use MissingServiceIdTestTrait;
@@ -47,8 +50,8 @@ class ImageExistsCommandTest extends KernelTestCase
     /**
      * @dataProvider runThrowsExceptionDataProvider
      *
-     * @param array<mixed>             $responseData
-     * @param class-string<\Throwable> $expectedExceptionClass
+     * @param array<int, HttpResponseData> $responseData
+     * @param class-string<\Throwable>     $expectedExceptionClass
      */
     public function testRunThrowsException(
         array $responseData,
@@ -100,8 +103,8 @@ class ImageExistsCommandTest extends KernelTestCase
     /**
      * @dataProvider runSuccessDataProvider
      *
-     * @param array<mixed>             $input
-     * @param array<int, array<mixed>> $httpResponseDataCollection
+     * @param array<mixed>                 $input
+     * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
     public function testRunSuccess(
         array $input,
