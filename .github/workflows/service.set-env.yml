@@ -41,7 +41,7 @@ jobs:
           echo "base64_env_vars=${{ env.base64_env_vars }}"
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
 
       - name: Store
         env:

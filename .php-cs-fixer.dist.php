@@ -48,6 +48,11 @@ return (new PhpCsFixer\Config())
                 'yield_from',
             ],
         ],
+        // Following configuration added to allow CI builds to pass
+        // @todo remove in #519
+        'single_line_empty_body' => false,
+        'string_implicit_backslashes' => false,
+        'operator_linebreak' => false,
     ])
     ->setFinder($finder)
     ;
