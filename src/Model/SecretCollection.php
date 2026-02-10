@@ -14,8 +14,7 @@ class SecretCollection implements \IteratorAggregate
      */
     public function __construct(
         private readonly array $secrets = [],
-    ) {
-    }
+    ) {}
 
     /**
      * @return \Traversable<int, Secret>

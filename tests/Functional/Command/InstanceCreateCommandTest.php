@@ -218,7 +218,7 @@ class InstanceCreateCommandTest extends KernelTestCase
                         'droplets' => [
                             [
                                 'id' => 123,
-                            ]
+                            ],
                         ],
                     ]),
                 ],
@@ -316,8 +316,8 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'firstBootScriptOption' => './first-boot.sh',
                 'secretsJsonOption' => '',
                 'environmentVariables' => new EnvironmentVariableCollection(),
-                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
-                    './first-boot.sh',
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n"
+                    . './first-boot.sh',
             ],
             'env var options only, no secrets' => [
                 'firstBootScriptOption' => '',
@@ -325,8 +325,8 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'value1'),
                 ]),
-                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
-                    'export key1="value1"',
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n"
+                    . 'export key1="value1"',
             ],
             'env var options only, has secrets' => [
                 'firstBootScriptOption' => '',
@@ -334,8 +334,8 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'secret 001 value'),
                 ]),
-                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
-                    'export key1="secret 001 value"',
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n"
+                    . 'export key1="secret 001 value"',
             ],
             'first boot script option and env var options, no secrets' => [
                 'firstBootScriptOption' => './first-boot.sh',
@@ -343,9 +343,9 @@ class InstanceCreateCommandTest extends KernelTestCase
                 'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', 'value1'),
                 ]),
-                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n" .
-                    'export key1="value1"' . "\n" .
-                    './first-boot.sh',
+                'expectedFirstBootScript' => '#!/usr/bin/env bash' . "\n"
+                    . 'export key1="value1"' . "\n"
+                    . './first-boot.sh',
             ],
         ];
     }

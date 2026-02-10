@@ -13,8 +13,7 @@ class ActionRepository
 {
     public function __construct(
         private ActionApi $actionApi,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ExceptionInterface

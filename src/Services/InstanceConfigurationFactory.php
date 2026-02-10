@@ -11,8 +11,7 @@ class InstanceConfigurationFactory
 {
     public function __construct(
         private DropletConfigurationFactory $dropletConfigurationFactory,
-    ) {
-    }
+    ) {}
 
     /**
      * @param string[] $tags

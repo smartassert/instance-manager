@@ -96,7 +96,7 @@ class DomainLoaderTest extends TestCase
             'valid' => [
                 'fileContent' => '{"DOMAIN":"example.com"}',
                 'expected' => 'example.com',
-            ]
+            ],
         ];
     }
 }

@@ -13,8 +13,7 @@ class ActionHandler
     public function __construct(
         private \Closure $decider,
         private \Closure $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(): bool
     {

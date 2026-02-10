@@ -14,9 +14,7 @@ class Instance implements \JsonSerializable
     public const DROPLET_STATUS_ARCHIVE = 'archive';
     public const DROPLET_STATUS_UNKNOWN = 'unknown';
 
-    public function __construct(private Droplet $droplet)
-    {
-    }
+    public function __construct(private Droplet $droplet) {}
 
     public function getId(): int
     {

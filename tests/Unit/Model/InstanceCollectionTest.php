@@ -28,36 +28,36 @@ class InstanceCollectionTest extends TestCase
         $sortedCollection = new InstanceCollection([
             InstanceFactory::create([
                 'id' => 123,
-                'created_at' => '2021-07-30T16:36:31Z'
+                'created_at' => '2021-07-30T16:36:31Z',
             ]),
             InstanceFactory::create([
                 'id' => 465,
-                'created_at' => '2021-07-29T16:36:31Z'
+                'created_at' => '2021-07-29T16:36:31Z',
             ]),
             InstanceFactory::create([
                 'id' => 789,
-                'created_at' => '2021-07-28T16:36:31Z'
+                'created_at' => '2021-07-28T16:36:31Z',
             ]),
         ]);
 
         $reverseSortedCollection = new InstanceCollection([
             InstanceFactory::create([
                 'id' => 789,
-                'created_at' => '2021-07-28T16:36:31Z'
+                'created_at' => '2021-07-28T16:36:31Z',
             ]),
             InstanceFactory::create([
                 'id' => 465,
-                'created_at' => '2021-07-29T16:36:31Z'
+                'created_at' => '2021-07-29T16:36:31Z',
             ]),
             InstanceFactory::create([
                 'id' => 123,
-                'created_at' => '2021-07-30T16:36:31Z'
+                'created_at' => '2021-07-30T16:36:31Z',
             ]),
         ]);
 
         $expectedNewest = InstanceFactory::create([
             'id' => 123,
-            'created_at' => '2021-07-30T16:36:31Z'
+            'created_at' => '2021-07-30T16:36:31Z',
         ]);
 
         return [
@@ -101,7 +101,7 @@ class InstanceCollectionTest extends TestCase
                     InstanceFactory::create([
                         'id' => 123,
                         'created_at' => '2020-01-02T01:02:03.000Z',
-                    ])
+                    ]),
                 ]),
                 'expected' => [
                     [
@@ -117,7 +117,7 @@ class InstanceCollectionTest extends TestCase
                 'collection' => new InstanceCollection([
                     InstanceFactory::create([
                         'id' => 465,
-                        'created_at' => '2020-01-02T04:05:06.000Z'
+                        'created_at' => '2020-01-02T04:05:06.000Z',
                     ]),
                     InstanceFactory::create(array_merge(
                         DropletDataFactory::createWithIps(
@@ -149,7 +149,7 @@ class InstanceCollectionTest extends TestCase
                         'id' => 465,
                         'state' => [
                             'ips' => [],
-                            'created_at' => '2020-01-02T04:05:06.000Z'
+                            'created_at' => '2020-01-02T04:05:06.000Z',
                         ],
                     ],
                     [
@@ -159,7 +159,7 @@ class InstanceCollectionTest extends TestCase
                                 '127.0.0.1',
                                 '10.0.0.1',
                             ],
-                            'created_at' => '2020-01-02T07:08:09.000Z'
+                            'created_at' => '2020-01-02T07:08:09.000Z',
                         ],
                     ],
                     [
@@ -169,7 +169,7 @@ class InstanceCollectionTest extends TestCase
                                 '127.0.0.2',
                                 '10.0.0.2',
                             ],
-                            'created_at' => '2020-01-02T03:02:01.000Z'
+                            'created_at' => '2020-01-02T03:02:01.000Z',
                         ],
                     ],
                 ],

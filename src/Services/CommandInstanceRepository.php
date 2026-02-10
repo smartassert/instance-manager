@@ -15,8 +15,7 @@ class CommandInstanceRepository
 {
     public function __construct(
         private readonly InstanceRepository $instanceRepository,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ExceptionInterface

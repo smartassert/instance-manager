@@ -11,8 +11,7 @@ readonly class ServiceConfigurationOperator
 {
     public function __construct(
         private FilesystemOperator $filesystem,
-    ) {
-    }
+    ) {}
 
     /**
      * @return ?array<mixed>

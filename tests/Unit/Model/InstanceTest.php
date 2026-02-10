@@ -118,26 +118,26 @@ class InstanceTest extends TestCase
             'id only' => [
                 'instance' => InstanceFactory::create([
                     'id' => 123,
-                    'created_at' => '2020-01-02T01:02:03.000Z'
+                    'created_at' => '2020-01-02T01:02:03.000Z',
                 ]),
                 'expected' => [
                     'id' => 123,
                     'state' => [
                         'ips' => [],
-                        'created_at' => '2020-01-02T01:02:03.000Z'
+                        'created_at' => '2020-01-02T01:02:03.000Z',
                     ],
                 ],
             ],
             'id, no IP addresses' => [
                 'instance' => InstanceFactory::create([
                     'id' => 789,
-                    'created_at' => '2020-01-02T07:08:09.000Z'
+                    'created_at' => '2020-01-02T07:08:09.000Z',
                 ]),
                 'expected' => [
                     'id' => 789,
                     'state' => [
                         'ips' => [],
-                        'created_at' => '2020-01-02T07:08:09.000Z'
+                        'created_at' => '2020-01-02T07:08:09.000Z',
                     ],
                 ],
             ],
@@ -151,7 +151,7 @@ class InstanceTest extends TestCase
                         ]
                     ),
                     [
-                        'created_at' => '2020-01-02T04:05:06.000Z'
+                        'created_at' => '2020-01-02T04:05:06.000Z',
                     ]
                 )),
                 'expected' => [
@@ -161,7 +161,7 @@ class InstanceTest extends TestCase
                             '127.0.0.1',
                             '10.0.0.1',
                         ],
-                        'created_at' => '2020-01-02T04:05:06.000Z'
+                        'created_at' => '2020-01-02T04:05:06.000Z',
                     ],
                 ],
             ],

@@ -82,7 +82,7 @@ class InstanceConfigurationFactoryTest extends TestCase
             'has default single-line user data (is ignored), no first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
-                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"',
                     ])
                 ),
                 'firstBootScript' => '',
@@ -105,9 +105,9 @@ class InstanceConfigurationFactoryTest extends TestCase
             'has default multi-line user data (is ignored), no first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
-                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
-                            'echo "multi-line user data 2"' . "\n" .
-                            'echo "multi-line user data 3"'
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n"
+                            . 'echo "multi-line user data 2"' . "\n"
+                            . 'echo "multi-line user data 3"',
                     ])
                 ),
                 'firstBootScript' => '',
@@ -151,7 +151,7 @@ class InstanceConfigurationFactoryTest extends TestCase
             'has default single-line user data (is ignored), has first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
-                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"'
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "single-line user data"',
                     ])
                 ),
                 'firstBootScript' => './scripts/first-boot.sh',
@@ -174,9 +174,9 @@ class InstanceConfigurationFactoryTest extends TestCase
             'has default multi-line user data (is ignored), has first-boot script' => [
                 'factory' => new InstanceConfigurationFactory(
                     new DropletConfigurationFactory([
-                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n" .
-                            'echo "multi-line user data 2"' . "\n" .
-                            'echo "multi-line user data 3"'
+                        DropletConfigurationFactory::KEY_USER_DATA => 'echo "multi-line user data 1"' . "\n"
+                            . 'echo "multi-line user data 2"' . "\n"
+                            . 'echo "multi-line user data 3"',
                     ])
                 ),
                 'firstBootScript' => './scripts/first-boot.sh',

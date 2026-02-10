@@ -17,7 +17,7 @@ class BootScriptFactory
         return implode("\n", array_filter([
             '#!/usr/bin/env bash',
             $this->createEnvironmentVariableContent($environmentVariables),
-            $serviceBootScript
+            $serviceBootScript,
         ]));
     }
 

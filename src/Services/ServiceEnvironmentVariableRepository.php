@@ -19,8 +19,7 @@ class ServiceEnvironmentVariableRepository
         private readonly EnvironmentVariableSecretHydrator $secretHydrator,
         private DomainLoaderInterface $domainLoader,
         private EnvironmentVariableCollectionLoaderInterface $environmentVariableCollectionLoader,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ServiceConfigurationMissingException

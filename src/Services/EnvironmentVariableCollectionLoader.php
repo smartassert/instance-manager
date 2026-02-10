@@ -12,8 +12,7 @@ readonly class EnvironmentVariableCollectionLoader implements EnvironmentVariabl
 {
     public function __construct(
         private ServiceConfigurationOperator $configurationOperator,
-    ) {
-    }
+    ) {}
 
     public function load(string $serviceId): EnvironmentVariableCollection
     {

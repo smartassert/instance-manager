@@ -271,8 +271,8 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     ),
                 ],
                 'expectedReturnCode' => Command::FAILURE,
-                'expectedOutput' => json_encode(['service1' => 'unavailable', 'service2' => 'available']) . "\n" .
-                    json_encode(['service1' => 'unavailable', 'service2' => 'available']),
+                'expectedOutput' => json_encode(['service1' => 'unavailable', 'service2' => 'available']) . "\n"
+                    . json_encode(['service1' => 'unavailable', 'service2' => 'available']),
             ],
             'not healthy, healthy, retry-limit=2' => [
                 'input' => [
@@ -297,8 +297,8 @@ class InstanceIsHealthyCommandTest extends KernelTestCase
                     ]),
                 ],
                 'expectedReturnCode' => Command::SUCCESS,
-                'expectedOutput' => json_encode(['service1' => 'unavailable', 'service2' => 'available']) . "\n" .
-                    json_encode(['service1' => 'available', 'service2' => 'available']),
+                'expectedOutput' => json_encode(['service1' => 'unavailable', 'service2' => 'available']) . "\n"
+                    . json_encode(['service1' => 'available', 'service2' => 'available']),
             ],
             'healthy' => [
                 'input' => [

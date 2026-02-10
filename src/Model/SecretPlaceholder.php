@@ -11,8 +11,7 @@ class SecretPlaceholder implements SecretPlaceholderInterface
 
     public function __construct(
         private string $placeholder
-    ) {
-    }
+    ) {}
 
     public function __toString(): string
     {

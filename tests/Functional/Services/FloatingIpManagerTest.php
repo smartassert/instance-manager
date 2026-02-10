@@ -132,7 +132,7 @@ class FloatingIpManagerTest extends KernelTestCase
                 'expectedActionEntity' => new ActionEntity([
                     'id' => 001,
                     'type' => 'assign_ip',
-                ])
+                ]),
             ],
         ];
     }

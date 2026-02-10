@@ -12,8 +12,7 @@ readonly class DomainLoader implements DomainLoaderInterface
     public function __construct(
         private ServiceConfigurationOperator $serviceConfigurationOperator,
         private string $defaultDomain,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ServiceConfigurationMissingException

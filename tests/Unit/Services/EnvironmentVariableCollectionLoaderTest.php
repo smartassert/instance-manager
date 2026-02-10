@@ -98,7 +98,7 @@ class EnvironmentVariableCollectionLoaderTest extends TestCase
                     new EnvironmentVariable('key1', 'value1'),
                     new EnvironmentVariable('key2', 'value2'),
                 ]),
-            ]
+            ],
         ];
     }
 }

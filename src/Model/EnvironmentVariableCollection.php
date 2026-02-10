@@ -14,8 +14,7 @@ class EnvironmentVariableCollection implements \IteratorAggregate
      */
     public function __construct(
         private readonly array $environmentVariables = [],
-    ) {
-    }
+    ) {}
 
     /**
      * @return \Traversable<int, EnvironmentVariable>
