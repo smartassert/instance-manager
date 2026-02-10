@@ -12,7 +12,6 @@ use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Services\ActionRunner;
 use App\Services\ImageIdLoaderInterface;
-use App\Tests\Services\DropletDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
@@ -163,7 +162,17 @@ class IpAssignCommandTest extends KernelTestCase
                             'content-type' => 'application/json; charset=utf-8',
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
-                            'droplet' => DropletDataFactory::createWithIps(123, ['127.0.0.100']),
+                            'droplet' => [
+                                'id' => 123,
+                                'networks' => [
+                                    'v4' => [
+                                        [
+                                            'ip_address' => '127.0.0.100',
+                                            'type' => 'public',
+                                        ],
+                                    ],
+                                ],
+                            ],
                         ]),
                     ],
                 ],
@@ -246,7 +255,17 @@ class IpAssignCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                DropletDataFactory::createWithIps(123, ['127.0.0.200']),
+                                [
+                                    'id' => 123,
+                                    'networks' => [
+                                        'v4' => [
+                                            [
+                                                'ip_address' => '127.0.0.200',
+                                                'type' => 'public',
+                                            ],
+                                        ],
+                                    ],
+                                ],
                             ],
                         ]),
                     ],

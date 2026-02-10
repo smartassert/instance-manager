@@ -6,8 +6,7 @@ namespace App\Tests\Unit\Services;
 
 use App\Model\Instance;
 use App\Services\InstanceRouteGenerator;
-use App\Tests\Services\DropletDataFactory;
-use App\Tests\Services\InstanceFactory;
+use DigitalOceanV2\Entity\Droplet;
 use PHPUnit\Framework\TestCase;
 
 class InstanceRouteGeneratorTest extends TestCase
@@ -40,30 +39,54 @@ class InstanceRouteGeneratorTest extends TestCase
         return [
             'no url, no IP address' => [
                 'healthCheckPath' => '',
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                    ]),
+                ),
                 'expectedUrl' => '',
             ],
             'has url, no IP address' => [
                 'healthCheckPath' => 'https://{{ host }}/health-check',
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                    ]),
+                ),
                 'expectedUrl' => '',
             ],
             'no url, has IP address' => [
                 'healthCheckPath' => '',
-                'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(123, [
-                    '127.0.0.1',
-                ])),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'networks' => (object) [
+                            'v4' => (object) [
+                                (object) [
+                                    'ip_address' => '127.0.0.1',
+                                    'type' => 'public',
+                                ],
+                            ],
+                        ],
+                    ])
+                ),
                 'expectedUrl' => '',
             ],
             'has url, has IP address' => [
                 'healthCheckPath' => 'https://{{ host }}/health-check',
-                'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(123, [
-                    '127.0.0.1',
-                ])),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'networks' => (object) [
+                            'v4' => (object) [
+                                (object) [
+                                    'ip_address' => '127.0.0.1',
+                                    'type' => 'public',
+                                ],
+                            ],
+                        ],
+                    ])
+                ),
                 'expectedUrl' => 'https://127.0.0.1/health-check',
             ],
         ];
@@ -85,30 +108,54 @@ class InstanceRouteGeneratorTest extends TestCase
         return [
             'no url, no IP address' => [
                 'stateUrl' => '',
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                    ]),
+                ),
                 'expectedUrl' => '',
             ],
             'has url, no IP address' => [
                 'stateUrl' => 'https://{{ host }}/state',
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                    ]),
+                ),
                 'expectedUrl' => '',
             ],
             'no url, has IP address' => [
                 'stateUrl' => '',
-                'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(123, [
-                    '127.0.0.2',
-                ])),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'networks' => (object) [
+                            'v4' => (object) [
+                                (object) [
+                                    'ip_address' => '127.0.0.2',
+                                    'type' => 'public',
+                                ],
+                            ],
+                        ],
+                    ])
+                ),
                 'expectedUrl' => '',
             ],
             'has url, has IP address' => [
                 'stateUrl' => 'https://{{ host }}/state',
-                'instance' => InstanceFactory::create(DropletDataFactory::createWithIps(123, [
-                    '127.0.0.2',
-                ])),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'networks' => (object) [
+                            'v4' => (object) [
+                                (object) [
+                                    'ip_address' => '127.0.0.2',
+                                    'type' => 'public',
+                                ],
+                            ],
+                        ],
+                    ])
+                ),
                 'expectedUrl' => 'https://127.0.0.2/state',
             ],
         ];
