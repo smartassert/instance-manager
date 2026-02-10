@@ -97,7 +97,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                     new EnvironmentVariable(
                         ServiceEnvironmentVariableRepository::NAME_DOMAIN,
                         'example.com',
-                    )
+                    ),
                 ]),
             ],
             'service-prefixed matching secrets' => [
@@ -113,7 +113,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                     new EnvironmentVariable(
                         ServiceEnvironmentVariableRepository::NAME_DOMAIN,
                         'example.com',
-                    )
+                    ),
                 ]),
             ],
             'service- and common-prefixed matching secrets' => [
@@ -131,7 +131,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                     new EnvironmentVariable(
                         ServiceEnvironmentVariableRepository::NAME_DOMAIN,
                         'example.com',
-                    )
+                    ),
                 ]),
             ],
         ];
@@ -174,7 +174,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
             'no secrets, env var references missing secret' => [
                 'secretsJson' => '',
                 'environmentVariableList' => new EnvironmentVariableCollection([
-                    new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}')
+                    new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}'),
                 ]),
                 'expectedExceptionMessage' => 'Secret "SERVICE_ID_SECRET_001" not found',
             ],
@@ -182,7 +182,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
                 'secretsJson' => '',
 
                 'environmentVariableList' => new EnvironmentVariableCollection([
-                    new EnvironmentVariable('key1', '{{ secrets.DIFFERENT_SERVICE_ID_SECRET_001 }}')
+                    new EnvironmentVariable('key1', '{{ secrets.DIFFERENT_SERVICE_ID_SECRET_001 }}'),
                 ]),
                 'expectedExceptionMessage' => 'Secret "DIFFERENT_SERVICE_ID_SECRET_001" not found',
             ],

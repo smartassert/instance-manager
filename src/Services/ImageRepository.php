@@ -12,8 +12,7 @@ class ImageRepository
 {
     public function __construct(
         private ImageApi $imageApi,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ExceptionInterface

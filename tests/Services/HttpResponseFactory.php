@@ -24,8 +24,7 @@ class HttpResponseFactory
     public function __construct(
         private ResponseFactoryInterface $responseFactory,
         private StreamFactoryInterface $streamFactory,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array<string, string|string[]> $headers

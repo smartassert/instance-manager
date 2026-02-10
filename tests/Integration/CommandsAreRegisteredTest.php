@@ -63,7 +63,7 @@ class CommandsAreRegisteredTest extends TestCase
         $className = str_replace('.php', '', $commandFilename);
 
         /** @var class-string $fullyQualifiedClassName */
-        $fullyQualifiedClassName = 'App\\Command\\' . $className;
+        $fullyQualifiedClassName = 'App\Command\\' . $className;
 
         $reflectionClass = new \ReflectionClass($fullyQualifiedClassName);
         $name = $reflectionClass->getConstant('NAME');

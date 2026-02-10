@@ -171,7 +171,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                                 [
                                     'ip' => '127.0.0.255',
                                     'droplet' => null,
-                                ]
+                                ],
                             ],
                         ]),
                     ],
@@ -202,7 +202,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                                 [
                                     'ip' => $publicIp,
                                     'droplet' => $this->createResponseDropletData(1, $publicIp),
-                                ]
+                                ],
                             ],
                         ]),
                     ],
@@ -233,7 +233,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                                 [
                                     'ip' => $publicIp,
                                     'droplet' => $this->createResponseDropletData(2, $publicIp),
-                                ]
+                                ],
                             ],
                         ]),
                     ],
@@ -278,7 +278,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                                 [
                                     'ip' => $publicIp,
                                     'droplet' => $this->createResponseDropletData(3, $publicIp),
-                                ]
+                                ],
                             ],
                         ]),
                     ],

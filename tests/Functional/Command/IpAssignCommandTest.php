@@ -112,7 +112,7 @@ class IpAssignCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [],
-                        ])
+                        ]),
                     ],
                 ],
                 'expectedExitCode' => IpAssignCommand::EXIT_CODE_NO_CURRENT_INSTANCE,

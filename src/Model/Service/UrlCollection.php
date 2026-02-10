@@ -14,8 +14,7 @@ readonly class UrlCollection implements \JsonSerializable
     public function __construct(
         public ?string $healthCheckUrl,
         public ?string $stateUrl,
-    ) {
-    }
+    ) {}
 
     /**
      * @return SerializedUrlCollection

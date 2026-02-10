@@ -13,8 +13,7 @@ readonly class UrlLoader implements UrlLoaderInterface
 {
     public function __construct(
         private ServiceConfigurationOperator $configurationOperator,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ConfigurationFileValueMissingException

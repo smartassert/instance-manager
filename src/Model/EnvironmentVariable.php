@@ -13,7 +13,7 @@ class EnvironmentVariable extends Secret implements SecretPlaceholderContainerIn
             return '';
         }
 
-        return $key . '="' . str_replace('"', '\\"', $this->getValue()) . '"';
+        return $key . '="' . str_replace('"', '\"', $this->getValue()) . '"';
     }
 
     public function getSecretPlaceholder(): ?SecretPlaceholderInterface

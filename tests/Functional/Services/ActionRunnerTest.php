@@ -56,8 +56,7 @@ class ActionRunnerTest extends KernelTestCase
                     function () {
                         return true;
                     },
-                    function () {
-                    }
+                    function () {}
                 ),
                 'maximumDurationInMicroSeconds' => 1000,
                 'retryPeriodInMicroseconds' => 10,
@@ -73,8 +72,7 @@ class ActionRunnerTest extends KernelTestCase
 
                         return true;
                     },
-                    function () {
-                    }
+                    function () {}
                 ),
                 'maximumDurationInMicroSeconds' => 1000,
                 'retryPeriodInMicroseconds' => 10,
@@ -104,7 +102,7 @@ class ActionRunnerTest extends KernelTestCase
                             'id' => 123,
                         ],
                     ],
-                ])
+                ]),
             ]),
             'get instance, does not have expected IP' => $httpResponseFactory->createFromArray([
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -113,7 +111,7 @@ class ActionRunnerTest extends KernelTestCase
                 ],
                 HttpResponseFactory::KEY_BODY => (string) json_encode([
                     'droplet' => DropletDataFactory::createWithIps(123, ['127.0.0.1']),
-                ])
+                ]),
             ]),
             'get instance, has expected IP' => $httpResponseFactory->createFromArray([
                 HttpResponseFactory::KEY_STATUS_CODE => 200,
@@ -122,7 +120,7 @@ class ActionRunnerTest extends KernelTestCase
                 ],
                 HttpResponseFactory::KEY_BODY => (string) json_encode([
                     'droplet' => DropletDataFactory::createWithIps(123, ['127.0.0.1', $expectedIp]),
-                ])
+                ]),
             ]),
         ]);
 
@@ -158,8 +156,7 @@ class ActionRunnerTest extends KernelTestCase
             function () {
                 return false;
             },
-            function () {
-            }
+            function () {}
         );
 
         self::expectException(ActionTimeoutException::class);

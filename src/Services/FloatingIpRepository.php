@@ -13,8 +13,7 @@ class FloatingIpRepository
 {
     public function __construct(
         private FloatingIpApi $floatingIpApi,
-    ) {
-    }
+    ) {}
 
     /**
      * Find the floating IP used by the active instance.

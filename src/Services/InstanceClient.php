@@ -16,8 +16,7 @@ class InstanceClient
         private ClientInterface $httpClient,
         private RequestFactoryInterface $requestFactory,
         private InstanceRouteGenerator $routeGenerator,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<int|string, mixed>

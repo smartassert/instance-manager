@@ -17,8 +17,7 @@ class InstanceCollection implements \JsonSerializable, \Countable, \IteratorAggr
      */
     public function __construct(
         private readonly array $instances = [],
-    ) {
-    }
+    ) {}
 
     public function findByIP(string $ip): ?Instance
     {

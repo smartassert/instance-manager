@@ -14,8 +14,7 @@ class FloatingIpManager
 {
     public function __construct(
         private FloatingIpApi $floatingIpApi
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ExceptionInterface

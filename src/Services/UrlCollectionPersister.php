@@ -11,8 +11,7 @@ readonly class UrlCollectionPersister implements UrlCollectionPersisterInterface
 {
     public function __construct(
         private ServiceConfigurationOperator $serviceConfigurationOperator,
-    ) {
-    }
+    ) {}
 
     public function persist(string $serviceId, UrlCollection $urlCollection): bool
     {

@@ -12,8 +12,7 @@ readonly class ImageIdLoader implements ImageIdLoaderInterface
 {
     public function __construct(
         private ServiceConfigurationOperator $serviceConfigurationOperator,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ConfigurationFileValueMissingException

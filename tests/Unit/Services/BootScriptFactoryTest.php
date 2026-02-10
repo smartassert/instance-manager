@@ -50,8 +50,8 @@ class BootScriptFactoryTest extends TestCase
                     new EnvironmentVariable('key', 'value'),
                 ]),
                 'serviceBootScript' => '',
-                'expected' => '#!/usr/bin/env bash' . "\n" .
-                    'export key="value"',
+                'expected' => '#!/usr/bin/env bash' . "\n"
+                    . 'export key="value"',
             ],
             'multiple environment variables, empty service boot script' => [
                 'environmentVariables' => new EnvironmentVariableCollection([
@@ -60,16 +60,16 @@ class BootScriptFactoryTest extends TestCase
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
                 'serviceBootScript' => '',
-                'expected' => '#!/usr/bin/env bash' . "\n" .
-                    'export key1="value1"' . "\n" .
-                    'export key2="value2"' . "\n" .
-                    'export key3="value3"',
+                'expected' => '#!/usr/bin/env bash' . "\n"
+                    . 'export key1="value1"' . "\n"
+                    . 'export key2="value2"' . "\n"
+                    . 'export key3="value3"',
             ],
             'empty environment variables, has service boot script' => [
                 'environmentVariables' => new EnvironmentVariableCollection(),
                 'serviceBootScript' => './first-boot.sh',
-                'expected' => '#!/usr/bin/env bash' . "\n" .
-                    './first-boot.sh',
+                'expected' => '#!/usr/bin/env bash' . "\n"
+                    . './first-boot.sh',
             ],
             'multiple environment variables, has service boot script' => [
                 'environmentVariables' => new EnvironmentVariableCollection([
@@ -78,11 +78,11 @@ class BootScriptFactoryTest extends TestCase
                     new EnvironmentVariable('key3', 'value3'),
                 ]),
                 'serviceBootScript' => './first-boot.sh',
-                'expected' => '#!/usr/bin/env bash' . "\n" .
-                    'export key1="value1"' . "\n" .
-                    'export key2="value2"' . "\n" .
-                    'export key3="value3"' . "\n" .
-                    './first-boot.sh',
+                'expected' => '#!/usr/bin/env bash' . "\n"
+                    . 'export key1="value1"' . "\n"
+                    . 'export key2="value2"' . "\n"
+                    . 'export key3="value3"' . "\n"
+                    . './first-boot.sh',
             ],
         ];
     }
