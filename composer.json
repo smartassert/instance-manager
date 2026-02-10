@@ -11,12 +11,12 @@
         "league/flysystem": "^3.15",
         "php-http/client-common": "^2.5",
         "smartassert/digitalocean-droplet-configuration": "^1.2",
-        "symfony/console": "7.3.*",
-        "symfony/dotenv": "7.3.*",
+        "symfony/console": "7.4.*",
+        "symfony/dotenv": "7.4.*",
         "symfony/flex": "^2.0",
-        "symfony/framework-bundle": "7.3.*",
-        "symfony/runtime": "7.3.*",
-        "symfony/yaml": "7.3.*",
+        "symfony/framework-bundle": "7.4.*",
+        "symfony/runtime": "7.4.*",
+        "symfony/yaml": "7.4.*",
         "toin0u/digitalocean-v2": "^4.5"
     },
     "require-dev": {
@@ -28,9 +28,9 @@
         "phpstan/phpstan-phpunit": "^2.0",
         "phpunit/phpunit": "^9.6",
         "squizlabs/php_codesniffer": "^4.0",
-        "symfony/finder": "7.3.*",
-        "symfony/phpunit-bridge": "7.3.*",
-        "symfony/process": "7.3.*",
+        "symfony/finder": "7.4.*",
+        "symfony/phpunit-bridge": "7.4.*",
+        "symfony/process": "7.4.*",
         "webignition/object-reflector": "^1.0"
     },
     "config": {
@@ -94,7 +94,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "7.3.*"
+            "require": "7.4.*"
         }
     }
 }
