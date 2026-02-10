@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Services;
 
-use App\Model\Instance;
 use App\Services\InstanceConfigurationFactory;
 use App\Services\InstanceRepository;
 use App\Services\InstanceTagFactory;
@@ -72,7 +71,6 @@ class InstanceRepositoryTest extends TestCase
 
         $instance = $instanceRepository->create($serviceId, $imageId, $firstBootScript);
 
-        self::assertInstanceOf(Instance::class, $instance);
         self::assertSame($dropletEntity, $instance->getDroplet());
     }
 

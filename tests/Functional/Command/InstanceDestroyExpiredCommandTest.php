@@ -13,6 +13,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class InstanceDestroyExpiredCommandTest extends KernelTestCase
 {
     use MissingServiceIdTestTrait;
@@ -43,7 +46,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
     /**
      * @dataProvider runSuccessDataProvider
      *
-     * @param array<int, array<mixed>> $httpResponseDataCollection
+     * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
     public function testRunSuccess(
         array $httpResponseDataCollection,

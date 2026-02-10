@@ -14,6 +14,9 @@ use DigitalOceanV2\Entity\FloatingIp as FloatingIpEntity;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class FloatingIpManagerTest extends KernelTestCase
 {
     private FloatingIpManager $floatingIpManager;
@@ -40,7 +43,7 @@ class FloatingIpManagerTest extends KernelTestCase
     /**
      * @dataProvider createDataProvider
      *
-     * @param array<mixed> $httpResponseData
+     * @param HttpResponseData $httpResponseData
      */
     public function testCreate(
         array $httpResponseData,
@@ -88,7 +91,7 @@ class FloatingIpManagerTest extends KernelTestCase
     /**
      * @dataProvider reAssignDataProvider
      *
-     * @param array<mixed> $httpResponseData
+     * @param HttpResponseData $httpResponseData
      */
     public function testReAssign(
         array $httpResponseData,

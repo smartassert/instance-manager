@@ -23,6 +23,9 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 use webignition\ObjectReflector\ObjectReflector;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class IpAssignCommandTest extends KernelTestCase
 {
     use MockeryPHPUnitIntegration;
@@ -55,7 +58,7 @@ class IpAssignCommandTest extends KernelTestCase
     /**
      * @dataProvider runSuccessDataProvider
      *
-     * @param array<int, array<mixed>> $httpResponseDataCollection
+     * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
     public function testRunSuccess(
         ?callable $setup,

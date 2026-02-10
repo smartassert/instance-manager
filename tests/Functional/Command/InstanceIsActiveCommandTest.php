@@ -18,6 +18,9 @@ use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class InstanceIsActiveCommandTest extends KernelTestCase
 {
     private InstanceIsActiveCommand $command;
@@ -44,7 +47,7 @@ class InstanceIsActiveCommandTest extends KernelTestCase
     /**
      * @dataProvider runThrowsExceptionDataProvider
      *
-     * @param array<mixed>             $httpResponseData
+     * @param HttpResponseData         $httpResponseData
      * @param class-string<\Throwable> $expectedExceptionClass
      */
     public function testRunThrowsException(
@@ -89,8 +92,8 @@ class InstanceIsActiveCommandTest extends KernelTestCase
     /**
      * @dataProvider runDataProvider
      *
-     * @param array<mixed> $input
-     * @param array<mixed> $httpResponseDataCollection
+     * @param array<mixed>                 $input
+     * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
     public function testRunSuccess(
         array $input,
@@ -99,9 +102,7 @@ class InstanceIsActiveCommandTest extends KernelTestCase
         string $expectedOutput
     ): void {
         foreach ($httpResponseDataCollection as $fixture) {
-            if (is_array($fixture)) {
-                $fixture = $this->httpResponseFactory->createFromArray($fixture);
-            }
+            $fixture = $this->httpResponseFactory->createFromArray($fixture);
 
             $this->mockHandler->append($fixture);
         }

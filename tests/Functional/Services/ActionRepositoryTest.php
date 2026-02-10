@@ -10,6 +10,9 @@ use DigitalOceanV2\Entity\Action as ActionEntity;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
+/**
+ * @phpstan-import-type HttpResponseData from HttpResponseFactory
+ */
 class ActionRepositoryTest extends KernelTestCase
 {
     private ActionRepository $actionRepository;
@@ -36,7 +39,7 @@ class ActionRepositoryTest extends KernelTestCase
     /**
      * @dataProvider findDataProvider
      *
-     * @param array<mixed> $httpResponseData
+     * @param HttpResponseData $httpResponseData
      */
     public function testFind(array $httpResponseData, int $id, ?ActionEntity $expectedAction): void
     {

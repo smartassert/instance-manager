@@ -8,6 +8,13 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
+/**
+ * @phpstan-type HttpResponseData array{
+ *     'status-code'?: int,
+ *     'headers'?: array<string, string|string[]>,
+ *     'body'?: string
+ * }
+ */
 class HttpResponseFactory
 {
     public const KEY_STATUS_CODE = 'status-code';
@@ -40,15 +47,13 @@ class HttpResponseFactory
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param HttpResponseData $data
      */
     public function createFromArray(array $data): ResponseInterface
     {
         $statusCode = $data[self::KEY_STATUS_CODE] ?? 200;
-        $statusCode = is_int($statusCode) ? $statusCode : 200;
 
         $headers = $data[self::KEY_HEADERS] ?? [];
-        $headers = is_array($headers) ? $headers : [];
 
         $body = $data[self::KEY_BODY] ?? null;
         $body = is_string($body) ? $body : null;

@@ -50,11 +50,11 @@ class DropletDataFactory
         if (array_key_exists('networks', $dropletData)) {
             $networksData = $dropletData['networks'];
             if (is_array($networksData)) {
-                if (array_key_exists('v4', $networksData)) {
+                if (array_key_exists('v4', $networksData) && is_array($networksData['v4'])) {
                     $networksData['v4'] = self::normalizeNetworksCollectionData($networksData['v4']);
                 }
 
-                if (array_key_exists('v6', $networksData)) {
+                if (array_key_exists('v6', $networksData) && is_array($networksData['v6'])) {
                     $networksData['v6'] = self::normalizeNetworksCollectionData($networksData['v6']);
                 }
 

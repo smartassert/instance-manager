@@ -33,11 +33,9 @@ class SecretCollection implements \IteratorAggregate
         $collection = [];
 
         foreach ($this->secrets as $secret) {
-            if ($secret instanceof Secret) {
-                foreach ($prefixes as $prefix) {
-                    if (is_string($prefix) && str_starts_with($secret->getKey(), $prefix)) {
-                        $collection[] = $secret;
-                    }
+            foreach ($prefixes as $prefix) {
+                if (str_starts_with($secret->getKey(), $prefix)) {
+                    $collection[] = $secret;
                 }
             }
         }
