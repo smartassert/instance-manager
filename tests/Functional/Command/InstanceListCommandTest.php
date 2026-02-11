@@ -12,6 +12,7 @@ use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -65,11 +66,10 @@ class InstanceListCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runSuccessDataProvider
-     *
      * @param array<mixed>                 $input
      * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
+    #[DataProvider('runSuccessDataProvider')]
     public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
@@ -89,7 +89,7 @@ class InstanceListCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runSuccessDataProvider(): array
+    public static function runSuccessDataProvider(): array
     {
         $matchingIp = '127.0.0.1';
 

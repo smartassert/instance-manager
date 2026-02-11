@@ -6,13 +6,12 @@ namespace App\Tests\Unit\Model;
 
 use App\Model\Instance;
 use DigitalOceanV2\Entity\Droplet;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class InstanceTest extends TestCase
 {
-    /**
-     * @dataProvider hasIpDataProvider
-     */
+    #[DataProvider('hasIpDataProvider')]
     public function testHasIp(Instance $instance, string $ip, bool $expectedHas): void
     {
         self::assertSame($expectedHas, $instance->hasIp($ip));
@@ -21,7 +20,7 @@ class InstanceTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function hasIpDataProvider(): array
+    public static function hasIpDataProvider(): array
     {
         return [
             'no IPs' => [
@@ -91,9 +90,7 @@ class InstanceTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider getLabelDataProvider
-     */
+    #[DataProvider('getLabelDataProvider')]
     public function testGetLabel(Instance $instance, string $expectedLabel): void
     {
         self::assertSame($expectedLabel, $instance->getLabel());
@@ -102,7 +99,7 @@ class InstanceTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function getLabelDataProvider(): array
+    public static function getLabelDataProvider(): array
     {
         return [
             'no tags' => [
@@ -141,10 +138,9 @@ class InstanceTest extends TestCase
     }
 
     /**
-     * @dataProvider jsonSerializeDataProvider
-     *
      * @param array<mixed> $expected
      */
+    #[DataProvider('jsonSerializeDataProvider')]
     public function testJsonSerialize(Instance $instance, array $expected): void
     {
         self::assertSame($expected, $instance->jsonSerialize());
@@ -153,7 +149,7 @@ class InstanceTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function jsonSerializeDataProvider(): array
+    public static function jsonSerializeDataProvider(): array
     {
         return [
             'id only' => [
@@ -219,9 +215,7 @@ class InstanceTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider getDropletStatusDataProvider
-     */
+    #[DataProvider('getDropletStatusDataProvider')]
     public function testGetDropletStatus(Instance $instance, string $expectedDropletStatus): void
     {
         self::assertSame($expectedDropletStatus, $instance->getDropletStatus());
@@ -230,7 +224,7 @@ class InstanceTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function getDropletStatusDataProvider(): array
+    public static function getDropletStatusDataProvider(): array
     {
         return [
             'status: new' => [
@@ -282,10 +276,9 @@ class InstanceTest extends TestCase
     }
 
     /**
-     * @dataProvider getStateDataProvider
-     *
      * @param array<mixed> $expected
      */
+    #[DataProvider('getStateDataProvider')]
     public function testGetState(Instance $instance, array $expected): void
     {
         self::assertSame($expected, $instance->getState());
@@ -294,7 +287,7 @@ class InstanceTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function getStateDataProvider(): array
+    public static function getStateDataProvider(): array
     {
         $now = '2022-04-14T16:40:05.000Z';
         $yesterday = '2022-04-13T16:40:05.000Z';

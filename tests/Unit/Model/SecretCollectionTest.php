@@ -6,15 +6,15 @@ namespace App\Tests\Unit\Model;
 
 use App\Model\Secret;
 use App\Model\SecretCollection;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class SecretCollectionTest extends TestCase
 {
     /**
-     * @dataProvider filterByKeyPrefixesDataProvider
-     *
      * @param string[] $prefixes
      */
+    #[DataProvider('filterByKeyPrefixesDataProvider')]
     public function testFilterByKeyPrefixes(
         SecretCollection $collection,
         array $prefixes,
@@ -26,7 +26,7 @@ class SecretCollectionTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function filterByKeyPrefixesDataProvider(): array
+    public static function filterByKeyPrefixesDataProvider(): array
     {
         return [
             'empty collection, no prefixes' => [

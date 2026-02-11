@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Services;
 use App\Model\Instance;
 use App\Services\InstanceRouteGenerator;
 use DigitalOceanV2\Entity\Droplet;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class InstanceRouteGeneratorTest extends TestCase
@@ -20,9 +21,7 @@ class InstanceRouteGeneratorTest extends TestCase
         $this->instanceRouteGenerator = new InstanceRouteGenerator();
     }
 
-    /**
-     * @dataProvider createHealthCheckUrlDataProvider
-     */
+    #[DataProvider('createHealthCheckUrlDataProvider')]
     public function testCreateHealthCheckUrl(string $healthCheckPath, Instance $instance, string $expectedUrl): void
     {
         self::assertSame(
@@ -34,7 +33,7 @@ class InstanceRouteGeneratorTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function createHealthCheckUrlDataProvider(): array
+    public static function createHealthCheckUrlDataProvider(): array
     {
         return [
             'no url, no IP address' => [
@@ -92,9 +91,7 @@ class InstanceRouteGeneratorTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider createStateUrlDataProvider
-     */
+    #[DataProvider('createStateUrlDataProvider')]
     public function testCreateStateUrl(string $stateUrl, Instance $instance, string $expectedUrl): void
     {
         self::assertSame($expectedUrl, $this->instanceRouteGenerator->createStateUrl($stateUrl, $instance));
@@ -103,7 +100,7 @@ class InstanceRouteGeneratorTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function createStateUrlDataProvider(): array
+    public static function createStateUrlDataProvider(): array
     {
         return [
             'no url, no IP address' => [

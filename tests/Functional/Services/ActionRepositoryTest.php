@@ -8,6 +8,7 @@ use App\Services\ActionRepository;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Entity\Action as ActionEntity;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -37,10 +38,9 @@ class ActionRepositoryTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider findDataProvider
-     *
      * @param HttpResponseData $httpResponseData
      */
+    #[DataProvider('findDataProvider')]
     public function testFind(array $httpResponseData, int $id, ?ActionEntity $expectedAction): void
     {
         $this->mockHandler->append($this->httpResponseFactory->createFromArray($httpResponseData));
@@ -51,7 +51,7 @@ class ActionRepositoryTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function findDataProvider(): array
+    public static function findDataProvider(): array
     {
         return [
             'not found' => [

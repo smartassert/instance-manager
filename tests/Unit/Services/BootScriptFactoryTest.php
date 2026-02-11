@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Services;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
 use App\Services\BootScriptFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class BootScriptFactoryTest extends TestCase
@@ -20,9 +21,7 @@ class BootScriptFactoryTest extends TestCase
         $this->bootScriptFactory = new BootScriptFactory();
     }
 
-    /**
-     * @dataProvider createDataProvider
-     */
+    #[DataProvider('createDataProvider')]
     public function testCreate(
         EnvironmentVariableCollection $environmentVariables,
         string $serviceBootScript,
@@ -37,7 +36,7 @@ class BootScriptFactoryTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function createDataProvider(): array
+    public static function createDataProvider(): array
     {
         return [
             'empty environment variables, empty service boot script' => [
@@ -87,9 +86,7 @@ class BootScriptFactoryTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider validateDataProvider
-     */
+    #[DataProvider('validateDataProvider')]
     public function testValidate(string $script, bool $expected): void
     {
         self::assertSame($expected, $this->bootScriptFactory->validate($script));
@@ -98,7 +95,7 @@ class BootScriptFactoryTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function validateDataProvider(): array
+    public static function validateDataProvider(): array
     {
         return [
             'empty is valid' => [

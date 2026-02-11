@@ -9,6 +9,7 @@ use App\Services\FloatingIpRepository;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Entity\FloatingIp as FloatingIpEntity;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class FloatingIpRepositoryTest extends KernelTestCase
@@ -37,10 +38,9 @@ class FloatingIpRepositoryTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider findDataProvider
-     *
      * @param array<mixed> $floatingIpResponseData
      */
+    #[DataProvider('findDataProvider')]
     public function testFind(array $floatingIpResponseData, ?AssignedIp $expectedAssignedIp): void
     {
         $this->mockHandler->append(
@@ -61,7 +61,7 @@ class FloatingIpRepositoryTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function findDataProvider(): array
+    public static function findDataProvider(): array
     {
         return [
             'none' => [

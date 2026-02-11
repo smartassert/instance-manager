@@ -19,6 +19,7 @@ use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\Psr7\Response;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -119,11 +120,10 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runSuccessDataProvider
-     *
      * @param array<mixed>                            $input
      * @param array<int, HttpResponseData|\Throwable> $httpResponseDataCollection
      */
+    #[DataProvider('runSuccessDataProvider')]
     public function testRunSuccess(
         array $input,
         UrlLoaderInterface $urlLoader,
@@ -152,7 +152,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runSuccessDataProvider(): array
+    public static function runSuccessDataProvider(): array
     {
         $serviceId = 'service_id';
         $instanceId = 123;
@@ -296,10 +296,9 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runWithoutInstanceIdThrowsExceptionDataProvider
-     *
      * @param array<mixed> $input
      */
+    #[DataProvider('runWithoutInstanceIdThrowsExceptionDataProvider')]
     public function testRunWithoutInstanceIdThrowsException(string $serviceId, array $input): void
     {
         $urlLoader = \Mockery::mock(UrlLoaderInterface::class);
@@ -319,7 +318,7 @@ class InstanceIsReadyCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runWithoutInstanceIdThrowsExceptionDataProvider(): array
+    public static function runWithoutInstanceIdThrowsExceptionDataProvider(): array
     {
         $serviceId = md5((string) rand());
 

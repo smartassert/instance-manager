@@ -8,6 +8,7 @@ use App\Command\InstanceDestroyExpiredCommand;
 use App\Command\Option;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -44,10 +45,9 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runSuccessDataProvider
-     *
      * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
+    #[DataProvider('runSuccessDataProvider')]
     public function testRunSuccess(
         array $httpResponseDataCollection,
         string $expectedOutput,
@@ -70,7 +70,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runSuccessDataProvider(): array
+    public static function runSuccessDataProvider(): array
     {
         $publicIp = '127.0.0.0';
 
@@ -98,7 +98,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $this->createResponseDropletData(1),
+                                self::createResponseDropletData(1),
                             ],
                         ]),
                     ],
@@ -114,7 +114,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $this->createResponseDropletData(1, $publicIp),
+                                self::createResponseDropletData(1, $publicIp),
                             ],
                         ]),
                     ],
@@ -130,8 +130,8 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $this->createResponseDropletData(1),
-                                $this->createResponseDropletData(2),
+                                self::createResponseDropletData(1),
+                                self::createResponseDropletData(2),
                             ],
                         ]),
                     ],
@@ -156,8 +156,8 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $this->createResponseDropletData(1),
-                                $this->createResponseDropletData(2),
+                                self::createResponseDropletData(1),
+                                self::createResponseDropletData(2),
                             ],
                         ]),
                     ],
@@ -187,8 +187,8 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $this->createResponseDropletData(1, $publicIp),
-                                $this->createResponseDropletData(2),
+                                self::createResponseDropletData(1, $publicIp),
+                                self::createResponseDropletData(2),
                             ],
                         ]),
                     ],
@@ -201,7 +201,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                             'floating_ips' => [
                                 [
                                     'ip' => $publicIp,
-                                    'droplet' => $this->createResponseDropletData(1, $publicIp),
+                                    'droplet' => self::createResponseDropletData(1, $publicIp),
                                 ],
                             ],
                         ]),
@@ -218,8 +218,8 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $this->createResponseDropletData(1),
-                                $this->createResponseDropletData(2, $publicIp),
+                                self::createResponseDropletData(1),
+                                self::createResponseDropletData(2, $publicIp),
                             ],
                         ]),
                     ],
@@ -232,7 +232,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                             'floating_ips' => [
                                 [
                                     'ip' => $publicIp,
-                                    'droplet' => $this->createResponseDropletData(2, $publicIp),
+                                    'droplet' => self::createResponseDropletData(2, $publicIp),
                                 ],
                             ],
                         ]),
@@ -262,9 +262,9 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                         ],
                         HttpResponseFactory::KEY_BODY => (string) json_encode([
                             'droplets' => [
-                                $this->createResponseDropletData(1),
-                                $this->createResponseDropletData(2),
-                                $this->createResponseDropletData(3, $publicIp),
+                                self::createResponseDropletData(1),
+                                self::createResponseDropletData(2),
+                                self::createResponseDropletData(3, $publicIp),
                             ],
                         ]),
                     ],
@@ -277,7 +277,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
                             'floating_ips' => [
                                 [
                                     'ip' => $publicIp,
-                                    'droplet' => $this->createResponseDropletData(3, $publicIp),
+                                    'droplet' => self::createResponseDropletData(3, $publicIp),
                                 ],
                             ],
                         ]),
@@ -316,7 +316,7 @@ class InstanceDestroyExpiredCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    private function createResponseDropletData(int $id, ?string $ip = null): array
+    private static function createResponseDropletData(int $id, ?string $ip = null): array
     {
         $ip = is_string($ip) ? $ip : sprintf('127.0.0.%d', $id);
 

@@ -15,6 +15,7 @@ use App\Services\ImageIdLoaderInterface;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -55,10 +56,9 @@ class IpAssignCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runSuccessDataProvider
-     *
      * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
+    #[DataProvider('runSuccessDataProvider')]
     public function testRunSuccess(
         ?callable $setup,
         array $httpResponseDataCollection,
@@ -98,7 +98,7 @@ class IpAssignCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runSuccessDataProvider(): array
+    public static function runSuccessDataProvider(): array
     {
         return [
             'no current instance' => [

@@ -21,6 +21,7 @@ use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Entity\Droplet;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -56,11 +57,10 @@ class InstanceCreateCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runThrowsExceptionDataProvider
-     *
      * @param array<int, HttpResponseData> $responseData
      * @param class-string<\Throwable>     $expectedExceptionClass
      */
+    #[DataProvider('runThrowsExceptionDataProvider')]
     public function testRunThrowsException(
         array $responseData,
         string $expectedExceptionClass,
@@ -94,7 +94,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runThrowsExceptionDataProvider(): array
+    public static function runThrowsExceptionDataProvider(): array
     {
         return [
             'invalid api token' => [
@@ -168,11 +168,10 @@ class InstanceCreateCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runDataProvider
-     *
      * @param array<mixed>                 $input
      * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
+    #[DataProvider('runDataProvider')]
     public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
@@ -207,7 +206,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runDataProvider(): array
+    public static function runDataProvider(): array
     {
         return [
             'already exists' => [
@@ -252,9 +251,7 @@ class InstanceCreateCommandTest extends KernelTestCase
         ];
     }
 
-    /**
-     * @dataProvider passesFirstBootScriptDataProvider
-     */
+    #[DataProvider('passesFirstBootScriptDataProvider')]
     public function testPassesFirstBootScript(
         string $firstBootScriptOption,
         string $secretsJsonOption,
@@ -310,7 +307,7 @@ class InstanceCreateCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function passesFirstBootScriptDataProvider(): array
+    public static function passesFirstBootScriptDataProvider(): array
     {
         return [
             'first boot script option only' => [

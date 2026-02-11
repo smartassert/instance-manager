@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Services;
 
 use App\Services\InstanceConfigurationFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use SmartAssert\DigitalOceanDropletConfiguration\Configuration;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -22,10 +23,9 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider createDataProvider
-     *
      * @param string[] $tags
      */
+    #[DataProvider('createDataProvider')]
     public function testCreate(string $firstBootScript, array $tags, Configuration $expected): void
     {
         self::assertEquals($expected, $this->instanceConfigurationFactory->create($firstBootScript, $tags));
@@ -34,7 +34,7 @@ class InstanceConfigurationFactoryTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function createDataProvider(): array
+    public static function createDataProvider(): array
     {
         return [
             'no first-boot script, no tags' => [

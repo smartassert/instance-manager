@@ -8,6 +8,7 @@ use App\Command\IpGetCommand;
 use App\Command\Option;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -41,10 +42,9 @@ class IpGetCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runSuccessDataProvider
-     *
      * @param array<mixed> $floatingIpResponseData
      */
+    #[DataProvider('runSuccessDataProvider')]
     public function testRunSuccess(
         array $floatingIpResponseData,
         string $expectedOutput,
@@ -75,7 +75,7 @@ class IpGetCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runSuccessDataProvider(): array
+    public static function runSuccessDataProvider(): array
     {
         return [
             'none' => [

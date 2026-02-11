@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Services;
 
 use App\Services\OutputFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class OutputFactoryTest extends TestCase
@@ -19,10 +20,9 @@ class OutputFactoryTest extends TestCase
     }
 
     /**
-     * @dataProvider createSuccessOutputDataProvider
-     *
      * @param array<mixed> $data
      */
+    #[DataProvider('createSuccessOutputDataProvider')]
     public function testCreateSuccessOutput(array $data, string $expected): void
     {
         self::assertJsonStringEqualsJsonString(
@@ -34,7 +34,7 @@ class OutputFactoryTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function createSuccessOutputDataProvider(): array
+    public static function createSuccessOutputDataProvider(): array
     {
         return [
             'empty' => [
@@ -58,10 +58,9 @@ class OutputFactoryTest extends TestCase
     }
 
     /**
-     * @dataProvider createErrorOutputDataProvider
-     *
      * @param array<mixed> $data
      */
+    #[DataProvider('createErrorOutputDataProvider')]
     public function testCreateErrorOutput(string $errorCode, array $data, string $expected): void
     {
         self::assertJsonStringEqualsJsonString(
@@ -73,7 +72,7 @@ class OutputFactoryTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function createErrorOutputDataProvider(): array
+    public static function createErrorOutputDataProvider(): array
     {
         return [
             'empty' => [

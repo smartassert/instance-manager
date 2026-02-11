@@ -13,6 +13,7 @@ use App\Tests\Model\ExpectedFilePath;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToReadFile;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class ImageIdLoaderTest extends TestCase
@@ -44,9 +45,7 @@ class ImageIdLoaderTest extends TestCase
         $loader->load($serviceId);
     }
 
-    /**
-     * @dataProvider loadValueMissingDataProvider
-     */
+    #[DataProvider('loadValueMissingDataProvider')]
     public function testLoadValueMissing(string $fileContent): void
     {
         $serviceId = md5((string) rand());
@@ -74,7 +73,7 @@ class ImageIdLoaderTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function loadValueMissingDataProvider(): array
+    public static function loadValueMissingDataProvider(): array
     {
         return [
             'empty' => [
