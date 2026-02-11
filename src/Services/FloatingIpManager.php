@@ -22,7 +22,7 @@ class FloatingIpManager
     public function create(Instance $instance): AssignedIp
     {
         $floatingIpEntity = $this->floatingIpApi->createAssigned($instance->getId());
-        if (null === $floatingIpEntity->droplet) {
+        if (!isset($floatingIpEntity->droplet)) {
             $floatingIpEntity->droplet = $instance->getDroplet();
         }
 
