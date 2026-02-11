@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Services;
 use App\Model\Secret;
 use App\Model\SecretCollection;
 use App\Services\SecretFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class SecretFactoryTest extends TestCase
@@ -20,9 +21,7 @@ class SecretFactoryTest extends TestCase
         $this->secretFactory = new SecretFactory();
     }
 
-    /**
-     * @dataProvider createFromJsonForKeysMatchingPrefixDataProvider
-     */
+    #[DataProvider('createFromJsonForKeysMatchingPrefixDataProvider')]
     public function testCreate(string $secretsJson, SecretCollection $expected): void
     {
         self::assertEquals($expected, $this->secretFactory->create($secretsJson));
@@ -31,7 +30,7 @@ class SecretFactoryTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function createFromJsonForKeysMatchingPrefixDataProvider(): array
+    public static function createFromJsonForKeysMatchingPrefixDataProvider(): array
     {
         return [
             'empty json' => [

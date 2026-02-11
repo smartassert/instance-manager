@@ -12,6 +12,7 @@ use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -45,11 +46,10 @@ class InstanceIsActiveCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runThrowsExceptionDataProvider
-     *
      * @param HttpResponseData         $httpResponseData
      * @param class-string<\Throwable> $expectedExceptionClass
      */
+    #[DataProvider('runThrowsExceptionDataProvider')]
     public function testRunThrowsException(
         array $httpResponseData,
         string $expectedExceptionClass,
@@ -75,7 +75,7 @@ class InstanceIsActiveCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runThrowsExceptionDataProvider(): array
+    public static function runThrowsExceptionDataProvider(): array
     {
         return [
             'invalid api token' => [
@@ -90,11 +90,10 @@ class InstanceIsActiveCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runDataProvider
-     *
      * @param array<mixed>                 $input
      * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
+    #[DataProvider('runDataProvider')]
     public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
@@ -118,7 +117,7 @@ class InstanceIsActiveCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runDataProvider(): array
+    public static function runDataProvider(): array
     {
         return [
             'not active, retry limit=1, state: new' => [
@@ -276,10 +275,9 @@ class InstanceIsActiveCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runWithoutInstanceIdThrowsExceptionDataProvider
-     *
      * @param array<mixed> $input
      */
+    #[DataProvider('runWithoutInstanceIdThrowsExceptionDataProvider')]
     public function testRunWithoutInstanceIdThrowsException(string $serviceId, array $input): void
     {
         $this->expectExceptionObject(new RequiredOptionMissingException(Option::OPTION_ID));
@@ -290,7 +288,7 @@ class InstanceIsActiveCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runWithoutInstanceIdThrowsExceptionDataProvider(): array
+    public static function runWithoutInstanceIdThrowsExceptionDataProvider(): array
     {
         $serviceId = md5((string) rand());
 

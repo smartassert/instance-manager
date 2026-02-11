@@ -9,6 +9,7 @@ use App\Services\InstanceRepository;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Entity\Droplet;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -66,10 +67,9 @@ class InstanceRepositoryTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider findAllDataProvider
-     *
      * @param Instance[] $expectedInstances
      */
+    #[DataProvider('findAllDataProvider')]
     public function testFindAll(string $httpResponseBody, array $expectedInstances): void
     {
         $this->mockHandler->append(
@@ -95,7 +95,7 @@ class InstanceRepositoryTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function findAllDataProvider(): array
+    public static function findAllDataProvider(): array
     {
         return [
             'none' => [
@@ -139,9 +139,7 @@ class InstanceRepositoryTest extends KernelTestCase
         ];
     }
 
-    /**
-     * @dataProvider findCurrentDataProvider
-     */
+    #[DataProvider('findCurrentDataProvider')]
     public function testFindCurrent(string $httpResponseBody, ?Instance $expectedInstance): void
     {
         $this->mockHandler->append(
@@ -161,7 +159,7 @@ class InstanceRepositoryTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function findCurrentDataProvider(): array
+    public static function findCurrentDataProvider(): array
     {
         return [
             'not found' => [
@@ -210,10 +208,9 @@ class InstanceRepositoryTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider findDataProvider
-     *
      * @param HttpResponseData $httpResponseData
      */
+    #[DataProvider('findDataProvider')]
     public function testFind(array $httpResponseData, int $id, ?Instance $expectedInstance): void
     {
         $this->mockHandler->append(
@@ -227,7 +224,7 @@ class InstanceRepositoryTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function findDataProvider(): array
+    public static function findDataProvider(): array
     {
         return [
             'not found' => [
@@ -262,10 +259,9 @@ class InstanceRepositoryTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider deleteDataProvider
-     *
      * @param HttpResponseData $httpResponseData
      */
+    #[DataProvider('deleteDataProvider')]
     public function testDelete(array $httpResponseData, int $id): void
     {
         $this->mockHandler->append(
@@ -280,7 +276,7 @@ class InstanceRepositoryTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function deleteDataProvider(): array
+    public static function deleteDataProvider(): array
     {
         return [
             'not found' => [

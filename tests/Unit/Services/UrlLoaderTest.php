@@ -14,6 +14,7 @@ use App\Tests\Model\ExpectedFilePath;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToReadFile;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class UrlLoaderTest extends TestCase
@@ -43,9 +44,7 @@ class UrlLoaderTest extends TestCase
         $loader->load($serviceId, UrlKey::HEALTH_CHECK);
     }
 
-    /**
-     * @dataProvider loadHealthCheckUrlValueMissingDataProvider
-     */
+    #[DataProvider('loadHealthCheckUrlValueMissingDataProvider')]
     public function testLoadValueMissing(
         string $fileContent,
         UrlKey $key,
@@ -76,7 +75,7 @@ class UrlLoaderTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function loadHealthCheckUrlValueMissingDataProvider(): array
+    public static function loadHealthCheckUrlValueMissingDataProvider(): array
     {
         return [
             'empty, key=health_check_url' => [

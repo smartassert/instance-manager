@@ -8,6 +8,7 @@ use App\Command\Option;
 use App\Command\ServiceConfigurationSetCommand;
 use App\Model\Service\UrlCollection;
 use App\Services\UrlCollectionPersisterInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -30,10 +31,9 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runEmptyRequiredValueDataProvider
-     *
      * @param array<mixed> $input
      */
+    #[DataProvider('runEmptyRequiredValueDataProvider')]
     public function testRunEmptyRequiredValue(array $input, int $expectedReturnCode): void
     {
         $commandReturnCode = $this->command->run(new ArrayInput($input), new NullOutput());
@@ -44,7 +44,7 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runEmptyRequiredValueDataProvider(): array
+    public static function runEmptyRequiredValueDataProvider(): array
     {
         return [
             'empty health check url' => [
@@ -64,10 +64,9 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runDataProvider
-     *
      * @param array<mixed> $input
      */
+    #[DataProvider('runDataProvider')]
     public function testRunSuccess(
         array $input,
         bool $setServiceConfigurationFixture,
@@ -113,7 +112,7 @@ class ServiceConfigurationSetCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runDataProvider(): array
+    public static function runDataProvider(): array
     {
         return [
             'not exists' => [

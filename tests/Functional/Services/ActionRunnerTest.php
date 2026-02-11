@@ -12,6 +12,7 @@ use App\Services\FloatingIpManager;
 use App\Services\InstanceRepository;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class ActionRunnerTest extends KernelTestCase
@@ -29,9 +30,7 @@ class ActionRunnerTest extends KernelTestCase
         $this->actionRunner = $actionRunner;
     }
 
-    /**
-     * @dataProvider runSuccessSimpleDataProvider
-     */
+    #[DataProvider('runSuccessSimpleDataProvider')]
     public function testRunSuccessSimple(
         ActionHandler $decider,
         int $maximumDurationInMicroseconds,
@@ -44,7 +43,7 @@ class ActionRunnerTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runSuccessSimpleDataProvider(): array
+    public static function runSuccessSimpleDataProvider(): array
     {
         $delayedSuccessCount = 0;
         $delayedSuccessLimit = 3;
@@ -57,7 +56,7 @@ class ActionRunnerTest extends KernelTestCase
                     },
                     function () {}
                 ),
-                'maximumDurationInMicroSeconds' => 1000,
+                'maximumDurationInMicroseconds' => 1000,
                 'retryPeriodInMicroseconds' => 10,
             ],
             'delayed success, basic' => [
@@ -73,7 +72,7 @@ class ActionRunnerTest extends KernelTestCase
                     },
                     function () {}
                 ),
-                'maximumDurationInMicroSeconds' => 1000,
+                'maximumDurationInMicroseconds' => 1000,
                 'retryPeriodInMicroseconds' => 10,
             ],
         ];

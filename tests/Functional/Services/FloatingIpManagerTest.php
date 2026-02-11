@@ -12,6 +12,7 @@ use DigitalOceanV2\Entity\Action as ActionEntity;
 use DigitalOceanV2\Entity\Droplet;
 use DigitalOceanV2\Entity\FloatingIp as FloatingIpEntity;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -41,10 +42,9 @@ class FloatingIpManagerTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider createDataProvider
-     *
      * @param HttpResponseData $httpResponseData
      */
+    #[DataProvider('createDataProvider')]
     public function testCreate(
         array $httpResponseData,
         Instance $instance,
@@ -62,7 +62,7 @@ class FloatingIpManagerTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function createDataProvider(): array
+    public static function createDataProvider(): array
     {
         return [
             'no existing floating IP' => [
@@ -93,10 +93,9 @@ class FloatingIpManagerTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider reAssignDataProvider
-     *
      * @param HttpResponseData $httpResponseData
      */
+    #[DataProvider('reAssignDataProvider')]
     public function testReAssign(
         array $httpResponseData,
         Instance $instance,
@@ -115,7 +114,7 @@ class FloatingIpManagerTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function reAssignDataProvider(): array
+    public static function reAssignDataProvider(): array
     {
         return [
             'success' => [

@@ -9,13 +9,12 @@ use App\Model\EnvironmentVariableCollection;
 use App\Model\Secret;
 use App\Model\SecretCollection;
 use App\Services\EnvironmentVariableSecretHydrator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class EnvironmentVariableSecretHydratorTest extends TestCase
 {
-    /**
-     * @dataProvider hydrateDataProvider
-     */
+    #[DataProvider('hydrateDataProvider')]
     public function testHydrateCollection(
         EnvironmentVariableCollection $environmentVariables,
         SecretCollection $secrets,
@@ -32,7 +31,7 @@ class EnvironmentVariableSecretHydratorTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function hydrateDataProvider(): array
+    public static function hydrateDataProvider(): array
     {
         return [
             'empty collection, no secrets' => [

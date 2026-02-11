@@ -13,6 +13,7 @@ use App\Tests\Model\ExpectedFilePath;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToReadFile;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class EnvironmentVariableCollectionLoaderTest extends TestCase
@@ -42,9 +43,7 @@ class EnvironmentVariableCollectionLoaderTest extends TestCase
         self::assertEquals(new EnvironmentVariableCollection([]), $loader->load($serviceId));
     }
 
-    /**
-     * @dataProvider loadSuccessDataProvider
-     */
+    #[DataProvider('loadSuccessDataProvider')]
     public function testLoadSuccess(string $fileContent, EnvironmentVariableCollection $expected): void
     {
         $serviceId = md5((string) rand());
@@ -67,7 +66,7 @@ class EnvironmentVariableCollectionLoaderTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function loadSuccessDataProvider(): array
+    public static function loadSuccessDataProvider(): array
     {
         return [
             'empty' => [

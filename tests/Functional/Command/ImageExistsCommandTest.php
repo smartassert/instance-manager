@@ -14,6 +14,7 @@ use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Console\Command\Command;
@@ -48,11 +49,10 @@ class ImageExistsCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runThrowsExceptionDataProvider
-     *
      * @param array<int, HttpResponseData> $responseData
      * @param class-string<\Throwable>     $expectedExceptionClass
      */
+    #[DataProvider('runThrowsExceptionDataProvider')]
     public function testRunThrowsException(
         array $responseData,
         string $expectedExceptionClass,
@@ -86,7 +86,7 @@ class ImageExistsCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runThrowsExceptionDataProvider(): array
+    public static function runThrowsExceptionDataProvider(): array
     {
         return [
             'invalid api token' => [
@@ -101,11 +101,10 @@ class ImageExistsCommandTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider runSuccessDataProvider
-     *
      * @param array<mixed>                 $input
      * @param array<int, HttpResponseData> $httpResponseDataCollection
      */
+    #[DataProvider('runSuccessDataProvider')]
     public function testRunSuccess(
         array $input,
         array $httpResponseDataCollection,
@@ -134,7 +133,7 @@ class ImageExistsCommandTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function runSuccessDataProvider(): array
+    public static function runSuccessDataProvider(): array
     {
         return [
             'not exists' => [

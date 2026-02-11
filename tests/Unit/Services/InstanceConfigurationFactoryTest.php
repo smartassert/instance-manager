@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Services;
 
 use App\Services\InstanceConfigurationFactory;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use SmartAssert\DigitalOceanDropletConfiguration\Configuration;
 use SmartAssert\DigitalOceanDropletConfiguration\Factory as DropletConfigurationFactory;
@@ -15,10 +16,9 @@ class InstanceConfigurationFactoryTest extends TestCase
     use MockeryPHPUnitIntegration;
 
     /**
-     * @dataProvider createDataProvider
-     *
      * @param string[] $tags
      */
+    #[DataProvider('createDataProvider')]
     public function testCreate(
         InstanceConfigurationFactory $factory,
         string $firstBootScript,
@@ -33,7 +33,7 @@ class InstanceConfigurationFactoryTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function createDataProvider(): array
+    public static function createDataProvider(): array
     {
         $instanceCollectionTag = 'service-id-value';
         $instanceTag = 'instance-tag-value';

@@ -11,6 +11,7 @@ use App\Services\DomainLoaderInterface;
 use App\Services\EnvironmentVariableCollectionLoaderInterface;
 use App\Services\ServiceEnvironmentVariableRepository;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use webignition\ObjectReflector\ObjectReflector;
 
@@ -31,9 +32,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
         $this->repository = $repository;
     }
 
-    /**
-     * @dataProvider getCollectionSuccessDataProvider
-     */
+    #[DataProvider('getCollectionSuccessDataProvider')]
     public function testGetCollectionSuccess(
         EnvironmentVariableCollection $serviceConfigurationEnvironmentVariables,
         string $secretsJson,
@@ -70,7 +69,7 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function getCollectionSuccessDataProvider(): array
+    public static function getCollectionSuccessDataProvider(): array
     {
         return [
             'no service configuration env vars, no secrets' => [
@@ -137,11 +136,8 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
         ];
     }
 
-    /**
-     * @dataProvider getCollectionThrowsMissingSecretExceptionDataProvider
-     */
+    #[DataProvider('getCollectionThrowsMissingSecretExceptionDataProvider')]
     public function testGetCollectionThrowsMissingSecretException(
-        string $secretsJsonOption,
         EnvironmentVariableCollection $environmentVariables,
         string $expectedExceptionMessage
     ): void {
@@ -168,20 +164,17 @@ class ServiceEnvironmentVariableRepositoryTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function getCollectionThrowsMissingSecretExceptionDataProvider(): array
+    public static function getCollectionThrowsMissingSecretExceptionDataProvider(): array
     {
         return [
             'no secrets, env var references missing secret' => [
-                'secretsJson' => '',
-                'environmentVariableList' => new EnvironmentVariableCollection([
+                'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', '{{ secrets.SERVICE_ID_SECRET_001 }}'),
                 ]),
                 'expectedExceptionMessage' => 'Secret "SERVICE_ID_SECRET_001" not found',
             ],
             'has secrets, env var references missing secret not having service id as prefix' => [
-                'secretsJson' => '',
-
-                'environmentVariableList' => new EnvironmentVariableCollection([
+                'environmentVariables' => new EnvironmentVariableCollection([
                     new EnvironmentVariable('key1', '{{ secrets.DIFFERENT_SERVICE_ID_SECRET_001 }}'),
                 ]),
                 'expectedExceptionMessage' => 'Secret "DIFFERENT_SERVICE_ID_SECRET_001" not found',

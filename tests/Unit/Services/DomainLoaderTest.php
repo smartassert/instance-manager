@@ -12,6 +12,7 @@ use App\Tests\Model\ExpectedFilePath;
 use League\Flysystem\FilesystemOperator;
 use League\Flysystem\UnableToReadFile;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class DomainLoaderTest extends TestCase
@@ -44,9 +45,7 @@ class DomainLoaderTest extends TestCase
         $loader->load($serviceId);
     }
 
-    /**
-     * @dataProvider getDomainSuccessDataProvider
-     */
+    #[DataProvider('getDomainSuccessDataProvider')]
     public function testGetDomainSuccess(string $fileContent, string $expected): void
     {
         $serviceId = md5((string) rand());
@@ -70,7 +69,7 @@ class DomainLoaderTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function getDomainSuccessDataProvider(): array
+    public static function getDomainSuccessDataProvider(): array
     {
         return [
             'empty' => [

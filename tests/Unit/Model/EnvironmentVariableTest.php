@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Model;
 
 use App\Model\EnvironmentVariable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class EnvironmentVariableTest extends TestCase
 {
-    /**
-     * @dataProvider toStringDataProvider
-     */
+    #[DataProvider('toStringDataProvider')]
     public function testToString(EnvironmentVariable $environmentVariable, string $expected): void
     {
         self::assertSame($expected, (string) $environmentVariable);
@@ -20,7 +19,7 @@ class EnvironmentVariableTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function toStringDataProvider(): array
+    public static function toStringDataProvider(): array
     {
         $publicKeyValue = <<<'END'
             -----BEGIN PUBLIC KEY-----

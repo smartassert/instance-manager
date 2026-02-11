@@ -10,6 +10,7 @@ use App\Services\InstanceTagFactory;
 use DigitalOceanV2\Api\Droplet as DropletApi;
 use DigitalOceanV2\Entity\Droplet as DropletEntity;
 use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use SmartAssert\DigitalOceanDropletConfiguration\Factory as DropletConfigurationFactory;
 
@@ -17,9 +18,7 @@ class InstanceRepositoryTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    /**
-     * @dataProvider createDataProvider
-     */
+    #[DataProvider('createDataProvider')]
     public function testCreate(
         InstanceConfigurationFactory $instanceConfigurationFactory,
         string $serviceId,
@@ -77,7 +76,7 @@ class InstanceRepositoryTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function createDataProvider(): array
+    public static function createDataProvider(): array
     {
         $serviceId = 'service_id';
         $imageId = 123456;
@@ -90,7 +89,7 @@ class InstanceRepositoryTest extends TestCase
                 'serviceId' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => '',
-                'expectedCreatedUserData' => '',
+                'expectedUserData' => '',
             ],
             'has first-boot script' => [
                 'instanceConfigurationFactory' => new InstanceConfigurationFactory(
@@ -99,7 +98,7 @@ class InstanceRepositoryTest extends TestCase
                 'serviceId' => $serviceId,
                 'imageId' => $imageId,
                 'firstBootScript' => './scripts/first-boot.sh',
-                'expectedCreatedUserData' => './scripts/first-boot.sh',
+                'expectedUserData' => './scripts/first-boot.sh',
             ],
         ];
     }

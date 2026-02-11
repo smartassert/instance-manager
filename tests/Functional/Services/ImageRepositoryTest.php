@@ -7,6 +7,7 @@ namespace App\Tests\Functional\Services;
 use App\Services\ImageRepository;
 use App\Tests\Services\HttpResponseFactory;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -36,23 +37,22 @@ class ImageRepositoryTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider existsDataProvider
-     *
      * @param HttpResponseData $httpResponseData
      */
-    public function testExists(array $httpResponseData, int $imageId, bool $expectedExists): void
+    #[DataProvider('existsDataProvider')]
+    public function testExists(array $httpResponseData, int $id, bool $expectedExists): void
     {
         $this->mockHandler->append(
             $this->httpResponseFactory->createFromArray($httpResponseData)
         );
 
-        self::assertSame($expectedExists, $this->imageRepository->exists($imageId));
+        self::assertSame($expectedExists, $this->imageRepository->exists($id));
     }
 
     /**
      * @return array<mixed>
      */
-    public function existsDataProvider(): array
+    public static function existsDataProvider(): array
     {
         return [
             'not found' => [

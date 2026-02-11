@@ -7,13 +7,12 @@ namespace App\Tests\Unit\Model;
 use App\Model\Instance;
 use App\Model\InstanceCollection;
 use DigitalOceanV2\Entity\Droplet;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class InstanceCollectionTest extends TestCase
 {
-    /**
-     * @dataProvider getNewestDataProvider
-     */
+    #[DataProvider('getNewestDataProvider')]
     public function testGetNewest(InstanceCollection $collection, ?Instance $expectedNewest): void
     {
         self::assertEquals($expectedNewest, $collection->getNewest());
@@ -22,7 +21,7 @@ class InstanceCollectionTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function getNewestDataProvider(): array
+    public static function getNewestDataProvider(): array
     {
         $sortedCollection = new InstanceCollection([
             new Instance(
@@ -90,10 +89,9 @@ class InstanceCollectionTest extends TestCase
     }
 
     /**
-     * @dataProvider jsonSerializeDataProvider
-     *
      * @param array<mixed> $expected
      */
+    #[DataProvider('jsonSerializeDataProvider')]
     public function testJsonSerialize(InstanceCollection $collection, array $expected): void
     {
         self::assertSame($expected, $collection->jsonSerialize());
@@ -102,7 +100,7 @@ class InstanceCollectionTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function jsonSerializeDataProvider(): array
+    public static function jsonSerializeDataProvider(): array
     {
         return [
             'empty' => [
@@ -206,9 +204,7 @@ class InstanceCollectionTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider findByIpDataProvider
-     */
+    #[DataProvider('findByIpDataProvider')]
     public function testFindByIp(InstanceCollection $collection, string $ip, ?Instance $expected): void
     {
         self::assertSame($expected, $collection->findByIP($ip));
@@ -217,7 +213,7 @@ class InstanceCollectionTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function findByIpDataProvider(): array
+    public static function findByIpDataProvider(): array
     {
         $ip = '127.0.0.1';
 

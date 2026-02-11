@@ -10,6 +10,7 @@ use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
 use DigitalOceanV2\Entity\Droplet;
 use GuzzleHttp\Handler\MockHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 /**
@@ -54,11 +55,10 @@ class InstanceClientTest extends KernelTestCase
     }
 
     /**
-     * @dataProvider getStateDataProvider
-     *
      * @param HttpResponseData $responseData
      * @param array<mixed>     $expectedState
      */
+    #[DataProvider('getStateDataProvider')]
     public function testGetState(string $stateUrl, array $responseData, array $expectedState): void
     {
         $this->mockHandler->append($this->httpResponseFactory->createFromArray($responseData));
@@ -75,7 +75,7 @@ class InstanceClientTest extends KernelTestCase
     /**
      * @return array<mixed>
      */
-    public function getStateDataProvider(): array
+    public static function getStateDataProvider(): array
     {
         $data = [
             'string' => 'content',
