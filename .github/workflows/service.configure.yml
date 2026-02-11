@@ -64,7 +64,7 @@ jobs:
           --state-url='${{ env.state_url }}'
 
       - name: Commit
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           file_pattern: services/${{ env.service_id }}/*
           commit_message: "Automatic configuration update for ${{ env.service_id }}"
