@@ -6,8 +6,7 @@ namespace App\Tests\Unit\Model;
 
 use App\Model\Instance;
 use App\Model\InstanceCollection;
-use App\Tests\Services\DropletDataFactory;
-use App\Tests\Services\InstanceFactory;
+use DigitalOceanV2\Entity\Droplet;
 use PHPUnit\Framework\TestCase;
 
 class InstanceCollectionTest extends TestCase
@@ -26,39 +25,53 @@ class InstanceCollectionTest extends TestCase
     public function getNewestDataProvider(): array
     {
         $sortedCollection = new InstanceCollection([
-            InstanceFactory::create([
-                'id' => 123,
-                'created_at' => '2021-07-30T16:36:31Z',
-            ]),
-            InstanceFactory::create([
-                'id' => 465,
-                'created_at' => '2021-07-29T16:36:31Z',
-            ]),
-            InstanceFactory::create([
-                'id' => 789,
-                'created_at' => '2021-07-28T16:36:31Z',
-            ]),
+            new Instance(
+                new Droplet([
+                    'id' => 123,
+                    'created_at' => '2021-07-30T16:36:31Z',
+                ])
+            ),
+            new Instance(
+                new Droplet([
+                    'id' => 465,
+                    'created_at' => '2021-07-29T16:36:31Z',
+                ])
+            ),
+            new Instance(
+                new Droplet([
+                    'id' => 789,
+                    'created_at' => '2021-07-28T16:36:31Z',
+                ])
+            ),
         ]);
 
         $reverseSortedCollection = new InstanceCollection([
-            InstanceFactory::create([
-                'id' => 789,
-                'created_at' => '2021-07-28T16:36:31Z',
-            ]),
-            InstanceFactory::create([
-                'id' => 465,
-                'created_at' => '2021-07-29T16:36:31Z',
-            ]),
-            InstanceFactory::create([
-                'id' => 123,
-                'created_at' => '2021-07-30T16:36:31Z',
-            ]),
+            new Instance(
+                new Droplet([
+                    'id' => 789,
+                    'created_at' => '2021-07-28T16:36:31Z',
+                ])
+            ),
+            new Instance(
+                new Droplet([
+                    'id' => 465,
+                    'created_at' => '2021-07-29T16:36:31Z',
+                ])
+            ),
+            new Instance(
+                new Droplet([
+                    'id' => 123,
+                    'created_at' => '2021-07-30T16:36:31Z',
+                ])
+            ),
         ]);
 
-        $expectedNewest = InstanceFactory::create([
-            'id' => 123,
-            'created_at' => '2021-07-30T16:36:31Z',
-        ]);
+        $expectedNewest = new Instance(
+            new Droplet([
+                'id' => 123,
+                'created_at' => '2021-07-30T16:36:31Z',
+            ])
+        );
 
         return [
             'empty' => [
@@ -98,10 +111,12 @@ class InstanceCollectionTest extends TestCase
             ],
             'single, id-only' => [
                 'collection' => new InstanceCollection([
-                    InstanceFactory::create([
-                        'id' => 123,
-                        'created_at' => '2020-01-02T01:02:03.000Z',
-                    ]),
+                    new Instance(
+                        new Droplet([
+                            'id' => 123,
+                            'created_at' => '2020-01-02T01:02:03.000Z',
+                        ])
+                    ),
                 ]),
                 'expected' => [
                     [
@@ -115,34 +130,48 @@ class InstanceCollectionTest extends TestCase
             ],
             'multiple' => [
                 'collection' => new InstanceCollection([
-                    InstanceFactory::create([
-                        'id' => 465,
-                        'created_at' => '2020-01-02T04:05:06.000Z',
-                    ]),
-                    InstanceFactory::create(array_merge(
-                        DropletDataFactory::createWithIps(
-                            789,
-                            [
-                                '127.0.0.1',
-                                '10.0.0.1',
-                            ],
-                        ),
-                        [
+                    new Instance(
+                        new Droplet([
+                            'id' => 465,
+                            'created_at' => '2020-01-02T04:05:06.000Z',
+                        ])
+                    ),
+                    new Instance(
+                        new Droplet([
+                            'id' => 789,
                             'created_at' => '2020-01-02T07:08:09.000Z',
-                        ]
-                    )),
-                    InstanceFactory::create(array_merge(
-                        DropletDataFactory::createWithIps(
-                            321,
-                            [
-                                '127.0.0.2',
-                                '10.0.0.2',
+                            'networks' => (object) [
+                                'v4' => (object) [
+                                    (object) [
+                                        'ip_address' => '127.0.0.1',
+                                        'type' => 'public',
+                                    ],
+                                    (object) [
+                                        'ip_address' => '10.0.0.1',
+                                        'type' => 'public',
+                                    ],
+                                ],
                             ],
-                        ),
-                        [
+                        ])
+                    ),
+                    new Instance(
+                        new Droplet([
+                            'id' => 321,
                             'created_at' => '2020-01-02T03:02:01.000Z',
-                        ]
-                    )),
+                            'networks' => (object) [
+                                'v4' => (object) [
+                                    (object) [
+                                        'ip_address' => '127.0.0.2',
+                                        'type' => 'public',
+                                    ],
+                                    (object) [
+                                        'ip_address' => '10.0.0.2',
+                                        'type' => 'public',
+                                    ],
+                                ],
+                            ],
+                        ])
+                    ),
                 ]),
                 'expected' => [
                     [
@@ -191,11 +220,41 @@ class InstanceCollectionTest extends TestCase
     public function findByIpDataProvider(): array
     {
         $ip = '127.0.0.1';
-        $instanceWithMatchingIPWithSingleIP = InstanceFactory::create(
-            DropletDataFactory::createWithIps(123, [$ip])
+
+        $instanceWithMatchingIPWithSingleIP = new Instance(
+            new Droplet([
+                'id' => 123,
+                'networks' => (object) [
+                    'v4' => (object) [
+                        (object) [
+                            'ip_address' => '127.0.0.1',
+                            'type' => 'public',
+                        ],
+                    ],
+                ],
+            ])
         );
-        $instanceWithMatchingIPWithMultipleIPs = InstanceFactory::create(
-            DropletDataFactory::createWithIps(123, ['127.0.0.3', '127.0.0.2', $ip])
+
+        $instanceWithMatchingIPWithMultipleIPs = new Instance(
+            new Droplet([
+                'id' => 123,
+                'networks' => (object) [
+                    'v4' => (object) [
+                        (object) [
+                            'ip_address' => '127.0.0.3',
+                            'type' => 'public',
+                        ],
+                        (object) [
+                            'ip_address' => '127.0.0.2',
+                            'type' => 'public',
+                        ],
+                        (object) [
+                            'ip_address' => '127.0.0.1',
+                            'type' => 'public',
+                        ],
+                    ],
+                ],
+            ])
         );
 
         return [
@@ -206,32 +265,34 @@ class InstanceCollectionTest extends TestCase
             ],
             'single instance with no IPs' => [
                 'collection' => new InstanceCollection([
-                    InstanceFactory::create([
-                        'id' => 123,
-                    ]),
+                    new Instance(new Droplet(['id' => 123])),
                 ]),
                 'ip' => $ip,
                 'expected' => null,
             ],
             'multiple instance with no IPs' => [
                 'collection' => new InstanceCollection([
-                    InstanceFactory::create([
-                        'id' => 123,
-                    ]),
-                    InstanceFactory::create([
-                        'id' => 456,
-                    ]),
-                    InstanceFactory::create([
-                        'id' => 789,
-                    ]),
+                    new Instance(new Droplet(['id' => 123])),
+                    new Instance(new Droplet(['id' => 456])),
+                    new Instance(new Droplet(['id' => 789])),
                 ]),
                 'ip' => $ip,
                 'expected' => null,
             ],
             'single instance with non-matching IP' => [
                 'collection' => new InstanceCollection([
-                    InstanceFactory::create(
-                        DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                    new Instance(
+                        new Droplet([
+                            'id' => 123,
+                            'networks' => (object) [
+                                'v4' => (object) [
+                                    (object) [
+                                        'ip_address' => '127.0.0.2',
+                                        'type' => 'public',
+                                    ],
+                                ],
+                            ],
+                        ])
                     ),
                 ]),
                 'ip' => $ip,
@@ -239,14 +300,44 @@ class InstanceCollectionTest extends TestCase
             ],
             'multiple instance with non-matching IPs' => [
                 'collection' => new InstanceCollection([
-                    InstanceFactory::create(
-                        DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                    new Instance(
+                        new Droplet([
+                            'id' => 123,
+                            'networks' => (object) [
+                                'v4' => (object) [
+                                    (object) [
+                                        'ip_address' => '127.0.0.2',
+                                        'type' => 'public',
+                                    ],
+                                ],
+                            ],
+                        ])
                     ),
-                    InstanceFactory::create(
-                        DropletDataFactory::createWithIps(456, ['127.0.0.3'])
+                    new Instance(
+                        new Droplet([
+                            'id' => 456,
+                            'networks' => (object) [
+                                'v4' => (object) [
+                                    (object) [
+                                        'ip_address' => '127.0.0.3',
+                                        'type' => 'public',
+                                    ],
+                                ],
+                            ],
+                        ])
                     ),
-                    InstanceFactory::create(
-                        DropletDataFactory::createWithIps(789, ['127.0.0.4'])
+                    new Instance(
+                        new Droplet([
+                            'id' => 789,
+                            'networks' => (object) [
+                                'v4' => (object) [
+                                    (object) [
+                                        'ip_address' => '127.0.0.4',
+                                        'type' => 'public',
+                                    ],
+                                ],
+                            ],
+                        ])
                     ),
                 ]),
                 'ip' => $ip,
@@ -268,12 +359,32 @@ class InstanceCollectionTest extends TestCase
             ],
             'multiple instances with single instance having matching IP' => [
                 'collection' => new InstanceCollection([
-                    InstanceFactory::create(
-                        DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                    new Instance(
+                        new Droplet([
+                            'id' => 123,
+                            'networks' => (object) [
+                                'v4' => (object) [
+                                    (object) [
+                                        'ip_address' => '127.0.0.2',
+                                        'type' => 'public',
+                                    ],
+                                ],
+                            ],
+                        ])
                     ),
                     $instanceWithMatchingIPWithSingleIP,
-                    InstanceFactory::create(
-                        DropletDataFactory::createWithIps(456, ['127.0.0.3'])
+                    new Instance(
+                        new Droplet([
+                            'id' => 456,
+                            'networks' => (object) [
+                                'v4' => (object) [
+                                    (object) [
+                                        'ip_address' => '127.0.0.3',
+                                        'type' => 'public',
+                                    ],
+                                ],
+                            ],
+                        ])
                     ),
                 ]),
                 'ip' => $ip,

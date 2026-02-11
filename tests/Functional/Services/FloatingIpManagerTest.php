@@ -8,8 +8,8 @@ use App\Model\AssignedIp;
 use App\Model\Instance;
 use App\Services\FloatingIpManager;
 use App\Tests\Services\HttpResponseFactory;
-use App\Tests\Services\InstanceFactory;
 use DigitalOceanV2\Entity\Action as ActionEntity;
+use DigitalOceanV2\Entity\Droplet;
 use DigitalOceanV2\Entity\FloatingIp as FloatingIpEntity;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -77,11 +77,15 @@ class FloatingIpManagerTest extends KernelTestCase
                         ],
                     ]),
                 ],
-                'instance' => InstanceFactory::create(['id' => 123]),
+                'instance' => new Instance(
+                    new Droplet(['id' => 123])
+                ),
                 'expectedAssignedIp' => new AssignedIp(
                     new FloatingIpEntity([
                         'ip' => '127.0.0.100',
-                        'droplet' => InstanceFactory::create(['id' => 123])->getDroplet(),
+                        'droplet' => new Instance(
+                            new Droplet(['id' => 123])
+                        )->getDroplet(),
                     ])
                 ),
             ],
@@ -127,7 +131,7 @@ class FloatingIpManagerTest extends KernelTestCase
                         ],
                     ]),
                 ],
-                'instance' => InstanceFactory::create(['id' => 123]),
+                'instance' => new Instance(new Droplet(['id' => 123])),
                 'ip' => '127.0.0.1',
                 'expectedActionEntity' => new ActionEntity([
                     'id' => 001,

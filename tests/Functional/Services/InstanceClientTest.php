@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Services;
 
+use App\Model\Instance;
 use App\Services\InstanceClient;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
-use App\Tests\Services\InstanceFactory;
+use DigitalOceanV2\Entity\Droplet;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -44,7 +45,7 @@ class InstanceClientTest extends KernelTestCase
         $this->mockHandler->append($response);
 
         $healthCheckUrl = 'https://{{ host }}/health-check';
-        $instance = InstanceFactory::create(['id' => 123]);
+        $instance = new Instance(new Droplet(['id' => 123]));
 
         self::assertSame(
             $response,
@@ -63,7 +64,7 @@ class InstanceClientTest extends KernelTestCase
         $this->mockHandler->append($this->httpResponseFactory->createFromArray($responseData));
 
         $stateUrl = 'https://{{ host }}/state';
-        $instance = InstanceFactory::create(['id' => 123]);
+        $instance = new Instance(new Droplet(['id' => 123]));
 
         self::assertSame(
             $expectedState,

@@ -11,13 +11,14 @@ use App\Exception\ConfigurationFileValueMissingException;
 use App\Exception\ServiceConfigurationMissingException;
 use App\Model\EnvironmentVariable;
 use App\Model\EnvironmentVariableCollection;
+use App\Model\Instance;
 use App\Services\BootScriptFactory;
 use App\Services\ImageIdLoaderInterface;
 use App\Services\InstanceRepository;
 use App\Services\ServiceEnvironmentVariableRepository;
 use App\Tests\Services\HttpResponseDataFactory;
 use App\Tests\Services\HttpResponseFactory;
-use App\Tests\Services\InstanceFactory;
+use DigitalOceanV2\Entity\Droplet;
 use DigitalOceanV2\Exception\RuntimeException;
 use GuzzleHttp\Handler\MockHandler;
 use Psr\Http\Message\ResponseInterface;
@@ -273,9 +274,9 @@ class InstanceCreateCommandTest extends KernelTestCase
             ->andReturnNull()
         ;
 
-        $instance = InstanceFactory::create([
-            'id' => 123,
-        ]);
+        $instance = new Instance(
+            new Droplet(['id' => 123]),
+        );
 
         $instanceRepository
             ->shouldReceive('create')

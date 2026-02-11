@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Model;
 
 use App\Model\Instance;
-use App\Tests\Services\DropletDataFactory;
-use App\Tests\Services\InstanceFactory;
+use DigitalOceanV2\Entity\Droplet;
 use PHPUnit\Framework\TestCase;
 
 class InstanceTest extends TestCase
@@ -26,29 +25,65 @@ class InstanceTest extends TestCase
     {
         return [
             'no IPs' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                ]),
+                'instance' => new Instance(new Droplet(['id' => 123])),
                 'ip' => '127.0.0.1',
                 'expectedHas' => false,
             ],
             'no matching IP' => [
-                'instance' => InstanceFactory::create(
-                    DropletDataFactory::createWithIps(123, ['127.0.0.2'])
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'networks' => (object) [
+                            'v4' => (object) [
+                                (object) [
+                                    'ip_address' => '127.0.0.2',
+                                    'type' => 'public',
+                                ],
+                            ],
+                        ],
+                    ])
                 ),
                 'ip' => '127.0.0.1',
                 'expectedHas' => false,
             ],
             'single IP, matching' => [
-                'instance' => InstanceFactory::create(
-                    DropletDataFactory::createWithIps(123, ['127.0.0.1'])
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'networks' => (object) [
+                            'v4' => (object) [
+                                (object) [
+                                    'ip_address' => '127.0.0.1',
+                                    'type' => 'public',
+                                ],
+                            ],
+                        ],
+                    ])
                 ),
                 'ip' => '127.0.0.1',
                 'expectedHas' => true,
             ],
             'three IPs, third matching' => [
-                'instance' => InstanceFactory::create(
-                    DropletDataFactory::createWithIps(123, ['127.0.0.1', '127.0.0.2', '127.0.0.3'])
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'networks' => (object) [
+                            'v4' => (object) [
+                                (object) [
+                                    'ip_address' => '127.0.0.1',
+                                    'type' => 'public',
+                                ],
+                                (object) [
+                                    'ip_address' => '127.0.0.2',
+                                    'type' => 'public',
+                                ],
+                                (object) [
+                                    'ip_address' => '127.0.0.3',
+                                    'type' => 'public',
+                                ],
+                            ],
+                        ],
+                    ])
                 ),
                 'ip' => '127.0.0.3',
                 'expectedHas' => true,
@@ -71,29 +106,35 @@ class InstanceTest extends TestCase
     {
         return [
             'no tags' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                    ])
+                ),
                 'expectedLabel' => '123 ([no tags])',
             ],
             'single tag' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 456,
-                    'tags' => [
-                        'tag1',
-                    ],
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 456,
+                        'tags' => [
+                            'tag1',
+                        ],
+                    ])
+                ),
                 'expectedLabel' => '456 (tag1)',
             ],
             'multiple tags' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 789,
-                    'tags' => [
-                        'tag1',
-                        'tag2',
-                        'tag3',
-                    ],
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 789,
+                        'tags' => [
+                            'tag1',
+                            'tag2',
+                            'tag3',
+                        ],
+                    ])
+                ),
                 'expectedLabel' => '789 (tag1, tag2, tag3)',
             ],
         ];
@@ -116,10 +157,12 @@ class InstanceTest extends TestCase
     {
         return [
             'id only' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                    'created_at' => '2020-01-02T01:02:03.000Z',
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'created_at' => '2020-01-02T01:02:03.000Z',
+                    ])
+                ),
                 'expected' => [
                     'id' => 123,
                     'state' => [
@@ -129,10 +172,12 @@ class InstanceTest extends TestCase
                 ],
             ],
             'id, no IP addresses' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 789,
-                    'created_at' => '2020-01-02T07:08:09.000Z',
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 789,
+                        'created_at' => '2020-01-02T07:08:09.000Z',
+                    ])
+                ),
                 'expected' => [
                     'id' => 789,
                     'state' => [
@@ -142,18 +187,24 @@ class InstanceTest extends TestCase
                 ],
             ],
             'id and IP addresses' => [
-                'instance' => InstanceFactory::create(array_merge(
-                    DropletDataFactory::createWithIps(
-                        456,
-                        [
-                            '127.0.0.1',
-                            '10.0.0.1',
-                        ]
-                    ),
-                    [
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 456,
                         'created_at' => '2020-01-02T04:05:06.000Z',
-                    ]
-                )),
+                        'networks' => (object) [
+                            'v4' => (object) [
+                                (object) [
+                                    'ip_address' => '127.0.0.1',
+                                    'type' => 'public',
+                                ],
+                                (object) [
+                                    'ip_address' => '10.0.0.1',
+                                    'type' => 'public',
+                                ],
+                            ],
+                        ],
+                    ])
+                ),
                 'expected' => [
                     'id' => 456,
                     'state' => [
@@ -183,38 +234,48 @@ class InstanceTest extends TestCase
     {
         return [
             'status: new' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                    'status' => Instance::DROPLET_STATUS_NEW,
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'status' => Instance::DROPLET_STATUS_NEW,
+                    ])
+                ),
                 'expectedDropletStatus' => Instance::DROPLET_STATUS_NEW,
             ],
             'status: active' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                    'status' => Instance::DROPLET_STATUS_ACTIVE,
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'status' => Instance::DROPLET_STATUS_ACTIVE,
+                    ])
+                ),
                 'expectedDropletStatus' => Instance::DROPLET_STATUS_ACTIVE,
             ],
             'status: off' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                    'status' => 'off',
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'status' => 'off',
+                    ])
+                ),
                 'expectedDropletStatus' => 'off',
             ],
             'status: archive' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                    'status' => Instance::DROPLET_STATUS_ARCHIVE,
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'status' => Instance::DROPLET_STATUS_ARCHIVE,
+                    ])
+                ),
                 'expectedDropletStatus' => Instance::DROPLET_STATUS_ARCHIVE,
             ],
             'status: unknown' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                    'status' => 'foo',
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'status' => 'foo',
+                    ])
+                ),
                 'expectedDropletStatus' => Instance::DROPLET_STATUS_UNKNOWN,
             ],
         ];
@@ -240,23 +301,35 @@ class InstanceTest extends TestCase
 
         return [
             'id and created_at only' => [
-                'instance' => InstanceFactory::create([
-                    'id' => 123,
-                    'created_at' => $now,
-                ]),
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'created_at' => $now,
+                    ])
+                ),
                 'expected' => [
                     'ips' => [],
                     'created_at' => $now,
                 ],
             ],
             'id, created_at and ip addresses' => [
-                'instance' => InstanceFactory::create(
-                    array_merge(
-                        DropletDataFactory::createWithIps(123, ['127.0.0.1', '127.0.0.2']),
-                        [
-                            'created_at' => $yesterday,
-                        ]
-                    )
+                'instance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'created_at' => $yesterday,
+                        'networks' => (object) [
+                            'v4' => (object) [
+                                (object) [
+                                    'ip_address' => '127.0.0.1',
+                                    'type' => 'public',
+                                ],
+                                (object) [
+                                    'ip_address' => '127.0.0.2',
+                                    'type' => 'public',
+                                ],
+                            ],
+                        ],
+                    ])
                 ),
                 'expected' => [
                     'ips' => [

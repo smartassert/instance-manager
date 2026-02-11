@@ -7,7 +7,7 @@ namespace App\Tests\Functional\Services;
 use App\Model\Instance;
 use App\Services\InstanceRepository;
 use App\Tests\Services\HttpResponseFactory;
-use App\Tests\Services\InstanceFactory;
+use DigitalOceanV2\Entity\Droplet;
 use GuzzleHttp\Handler\MockHandler;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
@@ -60,7 +60,7 @@ class InstanceRepositoryTest extends KernelTestCase
         $instance = $this->instanceRepository->create('service_id', 123465, '');
 
         self::assertEquals(
-            InstanceFactory::create($dropletData),
+            new Instance(new Droplet($dropletData)),
             $instance
         );
     }
@@ -113,7 +113,7 @@ class InstanceRepositoryTest extends KernelTestCase
                     ],
                 ]),
                 'expectedInstances' => [
-                    InstanceFactory::create(['id' => 123]),
+                    new Instance(new Droplet(['id' => 123])),
                 ],
             ],
             'many' => [
@@ -131,9 +131,9 @@ class InstanceRepositoryTest extends KernelTestCase
                     ],
                 ]),
                 'expectedInstances' => [
-                    InstanceFactory::create(['id' => 123]),
-                    InstanceFactory::create(['id' => 456]),
-                    InstanceFactory::create(['id' => 789]),
+                    new Instance(new Droplet(['id' => 123])),
+                    new Instance(new Droplet(['id' => 456])),
+                    new Instance(new Droplet(['id' => 789])),
                 ],
             ],
         ];
@@ -179,10 +179,10 @@ class InstanceRepositoryTest extends KernelTestCase
                         ],
                     ],
                 ]),
-                'expectedInstance' => InstanceFactory::create([
+                'expectedInstance' => new Instance(new Droplet([
                     'id' => 123,
                     'created_at' => '2021-07-28T16:36:31Z',
-                ]),
+                ])),
             ],
             'multiple droplets' => [
                 'httpResponseBody' => (string) json_encode([
@@ -201,10 +201,10 @@ class InstanceRepositoryTest extends KernelTestCase
                         ],
                     ],
                 ]),
-                'expectedInstance' => InstanceFactory::create([
+                'expectedInstance' => new Instance(new Droplet([
                     'id' => 798,
                     'created_at' => '2021-07-30T16:36:31Z',
-                ]),
+                ])),
             ],
         ];
     }
@@ -235,7 +235,7 @@ class InstanceRepositoryTest extends KernelTestCase
                     HttpResponseFactory::KEY_STATUS_CODE => 404,
                 ],
                 'id' => 0,
-                'expectedImage' => null,
+                'expectedInstance' => null,
             ],
             'found' => [
                 'httpResponseData' => [
@@ -251,7 +251,12 @@ class InstanceRepositoryTest extends KernelTestCase
                     ]),
                 ],
                 'id' => 123,
-                'expectedImage' => InstanceFactory::create(['id' => 123, 'created_at' => '2020-01-02T01:02:03.000Z']),
+                'expectedInstance' => new Instance(
+                    new Droplet([
+                        'id' => 123,
+                        'created_at' => '2020-01-02T01:02:03.000Z',
+                    ]),
+                ),
             ],
         ];
     }
