@@ -54,6 +54,6 @@ jobs:
           jq "." <<< "$ENV_VARS_JSON" > "$CONFIGURATION_PATH"
 
       - name: Commit
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Automatic env update for ${{ env.service_id }}"
