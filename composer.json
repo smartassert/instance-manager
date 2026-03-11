@@ -10,7 +10,7 @@
         "guzzlehttp/guzzle": "^7.4",
         "league/flysystem": "^3.15",
         "php-http/client-common": "^2.5",
-        "smartassert/digitalocean-droplet-configuration": "^1.2",
+        "smartassert/digitalocean-droplet-configuration": "^5.1",
         "symfony/console": "8.0.*",
         "symfony/dotenv": "8.0.*",
         "symfony/flex": "^2.0",
